@@ -13,9 +13,13 @@
     <string name="channel_name_upload">Upload Notification</string>
     <string name="channel_description_upload">Notification to highlight when files were successfully uploaded</string>
 
-    <!-- auth -->
+    <!-- auth0 -->
     <string name="auth_client_id">maw_photos_android</string>
     <string name="auth_scheme_redirect_uri">us.mikeandwan.photos:/signin-oidc</string>
+
+    <string name="auth0_client_id">DPt0lW0I54xvm3EwVNvNChnhGz48csq6</string>
+    <string name="auth0_domain">login.mikeandwan.us</string>
+    <string name="auth0_scheme">demo</string>
 
     <!-- about -->
     <string name="fragment_about_mikeandwan_us">mikeandwan.us</string>

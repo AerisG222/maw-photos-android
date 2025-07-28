@@ -10,7 +10,6 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.api.PhotoApiClient
-import us.mikeandwan.photos.authorization.AuthAuthenticator
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -28,11 +27,9 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        authenticator: AuthAuthenticator,
         authInterceptor: AuthInterceptor
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
-            .authenticator(authenticator)
             .addInterceptor(authInterceptor)
 
         if(BuildConfig.DEBUG) {

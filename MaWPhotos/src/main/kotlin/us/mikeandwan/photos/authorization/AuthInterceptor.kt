@@ -1,17 +1,29 @@
 package us.mikeandwan.photos.authorization
 
+import com.auth0.android.authentication.storage.CredentialsManager
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
-import us.mikeandwan.photos.domain.AuthorizationRepository
+import timber.log.Timber
 import java.io.IOException
 
 class AuthInterceptor(
-    private val authorizationRepository: AuthorizationRepository
+    private val credManager: CredentialsManager
 ) : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val srcRequest = chain.request()
-        val accessToken = authorizationRepository.authState.value.accessToken
+        var accessToken: String? = null
+
+        runBlocking {
+            try {
+                val credentials = credManager.awaitCredentials()
+                accessToken = credentials.accessToken
+            }
+            catch (e: Exception) {
+                Timber.e(e, "Error trying to get credentials")
+            }
+        }
 
         if(accessToken != null) {
             val request = srcRequest.newBuilder()

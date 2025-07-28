@@ -1,8 +1,6 @@
 package us.mikeandwan.photos.ui.screens.login
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -29,7 +28,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
 import kotlinx.serialization.Serializable
-import timber.log.Timber
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.logo.Logo
@@ -46,23 +44,6 @@ fun NavGraphBuilder.loginScreen(
     composable<LoginRoute> {
         val vm: LoginViewModel = hiltViewModel()
         val state by vm.state.collectAsStateWithLifecycle()
-        val notifyStartLogin by vm.notifyStartLogin.collectAsStateWithLifecycle()
-
-        val loginLauncher = rememberLauncherForActivityResult (
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                vm.handleAuthorizeCallback(result.data!!)
-            } else {
-                Timber.i("user cancelled auth process")
-            }
-        }
-
-        LaunchedEffect(notifyStartLogin) {
-            notifyStartLogin?.let {
-                loginLauncher.launch(it)
-            }
-        }
 
         when(state) {
             is LoginState.Unknown -> {}
@@ -77,7 +58,8 @@ fun NavGraphBuilder.loginScreen(
                 LoginScreen(
                     state as LoginState.NotAuthorized,
                     updateTopBar,
-                    setNavArea
+                    setNavArea,
+                    { context -> vm.login(context) }
                 )
             }
         }
@@ -89,8 +71,10 @@ fun LoginScreen(
     state: LoginState.NotAuthorized,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
+    login: (Context) -> Unit
 ) {
     val tangerine = FontFamily(Font(R.font.tangerine))
+    val ctx = LocalContext.current
 
     LaunchedEffect(Unit) {
         updateTopBar(
@@ -157,7 +141,7 @@ fun LoginScreen(
                     .padding(0.dp, 32.dp, 0.dp, 24.dp)
             ) {
                 Button(
-                    onClick = { state.initiateAuthentication() }
+                    onClick = { login(ctx) }
                 ) {
                     Text(
                         text = stringResource(id = R.string.activity_login_login_button_text)
@@ -172,7 +156,8 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(
-        LoginState.NotAuthorized {},
+        LoginState.NotAuthorized,
+        {},
         {},
         {}
     )

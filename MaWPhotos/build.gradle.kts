@@ -18,12 +18,18 @@ android {
     namespace = "us.mikeandwan.photos"
 
     defaultConfig {
-        manifestPlaceholders += mapOf("appAuthRedirectScheme" to "us.mikeandwan.photos")
         applicationId = "us.mikeandwan.pictures"
         minSdk = 26
         targetSdk = 35
         versionCode = 74
         versionName = "8.6"
+
+        manifestPlaceholders += mapOf(
+            "appAuthRedirectScheme" to "us.mikeandwan.photos",
+
+            "auth0Domain" to "@string/auth0_domain",
+            "auth0Scheme" to "@string/auth0_scheme"
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -144,6 +150,7 @@ dependencies {
     implementation(libs.google.hilt)
     ksp(libs.google.hilt.android.compiler)
 
+    implementation(libs.auth0)
     implementation(libs.appauth)
     implementation(libs.coil)
     implementation(libs.compose.ratingbar)

@@ -1,148 +1,50 @@
 package us.mikeandwan.photos.authorization
 
 import android.app.Application
-import android.content.Intent
-import android.net.Uri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
-import net.openid.appauth.*
-import net.openid.appauth.AuthorizationServiceConfiguration.fetchFromIssuer
+import android.content.Context
 import timber.log.Timber
-import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.AuthorizationRepository
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
-import androidx.core.net.toUri
+import com.auth0.android.Auth0
+import com.auth0.android.authentication.AuthenticationException
+import com.auth0.android.authentication.storage.CredentialsManager
+import com.auth0.android.provider.WebAuthProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-// inspired by: https://curity.io/resources/learn/kotlin-android-appauth/
 class AuthService(
-    application: Application,
-    private val authorizationService: AuthorizationService,
-    private val authorizationRepository: AuthorizationRepository
+    private val application: Application,
+    private val auth0: Auth0,
+    private val credMgr: CredentialsManager
 ) {
-    private val authClientId: String = application.resources.getString(R.string.auth_client_id)
-    private val authSchemeRedirect: String = application.resources.getString(R.string.auth_scheme_redirect_uri)
-    private val authSchemeRedirectUri: Uri = authSchemeRedirect.toUri()
+    private val _authStatus = MutableStateFlow<AuthStatus>(
+        if(credMgr.hasValidCredentials())
+            AuthStatus.Authorized else AuthStatus.RequiresAuthorization
+    )
+    val authStatus = _authStatus.asStateFlow()
 
-    val authStatus = authorizationRepository.authState
-        .map {
-            when {
-                it.isAuthorized -> AuthStatus.Authorized
-                it.refreshToken != null -> AuthStatus.Authorized
-                else -> AuthStatus.RequiresAuthorization
-            }
+    suspend fun login(activity: Context) {
+        try {
+            val credentials = WebAuthProvider
+                .login(auth0)
+                .withScheme(application.getString(R.string.auth0_scheme))
+                .withScope("openid email profile offline_access")  // "openid offline_access profile email role maw_api"
+                .await(activity)
+            credMgr.saveCredentials(credentials)
+            _authStatus.value = AuthStatus.Authorized
+        } catch (e: AuthenticationException) {
+            _authStatus.value = AuthStatus.RequiresAuthorization
+            Timber.e(e, "Error trying to login with Auth0")
         }
+    }
 
     suspend fun logout() {
-       authorizationRepository.save(null)
-    }
-
-    suspend fun loadConfig(): AuthorizationServiceConfiguration {
-        return withContext(Dispatchers.IO) {
-            return@withContext suspendCoroutine { continuation ->
-                fetchFromIssuer(Constants.AUTH_BASE_URL.toUri()) { metadata, ex ->
-                    when {
-                        metadata != null -> {
-                            Timber.i("metadata retrieved successfully")
-                            Timber.d(metadata.toJsonString())
-                            continuation.resume(metadata)
-                        }
-
-                        else -> {
-                            val error = createAuthorizationError(
-                                "failed to fetch openidc configuration",
-                                ex
-                            )
-                            continuation.resumeWithException(error)
-                        }
-                    }
-                }
-            }
+        try {
+            WebAuthProvider
+                .logout(auth0)
+                .await(application)
+            println("Logged out")
+        } catch(e: AuthenticationException) {
+            Timber.e(e, "Error trying to logout from Auth0")
         }
-    }
-
-    fun getAuthorizationRedirectIntent(metadata: AuthorizationServiceConfiguration): Intent {
-        val request = AuthorizationRequest.Builder(
-            metadata,
-            authClientId,
-            ResponseTypeValues.CODE,
-            authSchemeRedirectUri
-        )
-            .setScope("openid offline_access profile email role maw_api")
-            .build()
-
-        return authorizationService.getAuthorizationRequestIntent(request)
-    }
-
-    fun completeAuthorization(
-        response: AuthorizationResponse?,
-        ex: AuthorizationException?
-    ) : AuthorizationResponse {
-        if (response == null) {
-            throw createAuthorizationError("Authorization Request Error", ex)
-        }
-
-        Timber.i("Authorization response received successfully")
-        Timber.d("CODE: ${response.authorizationCode}, STATE: ${response.state}")
-
-        return response
-    }
-
-    suspend fun redeemCodeForTokens(authResponse: AuthorizationResponse): TokenResponse? {
-        return suspendCoroutine { continuation ->
-            val extraParams = mutableMapOf<String, String>()
-            val tokenRequest = authResponse.createTokenExchangeRequest(extraParams)
-
-            authorizationService.performTokenRequest(tokenRequest) { tokenResponse, ex ->
-                when {
-                    tokenResponse != null -> {
-                        Timber.i("Authorization code grant response received successfully")
-                        Timber.d("AT: ${tokenResponse.accessToken}, RT: ${tokenResponse.refreshToken}, IDT: ${tokenResponse.idToken}" )
-                        continuation.resume(tokenResponse)
-                    }
-                    else -> {
-                        val error = createAuthorizationError("Authorization Response Error", ex)
-                        continuation.resumeWithException(error)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun createAuthorizationError(title: String, ex: AuthorizationException?): ServerCommunicationException {
-        val parts = mutableListOf<String>()
-
-        if (ex?.type != null) {
-            parts.add("(${ex.type} / ${ex.code})")
-        }
-
-        if (ex?.error != null) {
-            parts.add(ex.error!!)
-        }
-
-        val description: String = if (ex?.errorDescription != null) {
-            ex.errorDescription!!
-        } else {
-            "Unknown Error"
-        }
-        parts.add(description)
-
-        val fullDescription = parts.joinToString(" : ")
-        Timber.e(fullDescription)
-
-        return ServerCommunicationException(title, fullDescription)
     }
 }
-
-class ServerCommunicationException(
-    errorTitle: String,
-    errorDescription: String?) : ApplicationException(errorTitle, errorDescription)
-
-open class ApplicationException(val errorTitle: String,
-                                val errorDescription: String?) : RuntimeException()
-
-class InvalidIdTokenException(errorDescription: String) :
-    ApplicationException("Invalid ID Token", errorDescription)
