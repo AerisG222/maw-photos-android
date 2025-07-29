@@ -13,8 +13,6 @@ import net.openid.appauth.AuthorizationService
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import us.mikeandwan.photos.authorization.AuthService
-import us.mikeandwan.photos.database.AuthorizationDao
-import us.mikeandwan.photos.domain.AuthorizationRepository
 import javax.inject.Singleton
 
 @Module
@@ -28,11 +26,6 @@ object AuthModule {
         credManager: CredentialsManager
     ): AuthService =
         AuthService(application, auth0, credManager)
-
-    @Provides
-    @Singleton
-    fun provideAuthorizationRepository(authorizationDao: AuthorizationDao): AuthorizationRepository =
-        AuthorizationRepository(authorizationDao)
 
     @Provides
     @Singleton

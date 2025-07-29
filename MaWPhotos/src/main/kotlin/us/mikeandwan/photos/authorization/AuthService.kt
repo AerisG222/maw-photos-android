@@ -52,4 +52,8 @@ class AuthService(
         Timber.d("Updating auth status to $newStatus")
         _authStatus.value = newStatus
     }
+
+    fun hasValidCredentials(): Boolean {
+        return credMgr.hasValidCredentials()
+    }
 }

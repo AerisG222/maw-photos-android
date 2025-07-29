@@ -6,7 +6,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
 import us.mikeandwan.photos.authorization.AuthService
-import us.mikeandwan.photos.domain.AuthorizationRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaCategoryRepository
@@ -55,8 +54,8 @@ object ViewModelModule {
 
     @Provides
     @ViewModelScoped
-    fun provideAuthGuard(authService: AuthService, authorizationRepository: AuthorizationRepository): AuthGuard =
-        AuthGuard(authService, authorizationRepository)
+    fun provideAuthGuard(authService: AuthService): AuthGuard =
+        AuthGuard(authService)
 
     @Provides
     @ViewModelScoped
