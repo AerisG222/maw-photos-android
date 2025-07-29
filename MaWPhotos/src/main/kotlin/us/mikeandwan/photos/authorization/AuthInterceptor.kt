@@ -8,6 +8,7 @@ import timber.log.Timber
 import java.io.IOException
 
 class AuthInterceptor(
+    private val authService: AuthService,
     private val credManager: CredentialsManager
 ) : Interceptor {
     @Throws(IOException::class)
@@ -21,6 +22,7 @@ class AuthInterceptor(
                 accessToken = credentials.accessToken
             }
             catch (e: Exception) {
+                authService.updateStatus(AuthStatus.RequiresAuthorization)
                 Timber.e(e, "Error trying to get credentials")
             }
         }

@@ -47,4 +47,9 @@ class AuthService(
             Timber.e(e, "Error trying to logout from Auth0")
         }
     }
+
+    fun updateStatus(newStatus: AuthStatus) {
+        Timber.d("Updating auth status to $newStatus")
+        _authStatus.value = newStatus
+    }
 }
