@@ -29,8 +29,7 @@ sleep 60
 
 echo '*** Certificate Authority ***'
 echo '  - copying public cert to emulator'
-#$ADB push ~/git/mikeandwan.us/maw_certs/ca/ca.crt /sdcard/mawdev.public.crt
-$ADB push ~/maw_dev/certs/ca/ca.crt /sdcard/mawdev.public.crt
+$ADB push ~/maw-ca/maw-ca.crt /sdcard/maw-ca.crt
 
 echo '  - Add certificate to emulator (must be performed manually within the emulator):'
 echo '    1. Settings > Security > Credential Storage'

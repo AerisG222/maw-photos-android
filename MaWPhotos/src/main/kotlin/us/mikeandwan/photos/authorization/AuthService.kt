@@ -37,12 +37,13 @@ class AuthService(
         }
     }
 
-    suspend fun logout() {
+    suspend fun logout(activity: Context) {
         try {
             WebAuthProvider
                 .logout(auth0)
-                .await(application)
-            println("Logged out")
+                .withScheme(application.getString(R.string.auth0_scheme))
+                .await(activity)
+            credMgr.clearCredentials()
         } catch(e: AuthenticationException) {
             Timber.e(e, "Error trying to logout from Auth0")
         }

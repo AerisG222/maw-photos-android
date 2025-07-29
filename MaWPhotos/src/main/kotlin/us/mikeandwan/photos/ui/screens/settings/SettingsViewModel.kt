@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.ui.screens.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -141,9 +142,9 @@ class SettingsViewModel @Inject constructor (
         errorRepository.showError(message)
     }
 
-    fun logout() {
+    fun logout(context: Context) {
         viewModelScope.launch {
-            authService.logout()
+            authService.logout(context)
         }
     }
 }

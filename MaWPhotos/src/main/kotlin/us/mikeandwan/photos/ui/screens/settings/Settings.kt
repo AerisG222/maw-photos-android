@@ -145,7 +145,7 @@ fun NavGraphBuilder.settingsScreen(
             setSearchDisplayType = { viewModel.setSearchDisplayType(it) },
             setSearchThumbnailSize = { viewModel.setSearchThumbnailSize(it) },
             logout = {
-                viewModel.logout()
+                viewModel.logout(context)
                 navigateToLogin()
             }
         )

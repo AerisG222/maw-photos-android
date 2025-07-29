@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.ui.screens.login
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +43,7 @@ fun NavGraphBuilder.loginScreen(
     composable<LoginRoute> {
         val vm: LoginViewModel = hiltViewModel()
         val state by vm.state.collectAsStateWithLifecycle()
+        val context = LocalContext.current
 
         when(state) {
             is LoginState.Unknown -> {}
@@ -59,7 +59,7 @@ fun NavGraphBuilder.loginScreen(
                     state as LoginState.NotAuthorized,
                     updateTopBar,
                     setNavArea,
-                    { context -> vm.login(context) }
+                    { vm.login(context) }
                 )
             }
         }
@@ -71,10 +71,9 @@ fun LoginScreen(
     state: LoginState.NotAuthorized,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    login: (Context) -> Unit
+    login: () -> Unit
 ) {
     val tangerine = FontFamily(Font(R.font.tangerine))
-    val ctx = LocalContext.current
 
     LaunchedEffect(Unit) {
         updateTopBar(
@@ -141,7 +140,7 @@ fun LoginScreen(
                     .padding(0.dp, 32.dp, 0.dp, 24.dp)
             ) {
                 Button(
-                    onClick = { login(ctx) }
+                    onClick = login
                 ) {
                     Text(
                         text = stringResource(id = R.string.activity_login_login_button_text)
