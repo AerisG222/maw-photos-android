@@ -13,6 +13,7 @@ sudo dnsmasq \
     --log-facility - \
     --listen-address "${DNS_SERVER_IP}" \
     --server 8.8.8.8 \
-    --address /mikeandwan.us/10.0.2.2
+    --host-record dev-media.mikeandwan.us,10.0.2.2
 
+#    --address /mikeandwan.us/10.0.2.2
 #    --domain mikeandwan.us \
