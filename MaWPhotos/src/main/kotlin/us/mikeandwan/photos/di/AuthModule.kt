@@ -34,8 +34,8 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(authService: AuthService, credManager: CredentialsManager): AuthInterceptor =
-        AuthInterceptor(authService, credManager)
+    fun provideAuthInterceptor(application: Application, authService: AuthService, credManager: CredentialsManager): AuthInterceptor =
+        AuthInterceptor(application, authService, credManager)
 
     @Provides
     @Singleton
