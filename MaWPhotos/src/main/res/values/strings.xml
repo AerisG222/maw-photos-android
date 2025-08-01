@@ -20,6 +20,7 @@
     <string name="auth0_client_id">DPt0lW0I54xvm3EwVNvNChnhGz48csq6</string>
     <string name="auth0_domain">login.mikeandwan.us</string>
     <string name="auth0_scheme">demo</string>
+    <string name="auth0_audience_api">https://dev-media.mikeandwan.us</string>
 
     <!-- about -->
     <string name="fragment_about_mikeandwan_us">mikeandwan.us</string>

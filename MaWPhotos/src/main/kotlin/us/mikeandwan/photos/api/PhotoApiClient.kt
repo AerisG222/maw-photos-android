@@ -9,7 +9,7 @@ class PhotoApiClient @Inject constructor(
     private val _photoApi: PhotoApi by lazy { retrofit.create(PhotoApi::class.java) }
 
     suspend fun getRecentCategories(sinceId: Int): ApiResult<ApiCollection<Category>> {
-        return makeApiCall(::getRecentCategories.name, suspend { _photoApi.getRecentCategories(sinceId) })
+        return makeApiCall(::getRecentCategories.name, suspend { _photoApi.getRecentCategories(/*sinceId*/) })
     }
 
     suspend fun getPhotos(categoryId: Int): ApiResult<ApiCollection<Photo>> {

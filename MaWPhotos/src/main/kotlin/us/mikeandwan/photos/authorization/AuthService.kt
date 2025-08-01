@@ -22,15 +22,23 @@ class AuthService(
     )
     val authStatus = _authStatus.asStateFlow()
 
+    init {
+        _authStatus.value = AuthStatus.RequiresAuthorization
+    }
+
     suspend fun login(activity: Context) {
         try {
             val credentials = WebAuthProvider
                 .login(auth0)
+                .withAudience(application.getString(R.string.auth0_audience_api))
                 .withScheme(application.getString(R.string.auth0_scheme))
-                .withScope("openid email profile offline_access")  // "openid offline_access profile email role maw_api"
+                .withScope(getScopes())
                 .await(activity)
+
             credMgr.saveCredentials(credentials)
             _authStatus.value = AuthStatus.Authorized
+
+            Timber.d("Successfully logged in with Auth0")
         } catch (e: AuthenticationException) {
             _authStatus.value = AuthStatus.RequiresAuthorization
             Timber.e(e, "Error trying to login with Auth0")
@@ -54,7 +62,16 @@ class AuthService(
         _authStatus.value = newStatus
     }
 
-    fun hasValidCredentials(): Boolean {
-        return credMgr.hasValidCredentials()
+    fun getScopes(): String {
+        return arrayOf(
+            "openid",
+            "email",
+            "profile",
+            "offline_access",
+            "${application.getString(R.string.auth0_audience_api)}/media:read",
+            "${application.getString(R.string.auth0_audience_api)}/media:write",
+            "${application.getString(R.string.auth0_audience_api)}/comments:read",
+            "${application.getString(R.string.auth0_audience_api)}/comments:write"
+        ).joinToString(" ")
     }
 }

@@ -20,6 +20,7 @@ class AuthInterceptor(
             try {
                 val credentials = credManager.awaitCredentials()
                 accessToken = credentials.accessToken
+                Timber.i("Attempting to get credentials from Auth0: ${srcRequest.url}" )
             }
             catch (e: Exception) {
                 authService.updateStatus(AuthStatus.RequiresAuthorization)

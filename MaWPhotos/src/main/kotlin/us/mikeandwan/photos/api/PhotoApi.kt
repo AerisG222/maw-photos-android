@@ -4,8 +4,11 @@ import retrofit2.Response
 import retrofit2.http.*
 
 internal interface PhotoApi {
-    @GET("photo-categories/recent/{sinceId}")
-    suspend fun getRecentCategories(@Path("sinceId") sinceId: Int): Response<ApiCollection<Category>>
+//    @GET("photo-categories/recent/{sinceId}")
+//    suspend fun getRecentCategories(@Path("sinceId") sinceId: Int): Response<ApiCollection<Category>>
+
+    @GET("categories/")
+    suspend fun getRecentCategories(): Response<ApiCollection<Category>>
 
     @GET("photos/{photoId}/exif")
     suspend fun getExifData(@Path("photoId") photoId: Int): Response<ExifData>
