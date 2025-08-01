@@ -9,7 +9,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import net.openid.appauth.AuthorizationService
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import us.mikeandwan.photos.authorization.AuthService
@@ -26,11 +25,6 @@ object AuthModule {
         credManager: CredentialsManager
     ): AuthService =
         AuthService(application, auth0, credManager)
-
-    @Provides
-    @Singleton
-    fun provideAuthorizationService(application: Application): AuthorizationService =
-        AuthorizationService(application)
 
     @Provides
     @Singleton

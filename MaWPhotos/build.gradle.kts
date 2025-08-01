@@ -19,7 +19,6 @@ android {
 
     defaultConfig {
         manifestPlaceholders += mapOf(
-            "appAuthRedirectScheme" to "us.mikeandwan.photos",
             "auth0Domain" to "@string/auth0_domain",
             "auth0Scheme" to "@string/auth0_scheme"
         )
@@ -149,7 +148,6 @@ dependencies {
     ksp(libs.google.hilt.android.compiler)
 
     implementation(libs.auth0)
-    implementation(libs.appauth)
     implementation(libs.coil)
     implementation(libs.compose.ratingbar)
     implementation(libs.flowext)

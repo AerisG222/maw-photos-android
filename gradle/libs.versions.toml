@@ -30,7 +30,6 @@ kotlinx-serialization = "1.9.0"
 ksp = "2.2.0-2.0.2"
 
 auth0 = "3.8.0"
-appauth = "0.11.1"
 coil = "2.7.0"
 flowext = "1.0.0"
 markdown = "0.5.7"
@@ -82,7 +81,6 @@ jetbrains-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlin
 jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 auth0 = { group = "com.auth0.android", name = "auth0", version.ref = "auth0" }
-appauth = { group = "net.openid", name = "appauth", version.ref = "appauth" }
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 compose-ratingbar = { group = "com.github.SmartToolFactory", name = "Compose-RatingBar", version.ref = "ratingbar" }
 flowext = { group = "io.github.hoc081098", name = "FlowExt", version.ref = "flowext" }
