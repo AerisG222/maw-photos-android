@@ -20,7 +20,6 @@ import us.mikeandwan.photos.domain.PeriodicJob
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaCategory
 import us.mikeandwan.photos.domain.models.MediaType
-import us.mikeandwan.photos.domain.models.Video
 import java.io.File
 import javax.inject.Inject
 
@@ -124,11 +123,11 @@ class MediaListService @Inject constructor (
 
     fun fetchExif() {
         activeMedia.value?.let {
-            if(it !is Video) {
+//            if(it !is Video) {
                 scope.launch {
                     mediaExifService.fetchExifDetails(it)
                 }
-            }
+//            }
         }
     }
 

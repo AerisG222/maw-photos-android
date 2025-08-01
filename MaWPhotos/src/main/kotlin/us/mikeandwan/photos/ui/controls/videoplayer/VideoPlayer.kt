@@ -27,7 +27,11 @@ fun VideoPlayer(
     videoPlayerHttpDataSourceFactory: HttpDataSource.Factory,
     modifier: Modifier = Modifier
 ) {
-    if(activeMedia.type != MediaType.Video) {
+//    if(activeMedia.type != MediaType.Video) {
+//        return
+//    }
+
+    if(activeMedia.type == MediaType.Photo) {
         return
     }
 

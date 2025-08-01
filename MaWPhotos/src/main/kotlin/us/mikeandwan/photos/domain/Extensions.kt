@@ -16,17 +16,6 @@ fun us.mikeandwan.photos.database.PhotoCategory.toDomainMediaCategory(): MediaCa
     )
 }
 
-fun us.mikeandwan.photos.database.VideoCategory.toDomainMediaCategory(): MediaCategory {
-    return MediaCategory(
-        MediaType.Video,
-        this.id,
-        this.year,
-        this.name,
-        this.teaserHeight,
-        this.teaserWidth,
-        this.teaserUrl
-    )
-}
 
 fun us.mikeandwan.photos.database.MediaCategory.toDomainMediaCategory(): MediaCategory {
     return MediaCategory(
@@ -42,17 +31,6 @@ fun us.mikeandwan.photos.database.MediaCategory.toDomainMediaCategory(): MediaCa
 
 fun us.mikeandwan.photos.api.Category.toDatabasePhotoCategory(): us.mikeandwan.photos.database.PhotoCategory {
     return us.mikeandwan.photos.database.PhotoCategory(
-        this.id,
-        this.year,
-        this.name,
-        this.teaserImage.height,
-        this.teaserImage.width,
-        this.teaserImage.url
-    )
-}
-
-fun us.mikeandwan.photos.api.Category.toDatabaseVideoCategory(): us.mikeandwan.photos.database.VideoCategory {
-    return us.mikeandwan.photos.database.VideoCategory(
         this.id,
         this.year,
         this.name,
@@ -102,20 +80,6 @@ fun us.mikeandwan.photos.api.Photo.toDomainPhoto(): Photo {
         this.imageMd.height,
         this.imageMd.width,
         this.imageMd.url
-    )
-}
-
-fun us.mikeandwan.photos.api.Video.toDomainVideo(): Video {
-    return Video(
-        MediaType.Video,
-        this.id,
-        this.categoryId,
-        this.thumbnail.width,
-        this.thumbnail.width,
-        this.thumbnail.url,
-        this.videoScaled.height,
-        this.videoScaled.width,
-        this.videoScaled.url
     )
 }
 

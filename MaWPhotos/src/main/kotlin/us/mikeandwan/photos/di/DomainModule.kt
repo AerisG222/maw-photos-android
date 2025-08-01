@@ -7,7 +7,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import us.mikeandwan.photos.api.PhotoApiClient
 import us.mikeandwan.photos.api.SearchApiClient
-import us.mikeandwan.photos.api.VideoApiClient
 import us.mikeandwan.photos.database.*
 import us.mikeandwan.photos.domain.*
 import javax.inject.Singleton
@@ -67,16 +66,6 @@ object DomainModule {
             searchPreferenceRepository,
             apiErrorHandler
         )
-
-    @Provides
-    @Singleton
-    fun provideVideoCategoryRepository(
-        api: VideoApiClient,
-        db: MawDatabase,
-        videoCategoryDao: VideoCategoryDao,
-        apiErrorHandler: ApiErrorHandler
-    ): VideoCategoryRepository =
-        VideoCategoryRepository(api, db, videoCategoryDao, apiErrorHandler)
 
     @Provides
     @Singleton

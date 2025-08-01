@@ -12,10 +12,9 @@ import androidx.room.TypeConverters
         PhotoCategory::class,
         RandomPreference::class,
         SearchHistory::class,
-        SearchPreference::class,
-        VideoCategory::class,
+        SearchPreference::class
     ],
-    version = 5
+    version = 6
 )
 @TypeConverters(
     Converters::class
@@ -29,5 +28,4 @@ abstract class MawDatabase : RoomDatabase() {
     abstract fun randomPreferenceDao(): RandomPreferenceDao
     abstract fun searchHistoryDao(): SearchHistoryDao
     abstract fun searchPreferenceDao(): SearchPreferenceDao
-    abstract fun videoCategoryDao(): VideoCategoryDao
 }

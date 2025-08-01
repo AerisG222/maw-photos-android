@@ -37,7 +37,7 @@ fun DetailTabs(
     val tabs = remember(activeMedia.type) {
         when(activeMedia.type) {
             MediaType.Photo -> listOf(TabIndex.RATING, TabIndex.COMMENT, TabIndex.EXIF)
-            MediaType.Video -> listOf(TabIndex.RATING, TabIndex.COMMENT)
+//            MediaType.Video -> listOf(TabIndex.RATING, TabIndex.COMMENT)
         }
     }
 

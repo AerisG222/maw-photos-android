@@ -19,7 +19,6 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.api.SearchApiClient
 import us.mikeandwan.photos.api.UploadApiClient
-import us.mikeandwan.photos.api.VideoApiClient
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -76,9 +75,4 @@ object NetworkModule {
     @Singleton
     fun provideUploadApiClient(retrofit: Retrofit): UploadApiClient =
         UploadApiClient(retrofit)
-
-    @Provides
-    @Singleton
-    fun provideVideoApiClient(retrofit: Retrofit): VideoApiClient =
-        VideoApiClient(retrofit)
 }

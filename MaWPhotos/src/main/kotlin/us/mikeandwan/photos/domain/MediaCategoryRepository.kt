@@ -14,8 +14,7 @@ import javax.inject.Inject
 
 class MediaCategoryRepository @Inject constructor(
     private val mcDao: MediaCategoryDao,
-    private val pcRepo: PhotoCategoryRepository,
-    private val vcRepo: VideoCategoryRepository
+    private val pcRepo: PhotoCategoryRepository
 ) : ICategoryRepository {
     override fun getYears() = flow {
         val years = mcDao.getYears()
@@ -35,20 +34,14 @@ class MediaCategoryRepository @Inject constructor(
         emit(ExternalCallStatus.Loading)
 
         val photoCategoriesResult = fetchCategories(pcRepo)
-        val videoCategoriesResult = fetchCategories(vcRepo)
         val combinedCategories = mutableListOf<MediaCategory>()
 
         if (photoCategoriesResult is ExternalCallStatus.Success) {
             combinedCategories.addAll(photoCategoriesResult.result)
         }
 
-        if (videoCategoriesResult is ExternalCallStatus.Success) {
-            combinedCategories.addAll(videoCategoriesResult.result)
-        }
-
         val result = when {
-            photoCategoriesResult is ExternalCallStatus.Error ||
-            videoCategoriesResult is ExternalCallStatus.Error ->
+            photoCategoriesResult is ExternalCallStatus.Error ->
                 ExternalCallStatus.Error("Unable to load all categories.")
             else ->
                 ExternalCallStatus.Success(combinedCategories)
@@ -94,7 +87,6 @@ class MediaCategoryRepository @Inject constructor(
     private fun getRepo(type: MediaType): ICategoryRepository {
         return when(type) {
             MediaType.Photo -> pcRepo
-            MediaType.Video -> vcRepo
         }
     }
 }

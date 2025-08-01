@@ -7,7 +7,6 @@ import us.mikeandwan.photos.domain.models.Photo
 import us.mikeandwan.photos.domain.models.MediaCategory
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.domain.models.SearchResultCategory
-import us.mikeandwan.photos.domain.models.Video
 import us.mikeandwan.photos.ui.controls.imagegrid.ImageGridItem
 
 fun Photo.toImageGridItem(): ImageGridItem<Media> {
@@ -18,24 +17,22 @@ fun Photo.toImageGridItem(): ImageGridItem<Media> {
     )
 }
 
-fun Video.toImageGridItem(): ImageGridItem<Media> {
-    return ImageGridItem (
-        this.id,
-        this.thumbnailUrl,
-        this
-    )
-}
+//fun Video.toImageGridItem(): ImageGridItem<Media> {
+//    return ImageGridItem (
+//        this.id,
+//        this.thumbnailUrl,
+//        this
+//    )
+//}
 
 fun Media.toImageGridItem(): ImageGridItem<Media> {
     return when(this.type) {
         MediaType.Photo -> (this as Photo).toImageGridItem()
-        MediaType.Video -> (this as Video).toImageGridItem()
     }
 }
 
 fun Media.getMediaUrl() = when(this.type) {
     MediaType.Photo -> (this as Photo).mdUrl
-    MediaType.Video -> (this as Video).scaledUrl
 }
 
 fun MediaCategory.toImageGridItem(): ImageGridItem<MediaCategory> {
@@ -47,7 +44,7 @@ fun MediaCategory.toImageGridItem(): ImageGridItem<MediaCategory> {
 }
 
 fun SearchResultCategory.toDomainMediaCategory(): MediaCategory {
-    val type = if ( this.multimediaType == "photo" ) { MediaType.Photo } else { MediaType.Video }
+    val type = MediaType.Photo
 
     return MediaCategory(
         type,
