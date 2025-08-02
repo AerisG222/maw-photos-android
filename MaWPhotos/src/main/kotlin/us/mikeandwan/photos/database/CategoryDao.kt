@@ -4,10 +4,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class CategoryDao {
+    @Transaction
     @Query("""
         SELECT * 
         FROM category c 
@@ -18,6 +20,7 @@ abstract class CategoryDao {
     )
     abstract fun getCategoriesForYear(year: Int): Flow<List<CategoryDetail>>
 
+    @Transaction
     @Query("""
         SELECT * 
         FROM category c  

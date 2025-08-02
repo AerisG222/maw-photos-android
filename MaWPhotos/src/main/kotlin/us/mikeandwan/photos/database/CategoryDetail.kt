@@ -12,5 +12,5 @@ data class CategoryDetail(
         parentColumn = "id",
         entityColumn = "category_id"
     )
-    val mediaFiles: List<MediaFile>
+    val mediaFiles: List<MediaFileAndScale>
 )
