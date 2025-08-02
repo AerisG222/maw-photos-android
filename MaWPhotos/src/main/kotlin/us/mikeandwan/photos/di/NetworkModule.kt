@@ -17,6 +17,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import us.mikeandwan.photos.BuildConfig
+import us.mikeandwan.photos.api.CategoryApiClient
+import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.SearchApiClient
 import us.mikeandwan.photos.api.UploadApiClient
 
@@ -60,6 +62,16 @@ object NetworkModule {
             .client(httpClient)
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideCategoryApiClient(retrofit: Retrofit): CategoryApiClient =
+        CategoryApiClient(retrofit)
+
+    @Provides
+    @Singleton
+    fun provideConfigApiClient(retrofit: Retrofit): ConfigApiClient =
+        ConfigApiClient(retrofit)
 
     @Provides
     @Singleton

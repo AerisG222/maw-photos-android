@@ -1,8 +1,12 @@
 package us.mikeandwan.photos.domain
 
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.domain.models.*
 import java.net.HttpURLConnection
+import java.util.Calendar
+import kotlin.time.*
 
 fun us.mikeandwan.photos.database.PhotoCategory.toDomainMediaCategory(): MediaCategory {
     return MediaCategory(
@@ -29,14 +33,14 @@ fun us.mikeandwan.photos.database.MediaCategory.toDomainMediaCategory(): MediaCa
     )
 }
 
-fun us.mikeandwan.photos.api.Category.toDatabasePhotoCategory(): us.mikeandwan.photos.database.PhotoCategory {
-    return us.mikeandwan.photos.database.PhotoCategory(
+fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category {
+    return us.mikeandwan.photos.database.Category(
         this.id,
-        this.year,
+        this.effectiveDate.toLocalDateTime(TimeZone.currentSystemDefault()).year,
         this.name,
-        this.teaserImage.height,
-        this.teaserImage.width,
-        this.teaserImage.url
+        this.effectiveDate,
+        this.modified,
+        this.isFavorite
     )
 }
 

@@ -12,6 +12,7 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
 import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
 import us.mikeandwan.photos.database.migrations.MIGRATION_4_5
 import us.mikeandwan.photos.database.migrations.MIGRATION_5_6
+import us.mikeandwan.photos.database.migrations.MIGRATION_6_7
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
 import javax.inject.Singleton
 
@@ -32,12 +33,18 @@ object DatabaseModule {
         .addMigrations(MIGRATION_3_4)
         .addMigrations(MIGRATION_4_5)
         .addMigrations(MIGRATION_5_6)
+        .addMigrations(MIGRATION_6_7)
         .build()
 
     @Provides
     @Singleton
     fun provideCategoryPreferenceDao(mawDatabase: MawDatabase): CategoryPreferenceDao =
         mawDatabase.categoryPreferenceDao()
+
+    @Provides
+    @Singleton
+    fun provideCategoryDao(mawDatabase: MawDatabase): CategoryDao =
+        mawDatabase.categoryDao()
 
     @Provides
     @Singleton
@@ -73,4 +80,14 @@ object DatabaseModule {
     @Singleton
     fun provideSearchPreferenceDao(mawDatabase: MawDatabase): SearchPreferenceDao =
         mawDatabase.searchPreferenceDao()
+
+    @Provides
+    @Singleton
+    fun provideScaleDao(mawDatabase: MawDatabase): ScaleDao =
+        mawDatabase.scaleDao()
+
+    @Provides
+    @Singleton
+    fun provideYearDao(mawDatabase: MawDatabase): YearDao =
+        mawDatabase.yearDao()
 }

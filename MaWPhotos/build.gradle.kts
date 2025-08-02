@@ -46,7 +46,8 @@ android {
 
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
-            // freeCompilerArgs.add("-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
+            freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
+            freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
         }
     }
 
@@ -120,6 +121,7 @@ dependencies {
     implementation(libs.jetbrains.kotlin.stdlib)
     implementation(libs.jetbrains.coroutines.android)
     implementation(libs.jetbrains.kotlinx.serialization.json)
+    implementation(libs.jetbrains.kotlinx.datetime)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)

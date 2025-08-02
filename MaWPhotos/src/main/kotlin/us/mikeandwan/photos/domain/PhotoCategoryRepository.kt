@@ -83,25 +83,25 @@ class PhotoCategoryRepository @Inject constructor(
 
     private fun loadCategories(mostRecentCategory: Int, errorMessage: String?) = flow {
         emit(ExternalCallStatus.Loading)
-
-        when(val result = api.getRecentCategories(mostRecentCategory)) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, errorMessage))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, errorMessage))
-            is ApiResult.Success -> {
-                val categories = result.result.items
-
-                if(categories.isEmpty()) {
-                    emit(ExternalCallStatus.Success(emptyList()))
-                } else {
-                    val dbCategories = categories.map { apiCat -> apiCat.toDatabasePhotoCategory() }
-
-                    db.withTransaction {
-                        pcDao.upsert(*dbCategories.toTypedArray())
-                    }
-
-                    emit(ExternalCallStatus.Success(dbCategories.map { it.toDomainMediaCategory() }))
-                }
-            }
-        }
+//
+//        when(val result = api.getRecentCategories(mostRecentCategory)) {
+//            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, errorMessage))
+//            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, errorMessage))
+//            is ApiResult.Success -> {
+//                val categories = result.result.items
+//
+//                    emit(ExternalCallStatus.Success(emptyList()))
+////                if(categories.isEmpty()) {
+////                } else {
+////                    val dbCategories = categories.map { apiCat -> apiCat.toDatabasePhotoCategory() }
+////
+////                    db.withTransaction {
+////                        pcDao.upsert(*dbCategories.toTypedArray())
+////                    }
+////
+////                    emit(ExternalCallStatus.Success(dbCategories.map { it.toDomainMediaCategory() }))
+////                }
+//            }
+//        }
     }
 }
