@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.AuthStatus
-import us.mikeandwan.photos.domain.CategoryRepository
 import javax.inject.Inject
 
 sealed class LoginState {
@@ -21,8 +20,7 @@ sealed class LoginState {
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authService: AuthService,
-    private val categoryRepository: CategoryRepository
+    private val authService: AuthService
 ): ViewModel() {
     val state = authService.authStatus
         .map {
@@ -36,12 +34,6 @@ class LoginViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, WhileSubscribed(5000), LoginState.Unknown)
-
-    suspend fun refreshCategories() {
-        categoryRepository
-            .getNewCategories()
-            .collect { }
-    }
 
     fun login(activity: Context) {
         viewModelScope.launch {
