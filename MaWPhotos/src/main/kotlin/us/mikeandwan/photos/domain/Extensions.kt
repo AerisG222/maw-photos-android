@@ -5,33 +5,56 @@ import kotlinx.datetime.toLocalDateTime
 import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.domain.models.*
 import java.net.HttpURLConnection
-import java.util.Calendar
-import kotlin.time.*
 
-fun us.mikeandwan.photos.database.PhotoCategory.toDomainMediaCategory(): MediaCategory {
-    return MediaCategory(
-        MediaType.Photo,
-        this.id,
-        this.year,
-        this.name,
-        this.teaserHeight,
-        this.teaserWidth,
-        this.teaserUrl
+fun us.mikeandwan.photos.database.CategoryDetail.toDomainCategory(): Category {
+    return Category(
+        this.category.id,
+        this.category.year,
+        this.category.name,
+        this.category.effectiveDate,
+        this.category.modified,
+        this.category.isFavorite,
+        this.mediaFiles.map { it.toDomainMediaFile() }
     )
 }
 
-
-fun us.mikeandwan.photos.database.MediaCategory.toDomainMediaCategory(): MediaCategory {
-    return MediaCategory(
-        this.type,
-        this.id,
-        this.year,
-        this.name,
-        this.teaserHeight,
-        this.teaserWidth,
-        this.teaserUrl
+fun us.mikeandwan.photos.database.MediaFileAndScale.toDomainMediaFile(): MediaFile {
+    return MediaFile(
+        this.scale.toDomainScale(),
+        getMediaFileType(this.mediaFile.type),
+        this.mediaFile.path
     )
 }
+
+fun getMediaFileType(type: String): MediaFileType {
+    return when (type) {
+        "photo" -> MediaFileType.Photo
+        "video" -> MediaFileType.Video
+        "video-poster" -> MediaFileType.VideoPoster
+        else -> throw IllegalArgumentException("Unknown media file type: $type")
+    }
+}
+
+fun us.mikeandwan.photos.database.Scale.toDomainScale(): Scale {
+    return Scale(
+        this.code,
+        this.width,
+        this.height,
+        this.fillsDimensions
+    )
+}
+
+//fun us.mikeandwan.photos.database.Category.toDomainCategory(): Category {
+//    return Category(
+//        this.type,
+//        this.id,
+//        this.year,
+//        this.name,
+//        this.teaserHeight,
+//        this.teaserWidth,
+//        this.teaserUrl
+//    )
+//}
 
 fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category {
     return us.mikeandwan.photos.database.Category(

@@ -5,6 +5,7 @@ import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.PhotoApiClient
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import javax.inject.Inject
+import kotlin.uuid.Uuid
 
 class PhotoRepository @Inject constructor (
     private val api: PhotoApiClient,
@@ -18,7 +19,7 @@ class PhotoRepository @Inject constructor (
         private const val ERR_MSG_SET_RATING = "Unable to add ratings at this time.  Please try again later."
     }
 
-    fun getExifData(photoId: Int) = flow {
+    fun getExifData(photoId: Uuid) = flow {
         emit(ExternalCallStatus.Loading)
 
         when(val result = api.getExifData(photoId)) {
@@ -28,7 +29,7 @@ class PhotoRepository @Inject constructor (
         }
     }
 
-    fun getRating(photoId: Int) = flow {
+    fun getRating(photoId: Uuid) = flow {
         emit(ExternalCallStatus.Loading)
 
         when(val result = api.getRatings(photoId)) {
@@ -38,7 +39,7 @@ class PhotoRepository @Inject constructor (
         }
     }
 
-    fun getComments(photoId: Int) = flow {
+    fun getComments(photoId: Uuid) = flow {
         emit(ExternalCallStatus.Loading)
 
         when(val result = api.getComments(photoId)) {
@@ -48,7 +49,7 @@ class PhotoRepository @Inject constructor (
         }
     }
 
-    fun addComment(photoId: Int, comment: String) = flow {
+    fun addComment(photoId: Uuid, comment: String) = flow {
         emit(ExternalCallStatus.Loading)
 
         when(val result = api.addComment(photoId, comment)) {
@@ -58,7 +59,7 @@ class PhotoRepository @Inject constructor (
         }
     }
 
-    fun setRating(photoId: Int, rating: Short) = flow {
+    fun setRating(photoId: Uuid, rating: Short) = flow {
         emit(ExternalCallStatus.Loading)
 
         when(val result = api.setRating(photoId, rating)) {

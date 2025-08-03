@@ -11,14 +11,13 @@ import androidx.room.TypeConverters
         MediaFile::class,
         MediaPreference::class,
         NotificationPreference::class,
-        PhotoCategory::class,
         RandomPreference::class,
         Scale::class,
         SearchHistory::class,
         SearchPreference::class,
         Year::class
     ],
-    version = 7
+    version = 8
 )
 @TypeConverters(
     Converters::class
@@ -26,10 +25,8 @@ import androidx.room.TypeConverters
 abstract class MawDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun categoryPreferenceDao(): CategoryPreferenceDao
-    abstract fun mediaCategoryDao(): MediaCategoryDao
     abstract fun mediaPreferenceDao(): MediaPreferenceDao
     abstract fun notificationPreferenceDao(): NotificationPreferenceDao
-    abstract fun photoCategoryDao(): PhotoCategoryDao
     abstract fun randomPreferenceDao(): RandomPreferenceDao
     abstract fun scaleDao(): ScaleDao
     abstract fun searchHistoryDao(): SearchHistoryDao

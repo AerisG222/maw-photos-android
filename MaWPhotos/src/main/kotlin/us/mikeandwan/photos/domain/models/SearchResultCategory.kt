@@ -1,8 +1,10 @@
 package us.mikeandwan.photos.domain.models
 
+import kotlin.uuid.Uuid
+
 data class SearchResultCategory(
     val solrId: String,
-    val id: Int,
+    val id: Uuid,
     val year: Int,
     val name: String,
     val multimediaType: String,

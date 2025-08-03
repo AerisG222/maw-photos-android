@@ -21,7 +21,7 @@ import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
 import us.mikeandwan.photos.ui.controls.imagegrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
@@ -35,7 +35,7 @@ data class CategoriesRoute (
 )
 
 fun NavGraphBuilder.categoriesScreen(
-    navigateToCategory: (MediaCategory) -> Unit,
+    navigateToCategory: (Category) -> Unit,
     updateTopBar : (TopBarState) -> Unit,
     setActiveYear: (Int) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
@@ -87,7 +87,7 @@ fun CategoriesScreen(
     updateTopBar : (TopBarState) -> Unit,
     setActiveYear: (Int) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    navigateToCategory: (MediaCategory) -> Unit,
+    navigateToCategory: (Category) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     val snackbarHostState = remember { SnackbarHostState() }

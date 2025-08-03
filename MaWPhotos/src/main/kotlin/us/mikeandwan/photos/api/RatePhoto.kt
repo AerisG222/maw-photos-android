@@ -1,9 +1,10 @@
 package us.mikeandwan.photos.api
 
 import kotlinx.serialization.Serializable
+import kotlin.uuid.Uuid
 
 @Serializable
 data class RatePhoto(
-    val photoId: Int,
+    val photoId: Uuid,
     val rating: Short
 )

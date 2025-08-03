@@ -11,6 +11,9 @@ interface YearDao {
     @Query("SELECT year FROM year ORDER BY year DESC")
     fun getYears(): Flow<List<Int>>
 
+    @Query("SELECT MAX(year) FROM year")
+    fun getMostRecentYear(): Flow<Int?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(year: Year)
+    suspend fun upsert(vararg years: Year)
 }

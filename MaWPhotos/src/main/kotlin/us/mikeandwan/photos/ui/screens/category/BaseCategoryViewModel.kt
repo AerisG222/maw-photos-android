@@ -9,23 +9,23 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.BuildConfig
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.MediaCategory
-import us.mikeandwan.photos.domain.models.MediaType
+import us.mikeandwan.photos.domain.models.Category
+import kotlin.uuid.Uuid
 
 abstract class BaseCategoryViewModel (
-    private val mediaCategoryRepository: MediaCategoryRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
-    private val _category = MutableStateFlow<MediaCategory?>(null)
+    private val _category = MutableStateFlow<Category?>(null)
     val category = _category.asStateFlow()
 
     private val _media = MutableStateFlow<List<Media>>(emptyList())
     val media = _media.asStateFlow()
 
-    fun loadCategory(mediaType: MediaType, categoryId: Int) {
-        if(category.value?.id == categoryId && category.value?.type == mediaType) {
+    fun loadCategory(categoryId: Uuid) {
+        if(category.value?.id == categoryId) {
             return
         }
 
@@ -37,16 +37,15 @@ abstract class BaseCategoryViewModel (
                 delay(500)
             }
 
-            mediaCategoryRepository
-                .getCategory(mediaType, categoryId)
+            categoryRepository
+                .getCategory(categoryId)
                 .collect { _category.value = it }
         }
     }
 
-    fun loadMedia(mediaType: MediaType, categoryId: Int) {
+    fun loadMedia(categoryId: Uuid) {
         if(
             category.value?.id == categoryId &&
-            category.value?.type == mediaType &&
             media.value.isNotEmpty()
         ) {
             return
@@ -57,8 +56,8 @@ abstract class BaseCategoryViewModel (
                 delay(1000)
             }
 
-            mediaCategoryRepository
-                .getMedia(mediaType, categoryId)
+            categoryRepository
+                .getMedia(categoryId)
                 .filter { it is ExternalCallStatus.Success }
                 .map { it as ExternalCallStatus.Success }
                 .map { it.result }

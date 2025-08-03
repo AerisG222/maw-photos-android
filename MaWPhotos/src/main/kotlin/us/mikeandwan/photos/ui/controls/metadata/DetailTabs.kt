@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
+import kotlin.uuid.Uuid
 
 private object TabIndex {
     const val RATING = 0
@@ -37,16 +38,16 @@ fun DetailTabs(
     val tabs = remember(activeMedia.type) {
         when(activeMedia.type) {
             MediaType.Photo -> listOf(TabIndex.RATING, TabIndex.COMMENT, TabIndex.EXIF)
-//            MediaType.Video -> listOf(TabIndex.RATING, TabIndex.COMMENT)
+            MediaType.Video -> listOf(TabIndex.RATING, TabIndex.COMMENT)
         }
     }
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    val (commentMediaId, setCommentMediaId) = remember { mutableIntStateOf(0) }
-    val (ratingMediaId, setRatingMediaId) = remember { mutableIntStateOf(0) }
-    val (exifMediaId, setExifMediaId) = remember { mutableIntStateOf(0) }
+    val (commentMediaId, setCommentMediaId) = remember { mutableStateOf(Uuid.NIL) }
+    val (ratingMediaId, setRatingMediaId) = remember { mutableStateOf(Uuid.NIL) }
+    val (exifMediaId, setExifMediaId) = remember { mutableStateOf(Uuid.NIL) }
 
     val bgActive = ColorFilter.tint(MaterialTheme.colorScheme.primary)
     val bgInactive = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)

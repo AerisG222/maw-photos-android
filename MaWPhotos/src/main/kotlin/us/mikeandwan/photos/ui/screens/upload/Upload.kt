@@ -26,6 +26,7 @@ import us.mikeandwan.photos.ui.controls.imagegrid.ImageGridItem
 import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import java.io.File
+import kotlin.uuid.Uuid
 
 @Serializable
 object UploadRoute
@@ -72,7 +73,7 @@ fun UploadScreen(
     }
 
     val gridState = rememberImageGridState(
-        gridItems = files.mapIndexed { id, file -> ImageGridItem(id, file.path, file) },
+        gridItems = files.mapIndexed { id, file -> ImageGridItem(Uuid.random(), file.path, file) },
         thumbnailSize = GridThumbnailSize.Medium,
         onSelectGridItem = { }
     )

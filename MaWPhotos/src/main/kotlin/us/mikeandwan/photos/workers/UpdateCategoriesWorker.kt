@@ -12,10 +12,10 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.main.MainActivity
 import us.mikeandwan.photos.utils.NOTIFICATION_CHANNEL_ID_NEW_CATEGORIES
 import us.mikeandwan.photos.utils.PendingIntentFlagHelper
@@ -24,7 +24,7 @@ import us.mikeandwan.photos.utils.PendingIntentFlagHelper
 class UpdateCategoriesWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted params: WorkerParameters,
-    private val mediaCategoryRepository: MediaCategoryRepository,
+    private val categoryRepository: CategoryRepository,
     private val preferenceRepository: NotificationPreferenceRepository,
     private val notificationManager: NotificationManager
 ): CoroutineWorker(appContext, params) {
@@ -38,13 +38,13 @@ class UpdateCategoriesWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
-        if(mediaCategoryRepository.getYears().first().isEmpty()) {
+        if(categoryRepository.getYears().first().isEmpty()) {
             return Result.success()
         }
 
         var status = STATUS_UNKNOWN
 
-        mediaCategoryRepository
+        categoryRepository
             .getNewCategories()
             .collect {
                 when(it) {
@@ -74,7 +74,7 @@ class UpdateCategoriesWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun showSuccessNotification(newCategories: List<MediaCategory>) {
+    private suspend fun showSuccessNotification(newCategories: List<Category>) {
         val pluralize = if (newCategories.size == 1) "category" else "categories"
         val contentText = "${newCategories.size} new $pluralize"
 

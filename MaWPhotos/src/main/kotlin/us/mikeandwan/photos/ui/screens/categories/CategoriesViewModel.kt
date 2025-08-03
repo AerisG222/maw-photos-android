@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
 import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.CategoryRefreshStatus
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import javax.inject.Inject
 import com.hoc081098.flowext.combine
 import us.mikeandwan.photos.domain.models.CategoryPreference
@@ -27,7 +27,7 @@ sealed class CategoriesState {
     data object Error : CategoriesState()
     data class Valid(
         val year: Int,
-        val categories: List<MediaCategory>,
+        val categories: List<Category>,
         val refreshStatus: CategoryRefreshStatus,
         val preferences: CategoryPreference,
         val refreshCategories: () -> Unit,
@@ -37,13 +37,13 @@ sealed class CategoriesState {
 
 @HiltViewModel
 class CategoriesViewModel @Inject constructor (
-    private val mediaCategoryRepository: MediaCategoryRepository,
+    private val categoryRepository: CategoryRepository,
     authGuard: AuthGuard,
     categoriesLoadedGuard: CategoriesLoadedGuard,
     categoryPreferenceRepository: CategoryPreferenceRepository
 ): ViewModel() {
     private val _year = MutableStateFlow(-1)
-    private val _categories = MutableStateFlow<List<MediaCategory>>(emptyList())
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
     private val _refreshStatus = MutableStateFlow(CategoryRefreshStatus(0, false, null))
     private val _preferences = categoryPreferenceRepository
         .getCategoryPreference()
@@ -62,7 +62,7 @@ class CategoriesViewModel @Inject constructor (
     val state = combine(
         authGuard.status,
         categoriesLoadedGuard.status,
-        mediaCategoryRepository.getYears(),
+        categoryRepository.getYears(),
         _categories,
         _year,
         _refreshStatus,
@@ -117,7 +117,7 @@ class CategoriesViewModel @Inject constructor (
 
     private fun refreshCategories(id: Int) {
         viewModelScope.launch {
-            mediaCategoryRepository
+            categoryRepository
                 .getNewCategories()
                 .onEach {
                     when(it) {
@@ -152,7 +152,7 @@ class CategoriesViewModel @Inject constructor (
 
     private fun loadCategories(year: Int) {
         viewModelScope.launch {
-            mediaCategoryRepository
+            categoryRepository
                 .getCategories(year)
                 .collect { cats -> _categories.value = cats }
         }

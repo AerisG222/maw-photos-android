@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.models.MediaPreference
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.GuardStatus
@@ -20,16 +20,17 @@ import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.category.BaseCategoryViewModel
 import java.io.File
 import javax.inject.Inject
+import kotlin.uuid.Uuid
 
 @HiltViewModel
 class CategoryItemViewModel @Inject constructor (
     authGuard: AuthGuard,
-    mediaCategoryRepository: MediaCategoryRepository,
+    categoryRepository: CategoryRepository,
     mediaPreferenceRepository: MediaPreferenceRepository,
     val videoPlayerDataSourceFactory: HttpDataSource.Factory,
     private val mediaListService: MediaListService
 ) : BaseCategoryViewModel(
-    mediaCategoryRepository
+    categoryRepository
 ) {
     // todo: consider restructuring to the stateholder pattern like in other VMs
     val activeMedia = mediaListService.activeMedia
@@ -38,18 +39,18 @@ class CategoryItemViewModel @Inject constructor (
     val isSlideshowPlaying = mediaListService.isSlideshowPlaying
     val showDetailSheet = mediaListService.showDetailSheet
 
-    private val initialMediaId = MutableStateFlow(-1)
+    private val initialMediaId = MutableStateFlow(Uuid.NIL)
     private val initialMediaIdWasSet = MutableStateFlow(false)
 
     fun setActiveIndex(index: Int) { mediaListService.setActiveIndex(index) }
     fun toggleSlideshow() { mediaListService.toggleSlideshow() }
     fun toggleShowDetails() { mediaListService.toggleShowDetails() }
 
-    fun initState(categoryId: Int, mediaType: String, mediaId: Int) {
+    fun initState(categoryId: Uuid, mediaType: String, mediaId: Uuid) {
         val type = MediaType.valueOf(mediaType)
 
-        loadCategory(type, categoryId)
-        loadMedia(type, categoryId)
+        loadCategory(categoryId)
+        loadMedia(categoryId)
 
         initialMediaId.value = mediaId
     }
@@ -102,7 +103,7 @@ class CategoryItemViewModel @Inject constructor (
                 id,
                 wasSet ->
 
-                if (wasSet || media.isEmpty() || id <= 0) {
+                if (wasSet || media.isEmpty() || id == Uuid.NIL) {
                     return@combine
                 }
 

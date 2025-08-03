@@ -18,12 +18,13 @@ import us.mikeandwan.photos.ui.controls.imagegrid.ImageGridItem
 import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toImageGridItem
+import kotlin.uuid.Uuid
 
 @Serializable
 object RandomRoute
 
 fun NavGraphBuilder.randomScreen(
-    navigateToPhoto: (Int) -> Unit,
+    navigateToPhoto: (Uuid) -> Unit,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit

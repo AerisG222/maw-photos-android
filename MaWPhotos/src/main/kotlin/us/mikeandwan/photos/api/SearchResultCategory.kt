@@ -1,11 +1,12 @@
 package us.mikeandwan.photos.api
 
 import kotlinx.serialization.Serializable
+import kotlin.uuid.Uuid
 
 @Serializable
 data class SearchResultCategory(
     val solrId: String,
-    val id: Int,
+    val id: Uuid,
     val year: Int,
     val name: String,
     val multimediaType: String,

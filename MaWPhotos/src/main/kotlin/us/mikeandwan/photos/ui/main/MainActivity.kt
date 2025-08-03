@@ -175,7 +175,7 @@ class MainActivity : ComponentActivity() {
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
                                     setActiveYear = vm::setActiveYear,
-                                    navigateToCategory = { vm.navigate(CategoryRoute(it.type.name, it.id)) },
+                                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
                                     navigateToCategories = { vm.navigate(CategoriesRoute(it)) }
                                 )
@@ -200,13 +200,13 @@ class MainActivity : ComponentActivity() {
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
                                     navigateToYear = { vm.navigate(CategoriesRoute(it)) },
-                                    navigateToCategory = { vm.navigate(CategoryRoute(it.type.name, it.id)) },
+                                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
                                 )
                                 searchScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateToCategory = { vm.navigate(CategoryRoute(it.type.name, it.id)) },
+                                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
                                 )
                                 settingsScreen(

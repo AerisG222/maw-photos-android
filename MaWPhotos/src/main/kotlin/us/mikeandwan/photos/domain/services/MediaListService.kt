@@ -15,16 +15,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.FileStorageRepository
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.PeriodicJob
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.MediaType
 import java.io.File
 import javax.inject.Inject
+import kotlin.uuid.Uuid
 
 class MediaListService @Inject constructor (
-    private val mediaCategoryRepository: MediaCategoryRepository,
+    private val categoryRepository: CategoryRepository,
     private val fileRepository: FileStorageRepository,
     private val mediaRatingService: MediaRatingService,
     private val mediaCommentService: MediaCommentService,
@@ -41,7 +42,7 @@ class MediaListService @Inject constructor (
     private val _showDetailSheet = MutableStateFlow(false)
     val showDetailSheet = _showDetailSheet.asStateFlow()
 
-    private val _category = MutableStateFlow<MediaCategory?>(null)
+    private val _category = MutableStateFlow<Category?>(null)
     val category = _category.asStateFlow()
 
     private val _activeIndex = MutableStateFlow(-1)
@@ -52,14 +53,14 @@ class MediaListService @Inject constructor (
     }.stateIn(scope, WhileSubscribed(5000), null)
 
     val activeId = activeMedia
-        .map { media -> media?.id ?: -1 }
-        .stateIn(scope, WhileSubscribed(5000), -1)
+        .map { media -> media?.id ?: Uuid.NIL }
+        .stateIn(scope, WhileSubscribed(5000), Uuid.NIL)
 
     fun setActiveIndex(index: Int) {
         _activeIndex.value = index
     }
 
-    fun setActiveId(id: Int) {
+    fun setActiveId(id: Uuid) {
         setActiveIndex(_media.value.indexOfFirst { it.id == id })
     }
 
@@ -171,7 +172,7 @@ class MediaListService @Inject constructor (
         }
     }
 
-    private fun loadCategory(mediaType: MediaType, categoryId: Int) {
+    private fun loadCategory(mediaType: MediaType, categoryId: Uuid) {
         if(category.value?.id == categoryId) {
             return
         }
@@ -179,8 +180,8 @@ class MediaListService @Inject constructor (
         _category.value = null
 
         scope.launch {
-            mediaCategoryRepository
-                .getCategory(mediaType, categoryId)
+            categoryRepository
+                .getCategory(categoryId)
                 .collect { _category.value = it }
         }
     }

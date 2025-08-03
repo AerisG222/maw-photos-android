@@ -13,6 +13,7 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
 import us.mikeandwan.photos.database.migrations.MIGRATION_4_5
 import us.mikeandwan.photos.database.migrations.MIGRATION_5_6
 import us.mikeandwan.photos.database.migrations.MIGRATION_6_7
+import us.mikeandwan.photos.database.migrations.MIGRATION_7_8
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
 import javax.inject.Singleton
 
@@ -34,6 +35,7 @@ object DatabaseModule {
         .addMigrations(MIGRATION_4_5)
         .addMigrations(MIGRATION_5_6)
         .addMigrations(MIGRATION_6_7)
+        .addMigrations(MIGRATION_7_8)
         .build()
 
     @Provides
@@ -48,18 +50,8 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideMediaCategoryDao(mawDatabase: MawDatabase): MediaCategoryDao =
-        mawDatabase.mediaCategoryDao()
-
-    @Provides
-    @Singleton
     fun provideNotificationPreferenceDao(mawDatabase: MawDatabase): NotificationPreferenceDao =
         mawDatabase.notificationPreferenceDao()
-
-    @Provides
-    @Singleton
-    fun providePhotoCategoryDao(mawDatabase: MawDatabase): PhotoCategoryDao =
-        mawDatabase.photoCategoryDao()
 
     @Provides
     @Singleton

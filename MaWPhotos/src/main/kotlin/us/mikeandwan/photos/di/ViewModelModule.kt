@@ -8,7 +8,7 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
@@ -38,14 +38,14 @@ object ViewModelModule {
     @Provides
     @ViewModelScoped
     fun provideMediaListService(
-        mediaCategoryRepository: MediaCategoryRepository,
+        categoryRepository: CategoryRepository,
         fileRepository: FileStorageRepository,
         mediaRatingService: MediaRatingService,
         mediaCommentService: MediaCommentService,
         mediaExifService: MediaExifService
     ): MediaListService =
         MediaListService(
-            mediaCategoryRepository,
+            categoryRepository,
             fileRepository,
             mediaRatingService,
             mediaCommentService,
@@ -60,11 +60,11 @@ object ViewModelModule {
     @Provides
     @ViewModelScoped
     fun provideCategoriesLoadedGuard(
-        mediaCategoryRepository: MediaCategoryRepository,
+        categoryRepository: CategoryRepository,
         errorRepository: ErrorRepository
     ): CategoriesLoadedGuard =
         CategoriesLoadedGuard(
-            mediaCategoryRepository,
+            categoryRepository,
             errorRepository
         )
 }

@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.domain.models
 
-enum class MediaType {
+enum class MediaFileType {
     Photo,
-    Video
+    Video,
+    VideoPoster
 }

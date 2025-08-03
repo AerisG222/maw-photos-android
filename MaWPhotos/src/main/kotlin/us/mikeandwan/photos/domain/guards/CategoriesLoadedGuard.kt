@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.ErrorRepository
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import javax.inject.Inject
 
 class CategoriesLoadedGuard @Inject constructor (
-    private val mediaCategoryRepository: MediaCategoryRepository,
+    private val categoryRepository: CategoryRepository,
     private val errorRepository: ErrorRepository
 ) : IGuard {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -21,7 +21,7 @@ class CategoriesLoadedGuard @Inject constructor (
 
     override fun initializeGuard() {
         coroutineScope.launch {
-            mediaCategoryRepository
+            categoryRepository
                 .getMostRecentYear()
                 .map {
                     if (it != null && it > 0) {
@@ -29,7 +29,7 @@ class CategoriesLoadedGuard @Inject constructor (
                     } else {
                         if (allowLoad) {
                             allowLoad = false
-                            mediaCategoryRepository.getNewCategories()
+                            categoryRepository.getNewCategories()
                         } else {
                             errorRepository.showError("Unable to load categories")
                             _status.value = GuardStatus.Failed

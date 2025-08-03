@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.PhotoApiClient
 import us.mikeandwan.photos.api.SearchApiClient
 import us.mikeandwan.photos.database.*
@@ -28,13 +29,14 @@ object DomainModule {
 
     @Provides
     @Singleton
-    fun providePhotoCategoryRepository(
-        api: PhotoApiClient,
+    fun provideCategoryRepository(
+        api: CategoryApiClient,
         db: MawDatabase,
-        photoCategoryDao: PhotoCategoryDao,
+        yearDao: YearDao,
+        categoryDao: CategoryDao,
         apiErrorHandler: ApiErrorHandler
-    ): PhotoCategoryRepository =
-        PhotoCategoryRepository(api, db, photoCategoryDao, apiErrorHandler)
+    ): CategoryRepository =
+        CategoryRepository(api, db, yearDao, categoryDao, apiErrorHandler)
 
     @Provides
     @Singleton

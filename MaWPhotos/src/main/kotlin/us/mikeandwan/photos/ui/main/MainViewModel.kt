@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
-import us.mikeandwan.photos.domain.MediaCategoryRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.RandomPhotoRepository
 import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
@@ -38,20 +38,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    mediaCategoryRepository: MediaCategoryRepository,
+    categoryRepository: CategoryRepository,
     errorRepository: ErrorRepository,
     private val application: Application,
     private val fileStorageRepository: FileStorageRepository,
     private val searchRepository: SearchRepository,
     private val randomPhotoRepository: RandomPhotoRepository,
 ): ViewModel() {
-    val mostRecentYear = mediaCategoryRepository
+    val mostRecentYear = categoryRepository
         .getMostRecentYear()
         .filter { it != null }
         .map { it!! }
         .stateIn(viewModelScope, WhileSubscribed(5000), LocalDate.now().year)
 
-    val years = mediaCategoryRepository.getYears()
+    val years = categoryRepository.getYears()
 
     private val _activeYear = MutableStateFlow(-1)
     val activeYear = _activeYear.asStateFlow()

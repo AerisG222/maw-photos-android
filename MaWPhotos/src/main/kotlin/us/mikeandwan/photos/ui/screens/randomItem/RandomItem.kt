@@ -16,7 +16,7 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.MediaListState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.metadata.CommentState
@@ -34,21 +34,26 @@ import us.mikeandwan.photos.ui.controls.mediapager.rememberRotation
 import us.mikeandwan.photos.ui.shareMedia
 import us.mikeandwan.photos.ui.controls.scaffolds.ItemPagerScaffold
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
+import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.rememberMediaListState
+import kotlin.reflect.typeOf
+import kotlin.uuid.Uuid
 
 @Serializable
 data class RandomItemRoute (
-    val mediaId: Int
+    val mediaId: Uuid
 )
 
 fun NavGraphBuilder.randomItemScreen(
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToYear: (Int) -> Unit,
-    navigateToCategory: (MediaCategory) -> Unit,
+    navigateToCategory: (Category) -> Unit,
     navigateToLogin: () -> Unit
 ) {
-    composable<RandomItemRoute> { backStackEntry ->
+    composable<RandomItemRoute>(
+        typeMap = mapOf(typeOf<Uuid>() to UuidNavType)
+    ) { backStackEntry ->
         val vm: RandomItemViewModel = hiltViewModel()
         val args = backStackEntry.toRoute<RandomItemRoute>()
 
@@ -149,7 +154,7 @@ fun RandomItemScreen(
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToYear: (Int) -> Unit,
-    navigateToCategory: (MediaCategory) -> Unit
+    navigateToCategory: (Category) -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()

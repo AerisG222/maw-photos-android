@@ -19,6 +19,7 @@ import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.random.BaseRandomViewModel
 import java.io.File
 import javax.inject.Inject
+import kotlin.uuid.Uuid
 
 @HiltViewModel
 class RandomItemViewModel @Inject constructor(
@@ -37,14 +38,14 @@ class RandomItemViewModel @Inject constructor(
     val isSlideshowPlaying = mediaListService.isSlideshowPlaying
     val showDetailSheet = mediaListService.showDetailSheet
 
-    private val initialMediaId = MutableStateFlow(-1)
+    private val initialMediaId = MutableStateFlow(Uuid.NIL)
     private val initialMediaIdWasSet = MutableStateFlow(false)
 
     fun setActiveIndex(index: Int) { mediaListService.setActiveIndex(index) }
     fun toggleSlideshow() { mediaListService.toggleSlideshow() }
     fun toggleShowDetails() { mediaListService.toggleShowDetails() }
 
-    fun initState(id: Int) {
+    fun initState(id: Uuid) {
         initialMediaId.value = id
     }
 
@@ -96,7 +97,7 @@ class RandomItemViewModel @Inject constructor(
                 id,
                 wasSet ->
 
-                if (wasSet || media.isEmpty() || id <= 0) {
+                if (wasSet || media.isEmpty() || id == Uuid.NIL) {
                     return@combine
                 }
 

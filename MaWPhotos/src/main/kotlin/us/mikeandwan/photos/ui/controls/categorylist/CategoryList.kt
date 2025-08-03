@@ -7,13 +7,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 
 @Composable
 fun CategoryList(
-    categories: List<MediaCategory>,
+    categories: List<Category>,
     showYear: Boolean,
-    onSelectCategory: (MediaCategory) -> Unit
+    onSelectCategory: (Category) -> Unit
 ) {
     LazyColumn(
         Modifier.fillMaxSize()

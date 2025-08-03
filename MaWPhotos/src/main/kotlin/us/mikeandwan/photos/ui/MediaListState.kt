@@ -3,20 +3,21 @@ package us.mikeandwan.photos.ui
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Composable
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import java.io.File
+import kotlin.uuid.Uuid
 
 sealed class MediaListState {
     data object Loading: MediaListState()
 
     data class CategoryLoaded(
-        val category: MediaCategory
+        val category: Category
     ): MediaListState()
 
     data class Loaded(
-        val category: MediaCategory,
+        val category: Category,
         val media: List<Media>,
-        val activeId: Int,
+        val activeId: Uuid,
         val activeIndex: Int,
         val activeMedia: Media?,
         val isSlideshowPlaying: Boolean,
@@ -30,9 +31,9 @@ sealed class MediaListState {
 
 @Composable
 fun rememberMediaListState(
-    category: MediaCategory?,
+    category: Category?,
     media: List<Media>,
-    activeId: Int,
+    activeId: Uuid,
     activeIndex: Int,
     activeMedia: Media?,
     isSlideshowPlaying: Boolean,

@@ -12,5 +12,5 @@ interface ScaleDao {
     fun getScales(): Flow<List<Scale>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(scale: Scale)
+    suspend fun upsert(vararg scale: Scale)
 }

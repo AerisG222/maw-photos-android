@@ -30,7 +30,7 @@ import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.domain.models.MediaCategory
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
 import us.mikeandwan.photos.ui.controls.imagegrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
@@ -43,7 +43,7 @@ data class SearchRoute (
 )
 
 fun NavGraphBuilder.searchScreen(
-    navigateToCategory: (MediaCategory) -> Unit,
+    navigateToCategory: (Category) -> Unit,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit
@@ -101,11 +101,11 @@ fun NavGraphBuilder.searchScreen(
 
 @Composable
 fun SearchScreen(
-    results: List<MediaCategory>,
+    results: List<Category>,
     totalFound: Int,
     displayType: CategoryDisplayType,
     thumbSize: GridThumbnailSize,
-    onNavigateToCategory: (MediaCategory) -> Unit,
+    onNavigateToCategory: (Category) -> Unit,
     continueSearch: () -> Unit
 ) {
     if(results.isEmpty()) {

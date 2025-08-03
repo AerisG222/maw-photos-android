@@ -15,11 +15,13 @@ import us.mikeandwan.photos.ui.controls.imagegrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
+import us.mikeandwan.photos.ui.UuidNavType
+import kotlin.reflect.typeOf
+import kotlin.uuid.Uuid
 
 @Serializable
 data class CategoryRoute (
-    val mediaType: String,
-    val categoryId: Int
+    val categoryId: Uuid
 )
 
 fun NavGraphBuilder.categoryScreen(
@@ -28,13 +30,15 @@ fun NavGraphBuilder.categoryScreen(
     navigateToMedia: (Media) -> Unit,
     navigateToLogin: () -> Unit
 ) {
-    composable<CategoryRoute> { backStackEntry ->
+    composable<CategoryRoute>(
+        typeMap = mapOf(typeOf<Uuid>() to UuidNavType)
+    ) { backStackEntry ->
         val vm: CategoryViewModel = hiltViewModel()
         val args = backStackEntry.toRoute<CategoryRoute>()
         val state by vm.state.collectAsStateWithLifecycle()
 
-        LaunchedEffect(args.mediaType, args.categoryId) {
-            vm.initState(args.mediaType, args.categoryId)
+        LaunchedEffect(args.categoryId) {
+            vm.initState(args.categoryId)
         }
 
         when(state) {

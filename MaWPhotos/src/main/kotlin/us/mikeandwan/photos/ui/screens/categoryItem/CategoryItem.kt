@@ -31,14 +31,17 @@ import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
 import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
 import us.mikeandwan.photos.ui.controls.mediapager.rememberRotation
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
+import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.rememberMediaListState
 import us.mikeandwan.photos.ui.shareMedia
+import kotlin.reflect.typeOf
+import kotlin.uuid.Uuid
 
 @Serializable
 data class CategoryItemRoute (
     val mediaType: String,
-    val categoryId: Int,
-    val mediaId: Int
+    val categoryId: Uuid,
+    val mediaId: Uuid
 )
 
 fun NavGraphBuilder.categoryItemScreen(
@@ -46,7 +49,9 @@ fun NavGraphBuilder.categoryItemScreen(
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit
 ) {
-    composable<CategoryItemRoute> { backStackEntry ->
+    composable<CategoryItemRoute>(
+        typeMap = mapOf(typeOf<Uuid>() to UuidNavType)
+    ) { backStackEntry ->
         val vm: CategoryItemViewModel = hiltViewModel()
         val args = backStackEntry.toRoute<CategoryItemRoute>()
 
