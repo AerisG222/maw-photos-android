@@ -14,6 +14,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -39,11 +41,11 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     errorRepository: ErrorRepository,
     categoryRepository: CategoryRepository,
+    private val imageLoader: ImageLoader,
     private val application: Application,
     private val fileStorageRepository: FileStorageRepository,
     private val searchRepository: SearchRepository,
-    private val randomPhotoRepository: RandomPhotoRepository,
-
+    private val randomPhotoRepository: RandomPhotoRepository
 ): ViewModel() {
     val years = categoryRepository.getYears()
 
@@ -195,6 +197,8 @@ class MainViewModel @Inject constructor(
     }
 
     init {
+        SingletonImageLoader.setSafe { imageLoader }
+
         viewModelScope.launch {
             fileStorageRepository.refreshPendingUploads()
             clearFileCache()

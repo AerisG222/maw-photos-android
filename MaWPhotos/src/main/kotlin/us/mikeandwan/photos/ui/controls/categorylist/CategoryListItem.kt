@@ -13,7 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
+import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.Category
 
 @Composable
@@ -29,7 +30,7 @@ fun CategoryListItem(
             .clickable { onSelectCategory(category) }
     ) {
         AsyncImage(
-            model = category.teaser.first().path,
+            model = category.findTeaserImage(false).path,
             contentDescription = category.name,
             contentScale = ContentScale.Crop,
             modifier = Modifier

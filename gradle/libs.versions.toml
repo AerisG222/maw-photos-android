@@ -31,7 +31,7 @@ kotlinx-datetime = "0.7.1"
 ksp = "2.2.0-2.0.2"
 
 auth0 = "3.8.0"
-coil = "2.7.0"
+coil = "3.3.0"
 flowext = "1.0.0"
 markdown = "0.5.7"
 ratingbar = "2.1.1"
@@ -83,7 +83,8 @@ jetbrains-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name =
 jetbrains-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 auth0 = { group = "com.auth0.android", name = "auth0", version.ref = "auth0" }
-coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 compose-ratingbar = { group = "com.github.SmartToolFactory", name = "Compose-RatingBar", version.ref = "ratingbar" }
 flowext = { group = "io.github.hoc081098", name = "FlowExt", version.ref = "flowext" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

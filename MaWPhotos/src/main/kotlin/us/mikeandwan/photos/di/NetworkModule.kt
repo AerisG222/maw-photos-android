@@ -1,7 +1,14 @@
 package us.mikeandwan.photos.di
 
+import android.app.Application
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import coil3.ImageLoader
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.request.crossfade
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -60,6 +67,37 @@ object NetworkModule {
             .addConverterFactory(
                 json.asConverterFactory("application/json; charset=utf-8".toMediaType()))
             .client(httpClient)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideImageLoader(
+        application: Application,
+        httpClient: OkHttpClient
+    ): ImageLoader {
+        return ImageLoader.Builder(application)
+            .crossfade(true)
+            .components {
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = {
+                            httpClient
+                        }
+                    )
+                )
+            }
+            .memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(application, 0.30)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(application.cacheDir.resolve("image_cache"))
+                    .maxSizePercent(0.02)
+                    .build()
+            }
             .build()
     }
 

@@ -219,3 +219,13 @@ fun us.mikeandwan.photos.api.SearchResultCategory.toDomainSearchResult(): Search
 fun us.mikeandwan.photos.api.ApiResult.Error.isUnauthorized(): Boolean {
     return this.errorCode == HttpURLConnection.HTTP_UNAUTHORIZED
 }
+
+fun Category.findTeaserImage(largerSize: Boolean): MediaFile {
+    val code = if(largerSize) "qvg-fill" else "qqvg-fill"
+
+    return this.teaser.find { (it.type == MediaFileType.Photo || it.type == MediaFileType.VideoPoster) && it.scale.code == code } ?: MediaFile(
+        Scale(code, 0, 0, false),
+        MediaFileType.Photo,
+        ""
+    )
+}
