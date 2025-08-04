@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 @Dao
 abstract class CategoryDao {
@@ -28,7 +29,7 @@ abstract class CategoryDao {
         WHERE 
             id = :id
     """)
-    abstract fun getCategory(id: Int): Flow<CategoryDetail?>
+    abstract fun getCategory(id: Uuid): Flow<CategoryDetail?>
 
     @Query("""
         SELECT MAX(modified)
@@ -37,7 +38,9 @@ abstract class CategoryDao {
     )
     abstract fun getMostRecentModifiedDate(): Flow<Instant?>
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun upsertCategories(vararg categories: Category)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun upsert(vararg categories: Category)
+    abstract suspend fun upsertMediaFiles(vararg mediaFiles: MediaFile)
 }

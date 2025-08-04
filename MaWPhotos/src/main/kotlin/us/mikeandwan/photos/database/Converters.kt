@@ -1,7 +1,8 @@
 package us.mikeandwan.photos.database
 
 import androidx.room.TypeConverter
-import us.mikeandwan.photos.domain.models.MediaType
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
 import java.util.*
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -19,16 +20,6 @@ class Converters {
     @TypeConverter
     fun fromCalendar(cal: Calendar?): Long? {
         return cal?.timeInMillis
-    }
-
-    @TypeConverter
-    fun fromMediaType(value: MediaType): String {
-        return value.name
-    }
-
-    @TypeConverter
-    fun toMediaType(value: String): MediaType {
-        return MediaType.valueOf(value)
     }
 
     @TypeConverter
@@ -61,5 +52,19 @@ class Converters {
     @TypeConverter
     fun fromUuid(v: Uuid?): String? {
         return v?.toHexDashString()
+    }
+
+    @TypeConverter
+    fun toLocalDate(v: String?): LocalDate? {
+        if (v == null) {
+            return null
+        }
+
+        return LocalDate.parse(v, LocalDate.Formats.ISO)
+    }
+
+    @TypeConverter
+    fun fromLocalDate(v: LocalDate?): String? {
+        return v?.format(LocalDate.Formats.ISO)
     }
 }

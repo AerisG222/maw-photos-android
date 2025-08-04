@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.ui
 
+import kotlinx.datetime.LocalDate
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
@@ -23,7 +24,7 @@ fun Media.getMediaUrl(): String {
 fun Category.toImageGridItem(): ImageGridItem<Category> {
     return ImageGridItem(
         this.id,
-        this.teaser.first().path,
+        "x", //this.teaser.first().path,
         this
     )
 }
@@ -33,7 +34,7 @@ fun SearchResultCategory.toDomainMediaCategory(): Category {
         this.id,
         this.year,
         this.name,
-        Clock.System.now(),
+        LocalDate.parse("2023-01-01"),
         Clock.System.now(),
         false,
         emptyList()

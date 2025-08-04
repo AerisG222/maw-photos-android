@@ -79,7 +79,6 @@ class MainActivity : ComponentActivity() {
             val topBarState by vm.topBarState.collectAsStateWithLifecycle()
             val enableDrawerGestures by vm.enableDrawerGestures.collectAsStateWithLifecycle()
             val activeYear by vm.activeYear.collectAsStateWithLifecycle()
-            val mostRecentYear by vm.mostRecentYear.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
                 handleIntent(activity.intent ?: Intent(), vm, navController)
@@ -126,7 +125,7 @@ class MainActivity : ComponentActivity() {
                                 fetchRandomPhotos = vm::fetchRandomPhotos,
                                 clearRandomPhotos = vm::clearRandomPhotos,
                                 clearSearchHistory = vm::clearSearchHistory,
-                                navigateToCategories = { vm.navigateAndCloseDrawer(CategoriesRoute(mostRecentYear)) },
+                                navigateToCategories = { vm.navigateAndCloseDrawer(CategoriesRoute(null)) },
                                 navigateToCategoriesByYear = { vm.navigateAndCloseDrawer(CategoriesRoute(it)) },
                                 navigateToRandom = { vm.navigateAndCloseDrawer(RandomRoute) },
                                 navigateToSearch = { vm.navigateAndCloseDrawer(SearchRoute()) },
@@ -160,12 +159,12 @@ class MainActivity : ComponentActivity() {
                             NavHost(
                                 modifier = Modifier.padding(innerPadding),
                                 navController = navController,
-                                startDestination = CategoriesRoute(mostRecentYear)
+                                startDestination = CategoriesRoute(null)
                             ) {
                                 loginScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateAfterLogin = { navController.navigateUp() }
+                                    navigateAfterLogin = { vm.navigate(CategoriesRoute(null)) }
                                 )
                                 aboutScreen(
                                     updateTopBar = vm::updateTopBar,

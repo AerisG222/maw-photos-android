@@ -1,7 +1,5 @@
 package us.mikeandwan.photos.domain
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.domain.models.*
 import java.net.HttpURLConnection
@@ -41,29 +39,6 @@ fun us.mikeandwan.photos.database.Scale.toDomainScale(): Scale {
         this.width,
         this.height,
         this.fillsDimensions
-    )
-}
-
-//fun us.mikeandwan.photos.database.Category.toDomainCategory(): Category {
-//    return Category(
-//        this.type,
-//        this.id,
-//        this.year,
-//        this.name,
-//        this.teaserHeight,
-//        this.teaserWidth,
-//        this.teaserUrl
-//    )
-//}
-
-fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category {
-    return us.mikeandwan.photos.database.Category(
-        this.id,
-        this.effectiveDate.toLocalDateTime(TimeZone.currentSystemDefault()).year,
-        this.name,
-        this.effectiveDate,
-        this.modified,
-        this.isFavorite
     )
 }
 

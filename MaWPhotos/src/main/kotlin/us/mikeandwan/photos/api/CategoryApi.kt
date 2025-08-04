@@ -8,7 +8,7 @@ internal interface CategoryApi {
     suspend fun getYears(): Response<List<Int>>
 
     @GET("categories/years/{year}")
-    suspend fun getCategoriesForYear(year: Int): Response<List<Category>>
+    suspend fun getCategoriesForYear(@Path("year") year: Int): Response<List<Category>>
 
 //    @GET("photos/{photoId}/exif")
 //    suspend fun getExifData(@Path("photoId") photoId: Int): Response<ExifData>

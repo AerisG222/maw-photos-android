@@ -34,9 +34,10 @@ object DomainModule {
         db: MawDatabase,
         yearDao: YearDao,
         categoryDao: CategoryDao,
+        scaleDao: ScaleDao,
         apiErrorHandler: ApiErrorHandler
     ): CategoryRepository =
-        CategoryRepository(api, db, yearDao, categoryDao, apiErrorHandler)
+        CategoryRepository(api, db, yearDao, categoryDao, scaleDao, apiErrorHandler)
 
     @Provides
     @Singleton

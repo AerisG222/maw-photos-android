@@ -31,7 +31,7 @@ import us.mikeandwan.photos.ui.toImageGridItem
 
 @Serializable
 data class CategoriesRoute (
-    val year: Int
+    val year: Int?
 )
 
 fun NavGraphBuilder.categoriesScreen(

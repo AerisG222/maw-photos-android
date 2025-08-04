@@ -17,6 +17,7 @@ import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Category
 import javax.inject.Inject
 import com.hoc081098.flowext.combine
+import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import kotlin.random.Random
 
@@ -40,16 +41,47 @@ class CategoriesViewModel @Inject constructor (
     private val categoryRepository: CategoryRepository,
     authGuard: AuthGuard,
     categoriesLoadedGuard: CategoriesLoadedGuard,
-    categoryPreferenceRepository: CategoryPreferenceRepository
+    categoryPreferenceRepository: CategoryPreferenceRepository,
+    private val configRepository: ConfigRepository
 ): ViewModel() {
-    private val _year = MutableStateFlow(-1)
+    private val _year = MutableStateFlow<Int?>(null)
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     private val _refreshStatus = MutableStateFlow(CategoryRefreshStatus(0, false, null))
     private val _preferences = categoryPreferenceRepository
         .getCategoryPreference()
         .stateIn(viewModelScope, WhileSubscribed(5000), CategoryPreference())
 
-    fun setYear(year: Int) {
+    init {
+        viewModelScope.launch {
+            categoryRepository
+                .getYears()
+                .onEach { years ->
+                    if (_year.value == null && !years.isEmpty()) {
+                        setYear(years.max())
+                    }
+                }
+                .collect { }
+        }
+
+        viewModelScope.launch {
+            configRepository
+                .loadScales()
+                .collect { }
+        }
+
+        viewModelScope.launch {
+            _year.onEach {
+                if (it != null) {
+                    categoryRepository
+                        .loadCategories(it)
+                        .collect { }
+                }
+            }
+            .collect { }
+        }
+    }
+
+    fun setYear(year: Int?) {
         _year.value = year
     }
 
@@ -76,44 +108,43 @@ class CategoriesViewModel @Inject constructor (
         refreshStatus,
         preferences ->
 
-        if (year <= 0) {
-            return@combine CategoriesState.Unknown
-        }
-
         when(authStatus) {
             is GuardStatus.NotInitialized -> authGuard.initializeGuard()
             is GuardStatus.Failed -> CategoriesState.NotAuthorized
             is GuardStatus.Passed -> {
-                when(categoriesStatus) {
-                    is GuardStatus.NotInitialized -> categoriesLoadedGuard.initializeGuard()
-                    is GuardStatus.Failed -> CategoriesState.Error
-                    is GuardStatus.Passed ->
-                        when {
-                            years.isEmpty() -> CategoriesState.Unknown
-                            !years.contains(year) -> CategoriesState.InvalidYear(years.max())
-                            categories.isEmpty() -> {
-                                if (!isFetchingCategories) {
-                                    isFetchingCategories = true
-                                    loadCategories(year)
+                if (year == null)
+                    CategoriesState.Unknown
+                else
+                    when(categoriesStatus) {
+                        is GuardStatus.NotInitialized -> categoriesLoadedGuard.initializeGuard()
+                        is GuardStatus.Failed -> CategoriesState.Error
+                        is GuardStatus.Passed ->
+                            when {
+                                years.isEmpty() -> CategoriesState.Unknown
+                                !years.contains(year) -> CategoriesState.InvalidYear(years.max())
+                                categories.isEmpty() -> {
+                                    if (!isFetchingCategories) {
+                                        isFetchingCategories = true
+                                        loadCategories(year)
+                                    }
+                                    CategoriesState.Unknown
                                 }
-                                CategoriesState.Unknown
+                                else -> CategoriesState.Valid(
+                                    year,
+                                    categories,
+                                    refreshStatus,
+                                    preferences,
+                                    refreshCategories = { refreshCategories(Random.nextInt()) },
+                                    clearRefreshStatus = {
+                                        _refreshStatus.value = CategoryRefreshStatus(Random.nextInt(), false, null)
+                                    }
+                                )
                             }
-                            else -> CategoriesState.Valid(
-                                year,
-                                categories,
-                                refreshStatus,
-                                preferences,
-                                refreshCategories = { refreshCategories(Random.nextInt()) },
-                                clearRefreshStatus = {
-                                    _refreshStatus.value = CategoryRefreshStatus(Random.nextInt(), false, null)
-                                }
-                            )
-                        }
+                    }
                 }
             }
         }
-    }
-    .stateIn(viewModelScope, WhileSubscribed(5000), CategoriesState.Unknown)
+        .stateIn(viewModelScope, WhileSubscribed(5000), CategoriesState.Unknown)
 
     private fun refreshCategories(id: Int) {
         viewModelScope.launch {

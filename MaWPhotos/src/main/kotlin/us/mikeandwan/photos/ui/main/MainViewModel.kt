@@ -32,25 +32,19 @@ import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.workers.UploadWorker
 import java.io.File
-import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    categoryRepository: CategoryRepository,
     errorRepository: ErrorRepository,
+    categoryRepository: CategoryRepository,
     private val application: Application,
     private val fileStorageRepository: FileStorageRepository,
     private val searchRepository: SearchRepository,
     private val randomPhotoRepository: RandomPhotoRepository,
-): ViewModel() {
-    val mostRecentYear = categoryRepository
-        .getMostRecentYear()
-        .filter { it != null }
-        .map { it!! }
-        .stateIn(viewModelScope, WhileSubscribed(5000), LocalDate.now().year)
 
+): ViewModel() {
     val years = categoryRepository.getYears()
 
     private val _activeYear = MutableStateFlow(-1)

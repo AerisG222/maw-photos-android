@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -19,7 +20,7 @@ data class Category(
     @PrimaryKey val id: Uuid,
     val year: Int,
     val name: String,
-    @ColumnInfo(name = "effective_date") val effectiveDate: Instant,
+    @ColumnInfo(name = "effective_date") val effectiveDate: LocalDate,
     @ColumnInfo(name = "modified") val modified: Instant,
     @ColumnInfo(name = "is_favorite") val isFavorite: Boolean
 )
