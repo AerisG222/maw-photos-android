@@ -12,7 +12,7 @@ import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.ui.controls.imagegrid.ImageGridItem
+import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.toImageGridItem
 import javax.inject.Inject
 import kotlin.uuid.Uuid
@@ -23,7 +23,7 @@ sealed class CategoryState {
     data object Error : CategoryState()
     data class Loaded(
         val category: Category,
-        val gridItems: List<ImageGridItem<Media>>,
+        val gridItems: List<MediaGridItem<Media>>,
         val gridItemThumbnailSize: GridThumbnailSize
     ): CategoryState()
 }

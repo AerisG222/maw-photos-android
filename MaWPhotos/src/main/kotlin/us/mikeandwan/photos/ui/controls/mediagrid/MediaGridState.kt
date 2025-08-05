@@ -1,19 +1,19 @@
-package us.mikeandwan.photos.ui.controls.imagegrid
+package us.mikeandwan.photos.ui.controls.mediagrid
 
 import androidx.compose.runtime.Composable
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 
 data class ImageGridState<T> (
-    val gridItems: List<ImageGridItem<T>>,
+    val gridItems: List<MediaGridItem<T>>,
     val thumbnailSize: GridThumbnailSize,
-    val onSelectGridItem: (ImageGridItem<T>) -> Unit
+    val onSelectGridItem: (MediaGridItem<T>) -> Unit
 )
 
 @Composable
 fun <T> rememberImageGridState(
-    gridItems: List<ImageGridItem<T>> = emptyList(),
+    gridItems: List<MediaGridItem<T>> = emptyList(),
     thumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
-    onSelectGridItem: (ImageGridItem<T>) -> Unit = {}
+    onSelectGridItem: (MediaGridItem<T>) -> Unit = {}
 ): ImageGridState<T> {
     return ImageGridState(
         gridItems,

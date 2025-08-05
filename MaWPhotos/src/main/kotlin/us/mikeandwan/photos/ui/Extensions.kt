@@ -6,11 +6,11 @@ import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.SearchResultCategory
-import us.mikeandwan.photos.ui.controls.imagegrid.ImageGridItem
+import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import kotlin.time.Clock
 
-fun Media.toImageGridItem(): ImageGridItem<Media> {
-    return ImageGridItem (
+fun Media.toImageGridItem(): MediaGridItem<Media> {
+    return MediaGridItem (
         this.id,
         "TODO",
         this
@@ -21,8 +21,8 @@ fun Media.getMediaUrl(): String {
     return "TODO"
 }
 
-fun Category.toImageGridItem(): ImageGridItem<Category> {
-    return ImageGridItem(
+fun Category.toImageGridItem(): MediaGridItem<Category> {
+    return MediaGridItem(
         this.id,
         "x", //this.teaser.first().path,
         this

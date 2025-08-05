@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.controls.imagegrid
+package us.mikeandwan.photos.ui.controls.mediagrid
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells

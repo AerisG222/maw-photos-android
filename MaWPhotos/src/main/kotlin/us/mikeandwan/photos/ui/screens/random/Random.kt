@@ -13,9 +13,9 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Photo
-import us.mikeandwan.photos.ui.controls.imagegrid.ImageGrid
-import us.mikeandwan.photos.ui.controls.imagegrid.ImageGridItem
-import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
+import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toImageGridItem
 import kotlin.uuid.Uuid
@@ -68,7 +68,7 @@ fun NavGraphBuilder.randomScreen(
 fun RandomScreen(
     photos: List<Photo>,
     thumbSize: GridThumbnailSize,
-    onPhotoClicked: (ImageGridItem<Media>) -> Unit,
+    onPhotoClicked: (MediaGridItem<Media>) -> Unit,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
 ) {

@@ -23,8 +23,8 @@ import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
-import us.mikeandwan.photos.ui.controls.imagegrid.ImageGrid
-import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toImageGridItem

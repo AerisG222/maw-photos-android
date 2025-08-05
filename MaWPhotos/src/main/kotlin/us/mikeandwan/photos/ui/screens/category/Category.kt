@@ -11,8 +11,8 @@ import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.ui.controls.imagegrid.ImageGrid
-import us.mikeandwan.photos.ui.controls.imagegrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.UuidNavType

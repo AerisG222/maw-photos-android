@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.controls.imagegrid
+package us.mikeandwan.photos.ui.controls.mediagrid
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,9 +14,9 @@ import us.mikeandwan.photos.R
 
 @Composable
 fun <T> ImageGridImage(
-    item: ImageGridItem<T>,
+    item: MediaGridItem<T>,
     size: Dp,
-    onSelectImage: (ImageGridItem<T>) -> Unit,
+    onSelectImage: (MediaGridItem<T>) -> Unit,
     modifier: Modifier = Modifier
 ) {
 //    val showVideoBadge = remember(item.data) {
