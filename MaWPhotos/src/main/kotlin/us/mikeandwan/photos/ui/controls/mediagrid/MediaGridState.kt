@@ -10,7 +10,7 @@ data class ImageGridState<T> (
 )
 
 @Composable
-fun <T> rememberImageGridState(
+fun <T> rememberMediaGridState(
     gridItems: List<MediaGridItem<T>> = emptyList(),
     thumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
     onSelectGridItem: (MediaGridItem<T>) -> Unit = {}

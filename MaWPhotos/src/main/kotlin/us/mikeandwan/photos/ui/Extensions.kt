@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui
 
 import kotlinx.datetime.LocalDate
 import us.mikeandwan.photos.api.ApiResult
+import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
@@ -21,10 +22,10 @@ fun Media.getMediaUrl(): String {
     return "TODO"
 }
 
-fun Category.toImageGridItem(): MediaGridItem<Category> {
+fun Category.toImageGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> {
     return MediaGridItem(
         this.id,
-        "x", //this.teaser.first().path,
+        this.findTeaserImage(useLargeTeaser).path,
         this
     )
 }

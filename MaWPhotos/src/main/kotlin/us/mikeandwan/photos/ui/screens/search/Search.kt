@@ -33,7 +33,7 @@ import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
 import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
-import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toImageGridItem
 
@@ -139,8 +139,8 @@ fun SearchScreen(
         ) {
             when (displayType) {
                 CategoryDisplayType.Grid -> {
-                    val gridState = rememberImageGridState(
-                        gridItems = results.map { it.toImageGridItem() },
+                    val gridState = rememberMediaGridState(
+                        gridItems = results.map { it.toImageGridItem(thumbSize == GridThumbnailSize.Large) },
                         thumbnailSize = thumbSize,
                         onSelectGridItem = { onNavigateToCategory(it.data) }
                     )

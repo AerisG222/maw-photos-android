@@ -23,7 +23,7 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
-import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import java.io.File
 import kotlin.uuid.Uuid
@@ -72,7 +72,7 @@ fun UploadScreen(
         )
     }
 
-    val gridState = rememberImageGridState(
+    val gridState = rememberMediaGridState(
         gridItems = files.mapIndexed { id, file -> MediaGridItem(Uuid.random(), file.path, file) },
         thumbnailSize = GridThumbnailSize.Medium,
         onSelectGridItem = { }

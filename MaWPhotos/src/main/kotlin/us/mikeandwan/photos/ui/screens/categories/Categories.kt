@@ -22,9 +22,10 @@ import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
 import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
-import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toImageGridItem
@@ -113,8 +114,8 @@ fun CategoriesScreen(
         }
     }
 
-    val gridState = rememberImageGridState (
-        gridItems = state.categories.map { it.toImageGridItem() },
+    val gridState = rememberMediaGridState (
+        gridItems = state.categories.map { it.toImageGridItem(state.preferences.gridThumbnailSize == GridThumbnailSize.Large) },
         thumbnailSize = state.preferences.gridThumbnailSize,
         onSelectGridItem = { navigateToCategory(it.data) }
     )

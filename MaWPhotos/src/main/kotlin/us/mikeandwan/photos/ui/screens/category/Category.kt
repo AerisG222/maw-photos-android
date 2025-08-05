@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
-import us.mikeandwan.photos.ui.controls.mediagrid.rememberImageGridState
+import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.UuidNavType
@@ -80,7 +80,7 @@ fun CategoryScreen(
         setNavArea(NavigationArea.Category)
     }
 
-    val gridState = rememberImageGridState(
+    val gridState = rememberMediaGridState(
         gridItems = state.gridItems,
         thumbnailSize = state.gridItemThumbnailSize,
         onSelectGridItem = { navigateToMedia(it.data) }
