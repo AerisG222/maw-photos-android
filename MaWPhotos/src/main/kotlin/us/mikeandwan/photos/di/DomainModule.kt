@@ -6,8 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import us.mikeandwan.photos.api.CategoryApiClient
-import us.mikeandwan.photos.api.PhotoApiClient
-import us.mikeandwan.photos.api.SearchApiClient
+import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.database.*
 import us.mikeandwan.photos.domain.*
 import javax.inject.Singleton
@@ -42,7 +41,7 @@ object DomainModule {
     @Provides
     @Singleton
     fun provideRandomPhotoRepository(
-        api: PhotoApiClient,
+        api: MediaApiClient,
         randomPreferenceRepository: RandomPreferenceRepository,
         apiErrorHandler: ApiErrorHandler
     ): RandomPhotoRepository =
@@ -58,7 +57,7 @@ object DomainModule {
     @Provides
     @Singleton
     fun provideSearchRepository(
-        api: SearchApiClient,
+        api: CategoryApiClient,
         searchPreferenceRepository: SearchPreferenceRepository,
         searchHistoryDao: SearchHistoryDao,
         apiErrorHandler: ApiErrorHandler

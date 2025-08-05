@@ -12,7 +12,6 @@ import us.mikeandwan.photos.domain.models.Media
 fun DetailBottomSheet(
     sheetState: SheetState,
     activeMedia: Media,
-    ratingState: RatingState,
     exifState: ExifState,
     commentState: CommentState,
     onDismissRequest: () -> Unit
@@ -24,7 +23,6 @@ fun DetailBottomSheet(
     ) {
         DetailTabs(
             activeMedia = activeMedia,
-            ratingState = ratingState,
             exifState = exifState,
             commentState = commentState
         )

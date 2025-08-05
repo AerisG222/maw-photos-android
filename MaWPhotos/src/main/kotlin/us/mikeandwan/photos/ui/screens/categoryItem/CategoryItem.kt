@@ -22,10 +22,8 @@ import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.metadata.CommentState
 import us.mikeandwan.photos.ui.controls.metadata.DetailBottomSheet
 import us.mikeandwan.photos.ui.controls.metadata.ExifState
-import us.mikeandwan.photos.ui.controls.metadata.RatingState
 import us.mikeandwan.photos.ui.controls.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.controls.metadata.rememberExifState
-import us.mikeandwan.photos.ui.controls.metadata.rememberRatingState
 import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
 import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
 import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
@@ -87,16 +85,6 @@ fun NavGraphBuilder.categoryItemScreen(
             vm.initState(args.categoryId, args.mediaType, args.mediaId)
         }
 
-        // rating
-        val userRating by vm.userRating.collectAsStateWithLifecycle()
-        val averageRating by vm.averageRating.collectAsStateWithLifecycle()
-        val ratingState = rememberRatingState(
-            userRating = userRating,
-            averageRating = averageRating,
-            fetchRating = { vm.fetchRatingDetails() },
-            updateUserRating = { vm.setRating(it) }
-        )
-
         // exif
         val exif by vm.exif.collectAsStateWithLifecycle()
         val exifState = rememberExifState(
@@ -128,7 +116,6 @@ fun NavGraphBuilder.categoryItemScreen(
             is MediaListState.Loaded -> {
                 CategoryItemScreen(
                     mediaListState,
-                    ratingState,
                     exifState,
                     commentState,
                     vm.videoPlayerDataSourceFactory,
@@ -144,7 +131,6 @@ fun NavGraphBuilder.categoryItemScreen(
 @Composable
 fun CategoryItemScreen(
     mediaListState: MediaListState.Loaded,
-    ratingState: RatingState,
     exifState: ExifState,
     commentState: CommentState,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
@@ -195,7 +181,6 @@ fun CategoryItemScreen(
             DetailBottomSheet(
                 activeMedia = mediaListState.activeMedia!!,
                 sheetState = sheetState,
-                ratingState = ratingState,
                 exifState = exifState,
                 commentState = commentState,
                 onDismissRequest = mediaListState.toggleDetails

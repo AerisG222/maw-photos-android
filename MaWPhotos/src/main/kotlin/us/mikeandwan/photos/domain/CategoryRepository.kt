@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.domain
 
+import androidx.collection.LruCache
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -33,7 +34,10 @@ class CategoryRepository @Inject constructor(
     companion object {
         private const val ERR_MSG_LOAD_YEARS = "Unable to load years at this time.  Please try again later."
         private const val ERR_MSG_LOAD_CATEGORIES = "Unable to load categories at this time.  Please try again later."
+        private const val ERR_MSG_LOAD_MEDIA = "Unable to load media for the category at this time.  Please try again later."
     }
+
+    private var cachedCategoryMedia = LruCache<Uuid, List<Media>>(8)
 
     override fun getYears() = flow {
         val years = yearDao
@@ -63,26 +67,27 @@ class CategoryRepository @Inject constructor(
 
     override fun getMedia(categoryId: Uuid) = flow {
         emit(ExternalCallStatus.Success<List<Media>>(emptyList()))
-//        cachedCategoryPhotos[categoryId]?.let {
-//            emit(ExternalCallStatus.Success(it))
-//            return@flow
-//        }
-//
-//        emit(ExternalCallStatus.Loading)
-//
-//        when(val result = api.getPhotos(categoryId)) {
-//            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_PHOTOS))
-//            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_PHOTOS))
-//            is ApiResult.Success -> {
-//                val photos = result.result.items.map { it.toDomainPhoto() }
-//
-//                if (photos.isNotEmpty()) {
-//                    cachedCategoryPhotos.put(categoryId, photos)
-//                }
-//
-//                emit(ExternalCallStatus.Success(photos))
-//            }
-//        }
+
+        cachedCategoryMedia[categoryId]?.let {
+            emit(ExternalCallStatus.Success(it))
+            return@flow
+        }
+
+        emit(ExternalCallStatus.Loading)
+
+        when(val result = api.getMediaForCategory(categoryId)) {
+            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_MEDIA))
+            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_MEDIA))
+            is ApiResult.Success -> {
+                val media = result.result.map { it.toDomainMedia() }
+
+                if (media.isNotEmpty()) {
+                    cachedCategoryMedia.put(categoryId, media)
+                }
+
+                emit(ExternalCallStatus.Success(media))
+            }
+        }
     }
 
     override fun getCategories(year: Int) = catDao

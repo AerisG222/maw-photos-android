@@ -16,7 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import us.mikeandwan.photos.Constants
-import us.mikeandwan.photos.api.PhotoApiClient
+import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -26,7 +26,6 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.ConfigApiClient
-import us.mikeandwan.photos.api.SearchApiClient
 import us.mikeandwan.photos.api.UploadApiClient
 
 @Module
@@ -113,13 +112,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providePhotoApiClient(retrofit: Retrofit): PhotoApiClient =
-        PhotoApiClient(retrofit)
-
-    @Provides
-    @Singleton
-    fun provideSearchApiClient(retrofit: Retrofit): SearchApiClient =
-        SearchApiClient(retrofit)
+    fun provideMediaApiClient(retrofit: Retrofit): MediaApiClient =
+        MediaApiClient(retrofit)
 
     @Provides
     @Singleton

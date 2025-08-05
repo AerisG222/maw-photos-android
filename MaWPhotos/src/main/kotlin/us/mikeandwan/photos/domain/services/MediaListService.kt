@@ -99,22 +99,13 @@ class MediaListService @Inject constructor (
 
     // TODO: pass in media rather than relying on activeMedia?
 
-    // RATINGS
-    val userRating = mediaRatingService.userRating
-    val averageRating = mediaRatingService.averageRating
+    // FAVORITES
+    val isFavorite = mediaRatingService.isFavorite
 
-    fun setRating(rating: Short) {
+    fun setRating(isFavorite: Boolean) {
         activeMedia.value?.let {
             scope.launch {
-                mediaRatingService.setRating(activeMedia.value!!, rating)
-            }
-        }
-    }
-
-    fun fetchRating() {
-        activeMedia.value?.let {
-            scope.launch {
-                mediaRatingService.fetchRatingDetails(activeMedia.value!!)
+                mediaRatingService.setIsFavorite(activeMedia.value!!, isFavorite)
             }
         }
     }
@@ -124,11 +115,9 @@ class MediaListService @Inject constructor (
 
     fun fetchExif() {
         activeMedia.value?.let {
-//            if(it !is Video) {
-                scope.launch {
-                    mediaExifService.fetchExifDetails(it)
-                }
-//            }
+            scope.launch {
+                mediaExifService.fetchExifDetails(it)
+            }
         }
     }
 
@@ -163,7 +152,7 @@ class MediaListService @Inject constructor (
         scope.launch {
             activeMedia
                 .filterNotNull()
-                .collect { loadCategory(it.type, it.categoryId) }
+                .collect { loadCategory(it.type, it.id) }
         }
 
         scope.launch {

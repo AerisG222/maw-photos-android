@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.domain.models.Photo
 import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
@@ -66,7 +65,7 @@ fun NavGraphBuilder.randomScreen(
 
 @Composable
 fun RandomScreen(
-    photos: List<Photo>,
+    photos: List<Media>,
     thumbSize: GridThumbnailSize,
     onPhotoClicked: (MediaGridItem<Media>) -> Unit,
     updateTopBar : (TopBarState) -> Unit,

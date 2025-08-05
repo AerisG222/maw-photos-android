@@ -3,7 +3,7 @@ package us.mikeandwan.photos.domain
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 import us.mikeandwan.photos.api.ApiResult
-import us.mikeandwan.photos.api.SearchApiClient
+import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.database.SearchHistory
 import us.mikeandwan.photos.database.SearchHistoryDao
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
@@ -15,7 +15,7 @@ import javax.inject.Inject
 import kotlin.math.max
 
 class SearchRepository @Inject constructor(
-    private val api: SearchApiClient,
+    private val api: CategoryApiClient,
     private val searchHistoryDao: SearchHistoryDao,
     private val searchPreferenceRepository: SearchPreferenceRepository,
     private val apiErrorHandler: ApiErrorHandler
@@ -82,7 +82,7 @@ class SearchRepository @Inject constructor(
 
         emit(ExternalCallStatus.Loading)
 
-        when(val result = api.searchCategories(query, startPosition)) {
+        when(val result = api.search(query, startPosition)) {
             is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_SEARCH))
             is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_SEARCH))
             is ApiResult.Success -> {

@@ -16,7 +16,7 @@ class MediaCommentService @Inject constructor (
     val comments = _comments.asStateFlow()
 
     suspend fun fetchCommentDetails(media: Media) {
-        mediaRepository.getComments(media)
+        mediaRepository.getComments(media.id)
             .map {
                 when (it) {
                     is ExternalCallStatus.Loading -> emptyList()
@@ -29,7 +29,7 @@ class MediaCommentService @Inject constructor (
 
     suspend fun addComment(media: Media, comment: String) {
         if(comment.isNotBlank()) {
-            mediaRepository.addComment(media, comment)
+            mediaRepository.addComment(media.id, comment)
                 .collect { result ->
                     if (result is ExternalCallStatus.Success) {
                         _comments.value = result.result

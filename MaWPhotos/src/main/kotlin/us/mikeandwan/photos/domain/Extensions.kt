@@ -71,25 +71,22 @@ fun us.mikeandwan.photos.database.RandomPreference.toDomainRandomPreference(): R
     )
 }
 
-fun us.mikeandwan.photos.api.Photo.toDomainPhoto(): Photo {
-    return Photo(
-        MediaType.Photo,
+fun us.mikeandwan.photos.api.Media.toDomainMedia(): Media {
+    return Media(
         this.id,
         this.categoryId,
-        this.imageXs.height,
-        this.imageXs.width,
-        this.imageXs.url,
-        this.imageMd.height,
-        this.imageMd.width,
-        this.imageMd.url
+        getMediaType(this.type),
+        this.isFavorite,
+        this.files
     )
 }
 
-fun us.mikeandwan.photos.api.Rating.toDomainRating(): Rating {
-    return Rating(
-        this.userRating,
-        this.averageRating
-    )
+fun getMediaType(type: String): MediaType {
+    return when (type) {
+        "photo" -> MediaType.Photo
+        "video" -> MediaType.Video
+        else -> throw IllegalArgumentException("Unknown media type: $type")
+    }
 }
 
 fun us.mikeandwan.photos.api.Comment.toDomainComment(): Comment {

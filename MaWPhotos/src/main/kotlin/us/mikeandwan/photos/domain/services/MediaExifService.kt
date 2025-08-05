@@ -19,7 +19,7 @@ class MediaExifService @Inject constructor (
     val exif = _exif.asStateFlow()
 
     suspend fun fetchExifDetails(media: Media) {
-        _exif.value = mediaRepository.getExifData(media)
+        _exif.value = mediaRepository.getExifData(media.id)
             .filterIsInstance<ExternalCallStatus.Success<ExifData>>()
             .map { it.result }
             .firstOrNull()?.let { prepareForDisplay(it) } ?: emptyList()

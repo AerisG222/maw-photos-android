@@ -1,12 +1,13 @@
 package us.mikeandwan.photos.domain.models
 
+import us.mikeandwan.photos.api.MediaFile
 import kotlin.uuid.Uuid
 
-abstract class Media {
-    abstract var type: MediaType
-    abstract var id: Uuid
-    abstract var categoryId: Uuid
-    abstract var thumbnailHeight: Int
-    abstract var thumbnailWidth: Int
-    abstract var thumbnailUrl: String
-}
+// todo: add categoryId?
+data class Media (
+    val id: Uuid,
+    val categoryId: Uuid,
+    val type: MediaType,
+    val isFavorite: Boolean,
+    val files: List<MediaFile> = ArrayList()
+)

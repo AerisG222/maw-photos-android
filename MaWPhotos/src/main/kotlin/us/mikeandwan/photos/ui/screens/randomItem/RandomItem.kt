@@ -22,10 +22,8 @@ import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.metadata.CommentState
 import us.mikeandwan.photos.ui.controls.metadata.DetailBottomSheet
 import us.mikeandwan.photos.ui.controls.metadata.ExifState
-import us.mikeandwan.photos.ui.controls.metadata.RatingState
 import us.mikeandwan.photos.ui.controls.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.controls.metadata.rememberExifState
-import us.mikeandwan.photos.ui.controls.metadata.rememberRatingState
 import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
 import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
 import us.mikeandwan.photos.ui.controls.mediapager.OverlayYearName
@@ -98,16 +96,6 @@ fun NavGraphBuilder.randomItemScreen(
 //            }
 //        }
 
-        // rating
-        val userRating by vm.userRating.collectAsStateWithLifecycle()
-        val averageRating by vm.averageRating.collectAsStateWithLifecycle()
-        val ratingState = rememberRatingState(
-            userRating = userRating,
-            averageRating = averageRating,
-            fetchRating = { vm.fetchRatingDetails() },
-            updateUserRating = { vm.setRating(it) }
-        )
-
         // exif
         val exif by vm.exif.collectAsStateWithLifecycle()
         val exifState = rememberExifState(
@@ -129,7 +117,6 @@ fun NavGraphBuilder.randomItemScreen(
             is MediaListState.Loaded -> {
                 RandomItemScreen(
                     mediaListState,
-                    ratingState,
                     exifState,
                     commentState,
                     vm.videoPlayerDataSourceFactory,
@@ -147,7 +134,6 @@ fun NavGraphBuilder.randomItemScreen(
 @Composable
 fun RandomItemScreen(
     mediaListState: MediaListState.Loaded,
-    ratingState: RatingState,
     exifState: ExifState,
     commentState: CommentState,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
@@ -203,7 +189,6 @@ fun RandomItemScreen(
             DetailBottomSheet(
                 activeMedia = mediaListState.activeMedia!!,
                 sheetState = sheetState,
-                ratingState = ratingState,
                 exifState = exifState,
                 commentState = commentState,
                 onDismissRequest = mediaListState.toggleDetails

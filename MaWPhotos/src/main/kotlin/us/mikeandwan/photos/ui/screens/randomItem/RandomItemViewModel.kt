@@ -54,10 +54,8 @@ class RandomItemViewModel @Inject constructor(
     }
 
     // ratings
-    val userRating = mediaListService.userRating
-    val averageRating = mediaListService.averageRating
-    fun setRating(rating: Short) { mediaListService.setRating(rating) }
-    fun fetchRatingDetails() { mediaListService.fetchRating() }
+    val isFavorite = mediaListService.isFavorite
+    fun setIsFavorite(isFavorite: Boolean) { mediaListService.setRating(isFavorite) }
 
     // exif
     val exif = mediaListService.exif
