@@ -16,16 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.toLocalDateTime
 import us.mikeandwan.photos.domain.models.Comment
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun CommentTable(
     comments: List<Comment>,
     footer: @Composable () -> Unit
 ) {
-    val fmt = remember { DateTimeFormatter.ofPattern("yyyy-MM-dd") }
+    val fmt = remember { LocalDateTime.Format { date(LocalDate.Formats.ISO) } }
     val bgHead = MaterialTheme.colorScheme.surfaceVariant
     val txtHead = MaterialTheme.colorScheme.onSurfaceVariant
     val bgRow = MaterialTheme.colorScheme.surface
@@ -43,17 +46,15 @@ fun CommentTable(
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     color = txtHead,
-                    text = comment.username
+                    text = comment.createdBy
                 )
                 Text(
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     color = txtHead,
                     textAlign = TextAlign.End,
-                    text = comment.entryDate
-                        .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
+                    text = comment.created
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
                         .format(fmt)
                 )
             }
@@ -64,7 +65,7 @@ fun CommentTable(
             ) {
                 Text(
                     color = txtRow,
-                    text = comment.commentText
+                    text = comment.body
                 )
             }
 

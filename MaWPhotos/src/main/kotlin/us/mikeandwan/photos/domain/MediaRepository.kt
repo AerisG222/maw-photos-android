@@ -44,7 +44,7 @@ class MediaRepository @Inject constructor (
         when(val result = api.addComment(mediaId, comment)) {
             is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_ADD_COMMENTS))
             is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_ADD_COMMENTS))
-            is ApiResult.Success -> emit(ExternalCallStatus.Success(result.result.map{ it.toDomainComment() }))
+            is ApiResult.Success -> emit(ExternalCallStatus.Success(result.result.toDomainComment()))
         }
     }
 

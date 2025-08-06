@@ -1,9 +1,12 @@
 package us.mikeandwan.photos.domain.models
 
-import java.util.*
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 data class Comment(
-    val entryDate: Date,
-    val commentText: String,
-    val username: String
+    val commentId: Uuid,
+    val created: Instant,
+    val createdBy: String,
+    val modified: Instant,
+    val body: String
 )

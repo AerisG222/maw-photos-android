@@ -21,5 +21,5 @@ internal interface MediaApi {
     suspend fun addComment(
         @Path("mediaId") mediaId: Uuid,
         @Body commentRequest: CommentRequest
-    ): Response<List<Comment>>
+    ): Response<Comment>
 }

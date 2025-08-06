@@ -27,7 +27,7 @@ class MediaApiClient @Inject constructor(
         return makeApiCall(::setFavorite.name, suspend { _mediaApi.setFavorite(mediaId, req) })
     }
 
-    suspend fun addComment(mediaId: Uuid, comment: String): ApiResult<List<Comment>> {
+    suspend fun addComment(mediaId: Uuid, comment: String): ApiResult<Comment> {
         val req = CommentRequest(comment)
 
         return makeApiCall(::addComment.name, suspend { _mediaApi.addComment(mediaId, req) })

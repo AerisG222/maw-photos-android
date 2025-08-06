@@ -101,9 +101,11 @@ fun getMediaType(type: String): MediaType {
 
 fun us.mikeandwan.photos.api.Comment.toDomainComment(): Comment {
     return Comment(
-        this.entryDate,
-        this.commentText,
-        this.username
+        this.commentId,
+        this.created,
+        this.createdBy,
+        this.modified,
+        this.body
     )
 }
 

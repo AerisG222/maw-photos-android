@@ -3,6 +3,7 @@ package us.mikeandwan.photos.domain.services
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.domain.MediaRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Comment
@@ -32,7 +33,9 @@ class MediaCommentService @Inject constructor (
             mediaRepository.addComment(media.id, comment)
                 .collect { result ->
                     if (result is ExternalCallStatus.Success) {
-                        _comments.value = result.result
+                        _comments.update { list ->
+                            list + result.result
+                        }
                     }
                 }
         }

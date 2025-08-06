@@ -1,13 +1,17 @@
 package us.mikeandwan.photos.api
 
-import java.util.*
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.api.serializers.DateSerializer
+import us.mikeandwan.photos.api.serializers.InstantSerializer
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 @Serializable
 data class Comment(
-    @Serializable(with = DateSerializer::class)
-    val entryDate: Date,
-    val commentText: String,
-    val username: String
+    val commentId: Uuid,
+    @Serializable(with = InstantSerializer::class)
+    val created: Instant,
+    val createdBy: String,
+    @Serializable(with = InstantSerializer::class)
+    val modified: Instant,
+    val body: String
 )
