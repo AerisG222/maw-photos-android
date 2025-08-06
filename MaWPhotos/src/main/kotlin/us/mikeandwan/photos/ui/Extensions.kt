@@ -20,8 +20,16 @@ fun Media.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Media> {
     )
 }
 
+val preferredMediaScales = arrayOf("qhd", "full-hd", "nhd", "qvg")
+
 fun Media.getMediaUrl(): String {
-    return "TODO"
+    for(scale in preferredMediaScales) {
+        this.files.find{ it.scale.code == scale }?.let {
+            return it.path
+        }
+    }
+
+    return ""
 }
 
 fun Category.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> {
