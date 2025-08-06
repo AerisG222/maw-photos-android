@@ -1,15 +1,16 @@
 package us.mikeandwan.photos.ui.controls.metadata
 
 import androidx.compose.runtime.Composable
+import kotlinx.serialization.json.JsonElement
 
 class ExifState(
-    val exifDisplay: List<Pair<String, String>>,
+    val exifDisplay: JsonElement?,
     val fetchExif: () -> Unit = {},
 )
 
 @Composable
 fun rememberExifState(
-    exif: List<Pair<String, String>> = emptyList(),
+    exif: JsonElement? = null,
     fetchExif: () -> Unit = {},
 ): ExifState {
     return ExifState(

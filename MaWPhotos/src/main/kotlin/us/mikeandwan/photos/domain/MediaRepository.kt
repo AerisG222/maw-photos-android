@@ -24,7 +24,7 @@ class MediaRepository @Inject constructor (
         when(val result = api.getExifData(mediaId)) {
             is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_EXIF))
             is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_EXIF))
-            is ApiResult.Success -> emit(ExternalCallStatus.Success(result.result.toDomainExifData()))
+            is ApiResult.Success -> emit(ExternalCallStatus.Success(result.result))
         }
     }
 

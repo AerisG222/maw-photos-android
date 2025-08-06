@@ -1,12 +1,13 @@
 package us.mikeandwan.photos.api
 
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 import kotlin.uuid.Uuid
 
 internal interface MediaApi {
     @GET("media/{mediaId}/exif")
-    suspend fun getExifData(@Path("mediaId") mediaId: Uuid): Response<ExifData>
+    suspend fun getExifData(@Path("mediaId") mediaId: Uuid): ResponseBody
 
     @GET("media/random/{count}")
     suspend fun getRandomMedia(@Path("count") count: Int): Response<List<Media>>
