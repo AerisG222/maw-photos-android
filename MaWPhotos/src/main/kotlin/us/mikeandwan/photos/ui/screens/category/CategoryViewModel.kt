@@ -13,8 +13,9 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
-import us.mikeandwan.photos.ui.toImageGridItem
+import us.mikeandwan.photos.ui.toMediaGridItem
 import javax.inject.Inject
+import kotlin.collections.emptyList
 import kotlin.uuid.Uuid
 
 sealed class CategoryState {
@@ -37,13 +38,20 @@ class CategoryViewModel @Inject constructor (
 ) : BaseCategoryViewModel(
     categoryRepository
 ) {
-    private val gridItems = media
-        .map { items -> items.map { it.toImageGridItem() } }
-        .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
-
     private val gridItemThumbnailSize = mediaPreferenceRepository
         .getPhotoGridItemSize()
         .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Unspecified)
+
+    private val gridItems = combine(
+        media,
+        gridItemThumbnailSize
+    ) {
+        mediaList,
+        thumbnailSize ->
+
+        mediaList.map { it.toMediaGridItem(thumbnailSize == GridThumbnailSize.Large) }
+    }
+    .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
     fun initState(categoryId: Uuid) {
         loadCategory(categoryId)

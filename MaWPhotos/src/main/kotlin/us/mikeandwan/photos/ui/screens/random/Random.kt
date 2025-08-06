@@ -16,7 +16,7 @@ import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.toImageGridItem
+import us.mikeandwan.photos.ui.toMediaGridItem
 import kotlin.uuid.Uuid
 
 @Serializable
@@ -82,7 +82,7 @@ fun RandomScreen(
     }
 
     val gridState = rememberMediaGridState(
-        photos.map { it.toImageGridItem() },
+        photos.map { it.toMediaGridItem(thumbSize == GridThumbnailSize.Large) },
         thumbSize,
         onPhotoClicked
     )

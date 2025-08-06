@@ -35,7 +35,7 @@ import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
 import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.toImageGridItem
+import us.mikeandwan.photos.ui.toMediaGridItem
 
 @Serializable
 data class SearchRoute (
@@ -140,7 +140,7 @@ fun SearchScreen(
             when (displayType) {
                 CategoryDisplayType.Grid -> {
                     val gridState = rememberMediaGridState(
-                        gridItems = results.map { it.toImageGridItem(thumbSize == GridThumbnailSize.Large) },
+                        gridItems = results.map { it.toMediaGridItem(thumbSize == GridThumbnailSize.Large) },
                         thumbnailSize = thumbSize,
                         onSelectGridItem = { onNavigateToCategory(it.data) }
                     )

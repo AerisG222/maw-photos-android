@@ -10,7 +10,7 @@ import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.RandomPreference
 import javax.inject.Inject
 
-class RandomPhotoRepository @Inject constructor(
+class RandomMediaRepository @Inject constructor(
     private val api: MediaApiClient,
     randomPreferenceRepository: RandomPreferenceRepository,
     private val apiErrorHandler: ApiErrorHandler

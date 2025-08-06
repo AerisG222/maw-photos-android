@@ -3,17 +3,17 @@ package us.mikeandwan.photos.ui.screens.random
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import us.mikeandwan.photos.domain.RandomPhotoRepository
+import us.mikeandwan.photos.domain.RandomMediaRepository
 
 abstract class BaseRandomViewModel (
-    private val randomPhotoRepository: RandomPhotoRepository
+    private val randomMediaRepository: RandomMediaRepository
 ): ViewModel() {
     // todo: allow videos in random area?
-    val media = randomPhotoRepository.photos
+    val media = randomMediaRepository.photos
 
     fun fetch(count: Int) {
         viewModelScope.launch {
-            randomPhotoRepository
+            randomMediaRepository
                 .fetch(count)
                 .collect { }
         }
@@ -32,11 +32,11 @@ abstract class BaseRandomViewModel (
         // fetching once a user is in the item view (and no longer need the delay).
         //viewModelScope.launch {
             //delay(1000)
-            randomPhotoRepository.setDoFetch(true)
+            randomMediaRepository.setDoFetch(true)
         //}
     }
 
     fun onPause() {
-        randomPhotoRepository.setDoFetch(false)
+        randomMediaRepository.setDoFetch(false)
     }
 }

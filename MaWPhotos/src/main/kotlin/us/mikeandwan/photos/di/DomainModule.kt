@@ -44,8 +44,8 @@ object DomainModule {
         api: MediaApiClient,
         randomPreferenceRepository: RandomPreferenceRepository,
         apiErrorHandler: ApiErrorHandler
-    ): RandomPhotoRepository =
-        RandomPhotoRepository(api, randomPreferenceRepository, apiErrorHandler)
+    ): RandomMediaRepository =
+        RandomMediaRepository(api, randomPreferenceRepository, apiErrorHandler)
 
     @Provides
     @Singleton

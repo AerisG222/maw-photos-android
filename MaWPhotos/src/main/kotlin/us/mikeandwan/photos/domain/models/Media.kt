@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.domain.models
 
-import us.mikeandwan.photos.api.MediaFile
 import kotlin.uuid.Uuid
 
 // todo: add categoryId?

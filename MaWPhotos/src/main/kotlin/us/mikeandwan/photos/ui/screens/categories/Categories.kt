@@ -28,7 +28,7 @@ import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.toImageGridItem
+import us.mikeandwan.photos.ui.toMediaGridItem
 
 @Serializable
 data class CategoriesRoute (
@@ -115,7 +115,7 @@ fun CategoriesScreen(
     }
 
     val gridState = rememberMediaGridState (
-        gridItems = state.categories.map { it.toImageGridItem(state.preferences.gridThumbnailSize == GridThumbnailSize.Large) },
+        gridItems = state.categories.map { it.toMediaGridItem(state.preferences.gridThumbnailSize == GridThumbnailSize.Large) },
         thumbnailSize = state.preferences.gridThumbnailSize,
         onSelectGridItem = { navigateToCategory(it.data) }
     )

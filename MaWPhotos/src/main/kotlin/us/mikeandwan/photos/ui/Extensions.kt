@@ -11,10 +11,10 @@ import us.mikeandwan.photos.domain.models.SearchResultCategory
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import kotlin.time.Clock
 
-fun Media.toImageGridItem(): MediaGridItem<Media> {
+fun Media.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Media> {
     return MediaGridItem (
         this.id,
-        "TODO",
+        this.findTeaserImage(useLargeTeaser).path,
         this.type == MediaType.Video,
         this
     )
@@ -24,7 +24,7 @@ fun Media.getMediaUrl(): String {
     return "TODO"
 }
 
-fun Category.toImageGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> {
+fun Category.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> {
     return MediaGridItem(
         this.id,
         this.findTeaserImage(useLargeTeaser).path,

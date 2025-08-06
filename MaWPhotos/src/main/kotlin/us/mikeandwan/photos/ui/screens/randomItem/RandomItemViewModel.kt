@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import us.mikeandwan.photos.domain.RandomPhotoRepository
+import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.GuardStatus
@@ -24,12 +24,12 @@ import kotlin.uuid.Uuid
 @HiltViewModel
 class RandomItemViewModel @Inject constructor(
     authGuard: AuthGuard,
-    randomPhotoRepository: RandomPhotoRepository,
+    randomMediaRepository: RandomMediaRepository,
     randomPreferenceRepository: RandomPreferenceRepository,
     val videoPlayerDataSourceFactory: HttpDataSource.Factory,
     private val mediaListService: MediaListService
 ) : BaseRandomViewModel(
-    randomPhotoRepository
+    randomMediaRepository
 ) {
     val category = mediaListService.category
     val activePhoto = mediaListService.activeMedia

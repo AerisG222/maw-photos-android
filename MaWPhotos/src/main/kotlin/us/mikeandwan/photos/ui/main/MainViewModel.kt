@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.CategoryRepository
-import us.mikeandwan.photos.domain.RandomPhotoRepository
+import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
 import us.mikeandwan.photos.domain.models.NavigationArea
@@ -45,7 +45,7 @@ class MainViewModel @Inject constructor(
     private val application: Application,
     private val fileStorageRepository: FileStorageRepository,
     private val searchRepository: SearchRepository,
-    private val randomPhotoRepository: RandomPhotoRepository
+    private val randomMediaRepository: RandomMediaRepository
 ): ViewModel() {
     val years = categoryRepository.getYears()
 
@@ -113,7 +113,7 @@ class MainViewModel @Inject constructor(
 
     fun fetchRandomPhotos(count: Int) {
         viewModelScope.launch {
-            randomPhotoRepository
+            randomMediaRepository
                 .fetch(count)
                 .collect { }
         }
@@ -122,7 +122,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun clearRandomPhotos() {
-        randomPhotoRepository.clear()
+        randomMediaRepository.clear()
         closeDrawer()
     }
 

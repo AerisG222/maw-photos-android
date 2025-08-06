@@ -77,7 +77,17 @@ fun us.mikeandwan.photos.api.Media.toDomainMedia(): Media {
         this.categoryId,
         getMediaType(this.type),
         this.isFavorite,
-        this.files
+        this.files.map { it.toDomainMediaFile() }
+    )
+}
+
+// todo: we fake this here as we really only use the code - we try to reduce payload size by excluding scale info,
+// but very inconvenient to have to query our db for this and trying not to settle for a static lookup...
+fun us.mikeandwan.photos.api.MediaFile.toDomainMediaFile(): MediaFile {
+    return MediaFile(
+        Scale(this.scale, 0, 0, false),
+        getMediaFileType(this.type),
+        this.path
     )
 }
 
@@ -218,9 +228,17 @@ fun us.mikeandwan.photos.api.ApiResult.Error.isUnauthorized(): Boolean {
 }
 
 fun Category.findTeaserImage(largerSize: Boolean): MediaFile {
+    return findTeaserImage(this.teaser, largerSize)
+}
+
+fun Media.findTeaserImage(largerSize: Boolean): MediaFile {
+    return findTeaserImage(this.files, largerSize)
+}
+
+fun findTeaserImage(files: List<MediaFile>, largerSize: Boolean): MediaFile {
     val code = if(largerSize) "qvg-fill" else "qqvg-fill"
 
-    return this.teaser.find { (it.type == MediaFileType.Photo || it.type == MediaFileType.VideoPoster) && it.scale.code == code } ?: MediaFile(
+    return files.find { (it.type == MediaFileType.Photo || it.type == MediaFileType.VideoPoster) && it.scale.code == code } ?: MediaFile(
         Scale(code, 0, 0, false),
         MediaFileType.Photo,
         ""
