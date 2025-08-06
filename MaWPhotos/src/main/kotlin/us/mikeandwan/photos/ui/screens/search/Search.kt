@@ -32,7 +32,7 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
-import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
+import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toMediaGridItem
@@ -145,7 +145,7 @@ fun SearchScreen(
                         onSelectGridItem = { onNavigateToCategory(it.data) }
                     )
 
-                    ImageGrid(gridState)
+                    MediaGrid(gridState)
                 }
 
                 CategoryDisplayType.List -> {

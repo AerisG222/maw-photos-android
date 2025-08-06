@@ -19,7 +19,7 @@ import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
 
 @Composable
-fun <T> ImageGridImage(
+fun <T> MediaGridImage(
     item: MediaGridItem<T>,
     size: Dp,
     onSelectImage: (MediaGridItem<T>) -> Unit,

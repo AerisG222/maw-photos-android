@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
+import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
@@ -87,5 +87,5 @@ fun RandomScreen(
         onPhotoClicked
     )
 
-    ImageGrid(gridState)
+    MediaGrid(gridState)
 }

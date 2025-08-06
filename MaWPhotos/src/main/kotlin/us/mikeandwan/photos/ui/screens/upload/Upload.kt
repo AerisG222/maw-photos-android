@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.ui.controls.mediagrid.ImageGrid
+import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
@@ -93,6 +93,6 @@ fun UploadScreen(
     }
 
     Box {
-        ImageGrid(gridState)
+        MediaGrid(gridState)
     }
 }
