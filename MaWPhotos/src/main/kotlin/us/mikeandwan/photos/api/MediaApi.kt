@@ -6,7 +6,7 @@ import retrofit2.http.*
 import kotlin.uuid.Uuid
 
 internal interface MediaApi {
-    @GET("media/{mediaId}/exif")
+    @GET("media/{mediaId}/metadata")
     suspend fun getExifData(@Path("mediaId") mediaId: Uuid): ResponseBody
 
     @GET("media/random/{count}")
