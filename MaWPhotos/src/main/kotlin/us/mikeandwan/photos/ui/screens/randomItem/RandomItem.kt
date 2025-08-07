@@ -73,6 +73,7 @@ fun NavGraphBuilder.randomItemScreen(
             showDetailSheet,
             setActiveIndex = { vm.setActiveIndex(it) },
             toggleSlideshow = { vm.toggleSlideshow() },
+            toggleFavorite = { vm.toggleFavorite() },
             toggleDetails = { vm.toggleShowDetails() },
             saveMediaToShare = { drawable, filename, onComplete -> vm.saveFileToShare(drawable, filename, onComplete) },
         )
@@ -174,8 +175,10 @@ fun RandomItemScreen(
             ButtonBar(
                 activeMediaType = mediaListState.activeMedia!!.type,
                 isSlideshowPlaying = mediaListState.isSlideshowPlaying,
+                isFavorite = mediaListState.activeMedia.isFavorite,
                 onRotateLeft = { rotationState.setActiveRotation(-90f) },
                 onRotateRight = { rotationState.setActiveRotation(90f) },
+                onToggleFavorite = mediaListState.toggleFavorite,
                 onToggleSlideshow = mediaListState.toggleSlideshow,
                 onShare = {
                     coroutineScope.launch {

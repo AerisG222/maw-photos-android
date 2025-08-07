@@ -59,9 +59,9 @@ class CategoryItemViewModel @Inject constructor (
         mediaListService.saveFileToShare(drawable, filename, onComplete)
     }
 
-    // ratings
+    // favorite
     val isFavorite = mediaListService.isFavorite
-    fun setIsFavorite(isFavorite: Boolean) { mediaListService.setRating(isFavorite) }
+    fun toggleFavorite() { mediaListService.setIsFavorite(!isFavorite.value) }
 
     // exif
     val exif = mediaListService.exif

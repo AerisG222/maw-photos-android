@@ -15,15 +15,15 @@ import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
 import us.mikeandwan.photos.domain.services.MediaCommentService
 import us.mikeandwan.photos.domain.services.MediaExifService
 import us.mikeandwan.photos.domain.services.MediaListService
-import us.mikeandwan.photos.domain.services.MediaRatingService
+import us.mikeandwan.photos.domain.services.MediaFavoriteService
 
 @Module
 @InstallIn(ViewModelComponent::class)
 object ViewModelModule {
     @Provides
     @ViewModelScoped
-    fun providesMediaRatingService(mediaRepository: MediaRepository): MediaRatingService =
-        MediaRatingService(mediaRepository)
+    fun providesMediaRatingService(mediaRepository: MediaRepository): MediaFavoriteService =
+        MediaFavoriteService(mediaRepository)
 
     @Provides
     @ViewModelScoped
@@ -40,14 +40,14 @@ object ViewModelModule {
     fun provideMediaListService(
         categoryRepository: CategoryRepository,
         fileRepository: FileStorageRepository,
-        mediaRatingService: MediaRatingService,
+        mediaFavoriteService: MediaFavoriteService,
         mediaCommentService: MediaCommentService,
         mediaExifService: MediaExifService
     ): MediaListService =
         MediaListService(
             categoryRepository,
             fileRepository,
-            mediaRatingService,
+            mediaFavoriteService,
             mediaCommentService,
             mediaExifService
         )

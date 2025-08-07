@@ -24,6 +24,7 @@ sealed class MediaListState {
         val showDetailSheet: Boolean,
         val setActiveIndex: (index: Int) -> Unit,
         val toggleSlideshow: () -> Unit,
+        val toggleFavorite: () -> Unit,
         val toggleDetails: () -> Unit,
         val saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit
     ): MediaListState()
@@ -40,6 +41,7 @@ fun rememberMediaListState(
     showDetailSheet: Boolean,
     setActiveIndex: (index: Int) -> Unit,
     toggleSlideshow: () -> Unit,
+    toggleFavorite: () -> Unit,
     toggleDetails: () -> Unit,
     saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit
 ): MediaListState {
@@ -61,6 +63,7 @@ fun rememberMediaListState(
         showDetailSheet,
         setActiveIndex,
         toggleSlideshow,
+        toggleFavorite,
         toggleDetails,
         saveMediaToShare
     )

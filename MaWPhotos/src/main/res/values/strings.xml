@@ -70,6 +70,7 @@
     <!-- media -->
     <string name="rotate_left_icon_description">Rotate Left</string>
     <string name="rotate_right_icon_description">Rotate Right</string>
+    <string name="toggle_favorite_icon_description">Toggle Favorite</string>
     <string name="toggle_slideshow_icon_description">Toggle Slideshow</string>
     <string name="share_photo_icon_description">Share Photo</string>
     <string name="view_media_details_icon_description">View Media Details</string>

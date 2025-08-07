@@ -55,7 +55,7 @@ class RandomItemViewModel @Inject constructor(
 
     // ratings
     val isFavorite = mediaListService.isFavorite
-    fun setIsFavorite(isFavorite: Boolean) { mediaListService.setRating(isFavorite) }
+    fun toggleFavorite() { mediaListService.setIsFavorite(!isFavorite.value) }
 
     // exif
     val exif = mediaListService.exif

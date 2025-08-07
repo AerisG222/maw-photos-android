@@ -27,7 +27,7 @@ import kotlin.uuid.Uuid
 class MediaListService @Inject constructor (
     private val categoryRepository: CategoryRepository,
     private val fileRepository: FileStorageRepository,
-    private val mediaRatingService: MediaRatingService,
+    private val mediaFavoriteService: MediaFavoriteService,
     private val mediaCommentService: MediaCommentService,
     private val mediaExifService: MediaExifService
 ) {
@@ -100,12 +100,15 @@ class MediaListService @Inject constructor (
     // TODO: pass in media rather than relying on activeMedia?
 
     // FAVORITES
-    val isFavorite = mediaRatingService.isFavorite
+    val isFavorite = mediaFavoriteService.isFavorite
 
-    fun setRating(isFavorite: Boolean) {
+    fun setIsFavorite(isFavorite: Boolean) {
         activeMedia.value?.let {
             scope.launch {
-                mediaRatingService.setIsFavorite(activeMedia.value!!, isFavorite)
+                val resultIsFav = mediaFavoriteService.setIsFavorite(activeMedia.value!!, isFavorite)
+                val updatedMedia = _media.value.toMutableList()
+                updatedMedia[activeIndex.value] = activeMedia.value!!.copy(isFavorite = resultIsFav)
+                _media.value = updatedMedia
             }
         }
     }

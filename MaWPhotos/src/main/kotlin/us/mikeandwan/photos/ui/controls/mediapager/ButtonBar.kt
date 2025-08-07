@@ -21,8 +21,10 @@ import us.mikeandwan.photos.domain.models.MediaType
 fun ButtonBar(
     activeMediaType: MediaType,
     isSlideshowPlaying: Boolean,
+    isFavorite: Boolean,
     onRotateLeft: () -> Unit,
     onRotateRight: () -> Unit,
+    onToggleFavorite: () -> Unit,
     onToggleSlideshow: () -> Unit,
     onShare: () -> Unit,
     onViewDetails: () -> Unit
@@ -32,6 +34,13 @@ fun ButtonBar(
         when {
             isSlideshowPlaying -> R.drawable.ic_stop
             else -> R.drawable.ic_play_arrow
+        }
+    }
+
+    val favoriteIcon = remember(isFavorite) {
+        when {
+            isFavorite -> R.drawable.ic_favorite
+            else -> R.drawable.ic_favorite_border
         }
     }
 
@@ -55,6 +64,15 @@ fun ButtonBar(
                 AsyncImage(
                     model = R.drawable.ic_rotate_right,
                     contentDescription = stringResource(id = R.string.rotate_right_icon_description),
+                    modifier = Modifier.size(48.dp),
+                    colorFilter = ColorFilter.tint(color)
+                )
+            }
+
+            IconButton(onClick = onToggleFavorite) {
+                AsyncImage(
+                    model = favoriteIcon,
+                    contentDescription = stringResource(id = R.string.toggle_favorite_icon_description),
                     modifier = Modifier.size(48.dp),
                     colorFilter = ColorFilter.tint(color)
                 )
