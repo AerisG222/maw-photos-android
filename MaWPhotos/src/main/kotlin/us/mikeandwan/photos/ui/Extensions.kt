@@ -1,15 +1,12 @@
 package us.mikeandwan.photos.ui
 
-import kotlinx.datetime.LocalDate
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.MediaType
-import us.mikeandwan.photos.domain.models.SearchResultCategory
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
-import kotlin.time.Clock
 
 fun Media.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Media> {
     return MediaGridItem (
@@ -38,18 +35,6 @@ fun Category.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> {
         this.findTeaserImage(useLargeTeaser).path,
         false,
         this
-    )
-}
-
-fun SearchResultCategory.toDomainMediaCategory(): Category {
-    return Category(
-        this.id,
-        this.year,
-        this.name,
-        LocalDate.parse("2023-01-01"),
-        Clock.System.now(),
-        false,
-        emptyList()
     )
 }
 

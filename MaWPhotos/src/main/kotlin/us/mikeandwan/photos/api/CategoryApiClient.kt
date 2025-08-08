@@ -20,7 +20,7 @@ class CategoryApiClient @Inject constructor(
         return makeApiCall(::getMediaForCategory.name, suspend { _categoryApi.getMediaForCategory(categoryId) })
     }
 
-    suspend fun search(query: String, start: Int = 0): ApiResult<SearchResults<SearchResultCategory>> {
-        return makeApiCall(::search.name, suspend { _categoryApi.searchCategories(query, start) })
+    suspend fun search(query: String, start: Int = 0): ApiResult<SearchResults<Category>> {
+        return makeApiCall(::search.name, suspend { _categoryApi.search(query, start) })
     }
 }

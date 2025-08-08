@@ -13,7 +13,6 @@ import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.SearchSource
-import us.mikeandwan.photos.ui.toDomainMediaCategory
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,13 +22,8 @@ class SearchViewModel @Inject constructor(
     searchPreferenceRepository: SearchPreferenceRepository
 ) : ViewModel() {
     val activeTerm = searchRepository.activeSearchTerm
-    val totalFound = searchRepository.totalFound
-
-    private val searchResults = searchRepository.searchResults
-
-    val searchResultsAsCategories = searchResults
-        .map { results -> results.map { it.toDomainMediaCategory() }}
-        .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+    val hasMore = searchRepository.hasMoreResults
+    val searchResults = searchRepository.searchResults
 
     val displayType = searchPreferenceRepository
         .getSearchDisplayType()

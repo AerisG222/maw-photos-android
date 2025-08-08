@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.domain
 
-import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.domain.models.*
 import java.net.HttpURLConnection
 
@@ -71,6 +70,18 @@ fun us.mikeandwan.photos.database.RandomPreference.toDomainRandomPreference(): R
     )
 }
 
+fun us.mikeandwan.photos.api.Category.toDomainCategory(): Category {
+    return Category(
+        this.id,
+        this.effectiveDate.year,
+        this.name,
+        this.effectiveDate,
+        this.modified,
+        this.isFavorite,
+        this.teaser.files.map { it.toDomainMediaFile() }
+    )
+}
+
 fun us.mikeandwan.photos.api.Media.toDomainMedia(): Media {
     return Media(
         this.id,
@@ -122,24 +133,6 @@ fun us.mikeandwan.photos.database.SearchPreference.toDomainSearchPreference(): S
         this.recentQueryCount,
         this.displayType,
         this.gridThumbnailSize
-    )
-}
-
-fun us.mikeandwan.photos.api.SearchResultCategory.toDomainSearchResult(): SearchResultCategory {
-    return SearchResultCategory(
-        this.solrId,
-        this.id,
-        this.year,
-        this.name,
-        this.multimediaType,
-        this.teaserPhotoHeight,
-        this.teaserPhotoWidth,
-        "${ Constants.WWW_BASE_URL}${this.teaserPhotoPath}",
-        this.teaserPhotoSqHeight,
-        this.teaserPhotoSqWidth,
-        "${ Constants.WWW_BASE_URL}${this.teaserPhotoSqPath}",
-        "${ Constants.WWW_BASE_URL}${this.teaserPhotoPath.replace("/xs/", "/md/")}",
-        this.score
     )
 }
 

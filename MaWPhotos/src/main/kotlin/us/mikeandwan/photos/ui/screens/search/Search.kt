@@ -83,14 +83,14 @@ fun NavGraphBuilder.searchScreen(
             )
         }
 
-        val results by vm.searchResultsAsCategories.collectAsStateWithLifecycle()
-        val totalFound by vm.totalFound.collectAsStateWithLifecycle()
+        val results by vm.searchResults.collectAsStateWithLifecycle()
+        val hasMore by vm.hasMore.collectAsStateWithLifecycle()
         val displayType by vm.displayType.collectAsStateWithLifecycle()
         val thumbSize by vm.gridItemThumbnailSize.collectAsStateWithLifecycle()
 
         SearchScreen(
             results,
-            totalFound,
+            hasMore,
             displayType,
             thumbSize,
             onNavigateToCategory = navigateToCategory,
@@ -102,7 +102,7 @@ fun NavGraphBuilder.searchScreen(
 @Composable
 fun SearchScreen(
     results: List<Category>,
-    totalFound: Int,
+    hasMore: Boolean,
     displayType: CategoryDisplayType,
     thumbSize: GridThumbnailSize,
     onNavigateToCategory: (Category) -> Unit,
@@ -171,21 +171,10 @@ fun SearchScreen(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if(results.size < totalFound) {
+                    if(hasMore) {
                         Button(onClick = { continueSearch() }) {
                             Text(text = stringResource(id = R.string.fragment_search_load_more))
                         }
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Text(text = results.size.toString())
-                        Text(text = "/")
-                        Text(text = totalFound.toString())
                     }
                 }
             }

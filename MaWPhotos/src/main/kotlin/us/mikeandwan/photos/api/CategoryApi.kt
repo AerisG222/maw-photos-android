@@ -15,5 +15,5 @@ internal interface CategoryApi {
     suspend fun getMediaForCategory(@Path("categoryId") categoryId: Uuid): Response<List<Media>>
 
     @GET("categories/search")
-    suspend fun searchCategories(@Query("s") query: String, @Query("o") start: Int): Response<SearchResults<SearchResultCategory>>
+    suspend fun search(@Query("s") query: String, @Query("o") start: Int): Response<SearchResults<Category>>
 }
