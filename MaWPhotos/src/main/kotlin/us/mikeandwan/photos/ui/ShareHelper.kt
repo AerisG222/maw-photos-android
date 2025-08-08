@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import androidx.core.content.FileProvider
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.SingletonImageLoader
+import coil3.asDrawable
+import coil3.request.allowHardware
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import us.mikeandwan.photos.BuildConfig
@@ -40,13 +42,18 @@ suspend fun shareMedia(
 
 private suspend fun getMediaToShare(ctx: Context, media: Media): Drawable {
     return withContext(Dispatchers.IO) {
-        val loader = ImageLoader(ctx)
+        val loader = SingletonImageLoader.get(ctx)
         val request = ImageRequest.Builder(ctx)
             .data(media.getMediaUrl())
             .allowHardware(false) // Disable hardware bitmaps.
             .build()
 
-        (loader.execute(request) as SuccessResult).drawable
+        val result = loader.execute(request)
+
+        when (result) {
+            is SuccessResult -> result.image.asDrawable(ctx.resources)
+            else -> throw IllegalStateException("Failed to load media drawable: $result")
+        }
     }
 }
 
