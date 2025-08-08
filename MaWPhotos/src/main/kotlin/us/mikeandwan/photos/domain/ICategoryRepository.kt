@@ -11,6 +11,6 @@ interface ICategoryRepository {
     fun getMostRecentYear(): Flow<Int?>
     fun getNewCategories(): Flow<ExternalCallStatus<List<Category>>>
     fun getCategories(year: Int): Flow<List<Category>>
-    fun getCategory(categoryId: Uuid): Flow<Category>
+    fun getCategory(categoryId: Uuid): Flow<Category?>
     fun getMedia(categoryId: Uuid): Flow<ExternalCallStatus<List<Media>>>
 }

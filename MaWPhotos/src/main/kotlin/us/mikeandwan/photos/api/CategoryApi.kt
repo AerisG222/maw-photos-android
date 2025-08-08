@@ -11,6 +11,9 @@ internal interface CategoryApi {
     @GET("categories/years/{year}")
     suspend fun getCategoriesForYear(@Path("year") year: Int): Response<List<Category>>
 
+    @GET("categories/{categoryId}")
+    suspend fun getCategory(@Path("categoryId") categoryId: Uuid): Response<Category?>
+
     @GET("categories/{categoryId}/media")
     suspend fun getMediaForCategory(@Path("categoryId") categoryId: Uuid): Response<List<Media>>
 

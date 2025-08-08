@@ -16,6 +16,11 @@ class CategoryApiClient @Inject constructor(
     suspend fun getCategoriesForYear(year: Int): ApiResult<List<Category>> {
         return makeApiCall(::getCategoriesForYear.name, suspend { _categoryApi.getCategoriesForYear(year) })
     }
+
+    suspend fun getCategory(categoryId: Uuid): ApiResult<Category?> {
+        return makeApiCall(::getCategory.name, suspend { _categoryApi.getCategory(categoryId) })
+    }
+
     suspend fun getMediaForCategory(categoryId: Uuid): ApiResult<List<Media>> {
         return makeApiCall(::getMediaForCategory.name, suspend { _categoryApi.getMediaForCategory(categoryId) })
     }

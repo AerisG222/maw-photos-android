@@ -2,7 +2,6 @@ package us.mikeandwan.photos.domain
 
 import androidx.collection.LruCache
 import androidx.room.withTransaction
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -90,16 +89,35 @@ class CategoryRepository @Inject constructor(
         }
     }
 
-    override fun getCategories(year: Int) = catDao
-        .getCategoriesForYear(year)
-        .map { dbList ->
-            dbList.map { dbCat -> dbCat.toDomainCategory() }
+    override fun getCategories(year: Int) = flow {
+        val cat = catDao
+            .getCategoriesForYear(year)
+            .map { dbList ->
+                dbList.map { dbCat -> dbCat.toDomainCategory() }
+            }
+
+        if(cat.first().isEmpty()) {
+            emit(emptyList())
+            loadCategories(year)
+                .collect { }
         }
 
-    override fun getCategory(categoryId: Uuid): Flow<Category> = catDao
-        .getCategory(categoryId)
-        .filterNotNull()
-        .map { dbCat -> dbCat.toDomainCategory() }
+        emitAll(cat)
+    }
+
+    override fun getCategory(categoryId: Uuid) = flow {
+        val cat = catDao
+            .getCategory(categoryId)
+            .map { dbCat -> dbCat?.toDomainCategory() }
+
+        if(cat.first() == null) {
+            loadCategory(categoryId)
+                .filterNotNull()
+                .collect { }
+        }
+
+        emitAll(cat)
+    }
 
     fun loadYears(errorMessage: String?) = flow {
         emit(ExternalCallStatus.Loading)
@@ -146,6 +164,32 @@ class CategoryRepository @Inject constructor(
                     }
 
                     emit(ExternalCallStatus.Success(categories))
+                }
+            }
+        }
+    }
+
+    fun loadCategory(categoryId: Uuid) = flow {
+        emit(ExternalCallStatus.Loading)
+
+        when(val result = api.getCategory(categoryId)) {
+            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
+            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
+            is ApiResult.Success -> {
+                val category = result.result
+
+                if(category == null) {
+                    emit(ExternalCallStatus.Error("Category not found"))
+                } else {
+                    val dbCategory = category.toDatabaseCategory()
+                    val dbMediaFiles = prepareMediaFilesForDatabase(listOf(category))
+
+                    db.withTransaction {
+                        catDao.upsertCategories(dbCategory)
+                        catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
+                    }
+
+                    emit(ExternalCallStatus.Success(category))
                 }
             }
         }
