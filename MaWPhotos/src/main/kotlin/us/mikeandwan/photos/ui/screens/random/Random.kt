@@ -23,7 +23,7 @@ import kotlin.uuid.Uuid
 object RandomRoute
 
 fun NavGraphBuilder.randomScreen(
-    navigateToPhoto: (Uuid) -> Unit,
+    navigateToMedia: (Uuid) -> Unit,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit
@@ -56,7 +56,7 @@ fun NavGraphBuilder.randomScreen(
         RandomScreen(
             photos,
             thumbSize,
-            onPhotoClicked = { navigateToPhoto(it.id) },
+            onMediaClicked = { navigateToMedia(it.id) },
             updateTopBar,
             setNavArea
         )
@@ -67,7 +67,7 @@ fun NavGraphBuilder.randomScreen(
 fun RandomScreen(
     photos: List<Media>,
     thumbSize: GridThumbnailSize,
-    onPhotoClicked: (MediaGridItem<Media>) -> Unit,
+    onMediaClicked: (MediaGridItem<Media>) -> Unit,
     updateTopBar : (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
 ) {
@@ -84,7 +84,7 @@ fun RandomScreen(
     val gridState = rememberMediaGridState(
         photos.map { it.toMediaGridItem(thumbSize == GridThumbnailSize.Large) },
         thumbSize,
-        onPhotoClicked
+        onMediaClicked
     )
 
     MediaGrid(gridState)

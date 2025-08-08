@@ -19,7 +19,6 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.PeriodicJob
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.domain.models.MediaType
 import java.io.File
 import javax.inject.Inject
 import kotlin.uuid.Uuid
@@ -155,7 +154,7 @@ class MediaListService @Inject constructor (
         scope.launch {
             activeMedia
                 .filterNotNull()
-                .collect { loadCategory(it.type, it.id) }
+                .collect { loadCategory(it.categoryId) }
         }
 
         scope.launch {
@@ -164,7 +163,7 @@ class MediaListService @Inject constructor (
         }
     }
 
-    private fun loadCategory(mediaType: MediaType, categoryId: Uuid) {
+    private fun loadCategory(categoryId: Uuid) {
         if(category.value?.id == categoryId) {
             return
         }

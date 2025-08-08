@@ -9,7 +9,7 @@ abstract class BaseRandomViewModel (
     private val randomMediaRepository: RandomMediaRepository
 ): ViewModel() {
     // todo: allow videos in random area?
-    val media = randomMediaRepository.photos
+    val media = randomMediaRepository.media
 
     fun fetch(count: Int) {
         viewModelScope.launch {

@@ -27,8 +27,8 @@ class RandomMediaRepository @Inject constructor(
         .map { it * 1000L }
         .stateIn(scope, WhileSubscribed(5000), RandomPreference().slideshowIntervalSeconds * 1000L)
 
-    private val _photos = MutableStateFlow(emptyList<Media>())
-    val photos = _photos.asStateFlow()
+    private val _media = MutableStateFlow(emptyList<Media>())
+    val media = _media.asStateFlow()
 
     fun setDoFetch(doFetch: Boolean) {
         if(doFetch) {
@@ -47,7 +47,7 @@ class RandomMediaRepository @Inject constructor(
             is ApiResult.Success -> {
                 val newPhotos = result.result.map { it.toDomainMedia() }
 
-                _photos.value += newPhotos
+                _media.value += newPhotos
 
                 emit(ExternalCallStatus.Success(newPhotos))
             }
@@ -55,7 +55,7 @@ class RandomMediaRepository @Inject constructor(
     }
 
     fun clear() {
-        _photos.value = emptyList()
+        _media.value = emptyList()
     }
 
     init {

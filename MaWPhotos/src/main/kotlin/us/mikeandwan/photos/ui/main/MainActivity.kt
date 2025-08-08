@@ -192,7 +192,7 @@ class MainActivity : ComponentActivity() {
                                 randomScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateToPhoto = { vm.navigate(RandomItemRoute(it)) },
+                                    navigateToMedia = { vm.navigate(RandomItemRoute(it)) },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
                                 )
                                 randomItemScreen(
