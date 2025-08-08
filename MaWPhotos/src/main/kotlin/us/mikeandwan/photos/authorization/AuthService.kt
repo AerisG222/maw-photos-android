@@ -16,15 +16,16 @@ class AuthService(
     private val auth0: Auth0,
     private val credMgr: CredentialsManager
 ) {
-    private val _authStatus = MutableStateFlow<AuthStatus>(
+    private val _authStatus = MutableStateFlow(
         if(credMgr.hasValidCredentials())
             AuthStatus.Authorized else AuthStatus.RequiresAuthorization
     )
     val authStatus = _authStatus.asStateFlow()
 
-    init {
-        _authStatus.value = AuthStatus.RequiresAuthorization
-    }
+    // force login screen on app start for testing
+    //    init {
+    //        _authStatus.value = AuthStatus.RequiresAuthorization
+    //    }
 
     suspend fun login(activity: Context) {
         try {
