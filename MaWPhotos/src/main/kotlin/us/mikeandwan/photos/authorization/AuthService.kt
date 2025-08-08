@@ -53,6 +53,7 @@ class AuthService(
                 .withScheme(application.getString(R.string.auth0_scheme))
                 .await(activity)
             credMgr.clearCredentials()
+            _authStatus.value = AuthStatus.RequiresAuthorization
         } catch(e: AuthenticationException) {
             Timber.e(e, "Error trying to logout from Auth0")
         }
