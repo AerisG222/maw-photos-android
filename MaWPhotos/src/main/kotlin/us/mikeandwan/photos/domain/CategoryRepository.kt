@@ -2,12 +2,18 @@ package us.mikeandwan.photos.domain
 
 import androidx.collection.LruCache
 import androidx.room.withTransaction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.database.CategoryDao
@@ -20,6 +26,7 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
 import javax.inject.Inject
 import kotlin.collections.map
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.uuid.Uuid
 
 class CategoryRepository @Inject constructor(
@@ -36,7 +43,35 @@ class CategoryRepository @Inject constructor(
         private const val ERR_MSG_LOAD_MEDIA = "Unable to load media for the category at this time.  Please try again later."
     }
 
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var cachedCategoryMedia = LruCache<Uuid, List<Media>>(8)
+
+    init {
+        scope.launch {
+            // background task to load years that haven't pulled categories yet
+            // add a delay to avoid hammering the app and API
+            yearDao
+                .getYearsNeedingInitialization()
+                .collectLatest { years ->
+                    try
+                    {
+                        years.forEach { year ->
+                            delay(2000)
+
+                            loadCategories(year)
+                                .collect { status ->
+                                    if (status is ExternalCallStatus.Success) {
+                                        yearDao.upsert(Year(year, true))
+                                    }
+                                }
+                        }
+                    }
+                    catch(e: CancellationException) {
+                        // list changed which could be expected based on updating the year a few lines above, swallow
+                    }
+                }
+        }
+    }
 
     override fun getYears() = flow {
         val years = yearDao
@@ -161,6 +196,7 @@ class CategoryRepository @Inject constructor(
                     db.withTransaction {
                         catDao.upsertCategories(*dbCategories.toTypedArray())
                         catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
+                        yearDao.upsert(Year(year, true))
                     }
 
                     emit(ExternalCallStatus.Success(categories))

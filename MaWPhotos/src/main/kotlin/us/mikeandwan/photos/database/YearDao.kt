@@ -14,6 +14,9 @@ interface YearDao {
     @Query("SELECT MAX(year) FROM year")
     fun getMostRecentYear(): Flow<Int?>
 
+    @Query("SELECT year FROM year WHERE has_initialized_categories = 0")
+    fun getYearsNeedingInitialization(): Flow<List<Int>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(vararg years: Year)
 }

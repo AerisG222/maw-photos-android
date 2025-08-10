@@ -15,6 +15,7 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_5_6
 import us.mikeandwan.photos.database.migrations.MIGRATION_6_7
 import us.mikeandwan.photos.database.migrations.MIGRATION_7_8
 import us.mikeandwan.photos.database.migrations.MIGRATION_8_9
+import us.mikeandwan.photos.database.migrations.MIGRATION_9_10
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
 import javax.inject.Singleton
 
@@ -38,6 +39,7 @@ object DatabaseModule {
         .addMigrations(MIGRATION_6_7)
         .addMigrations(MIGRATION_7_8)
         .addMigrations(MIGRATION_8_9)
+        .addMigrations(MIGRATION_9_10)
         .build()
 
     @Provides
