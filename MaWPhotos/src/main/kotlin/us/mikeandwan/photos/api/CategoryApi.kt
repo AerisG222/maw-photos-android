@@ -2,6 +2,7 @@ package us.mikeandwan.photos.api
 
 import retrofit2.Response
 import retrofit2.http.*
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 internal interface CategoryApi {
@@ -19,4 +20,7 @@ internal interface CategoryApi {
 
     @GET("categories/search")
     suspend fun search(@Query("s") query: String, @Query("o") start: Int): Response<SearchResults<Category>>
+
+    @GET("categories/update/{date")
+    suspend fun getUpdatedCategories(@Path("date") date: Instant): Response<List<Category>>
 }

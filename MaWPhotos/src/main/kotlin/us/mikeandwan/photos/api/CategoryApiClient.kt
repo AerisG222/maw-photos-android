@@ -2,6 +2,7 @@ package us.mikeandwan.photos.api
 
 import retrofit2.Retrofit
 import javax.inject.Inject
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class CategoryApiClient @Inject constructor(
@@ -27,5 +28,9 @@ class CategoryApiClient @Inject constructor(
 
     suspend fun search(query: String, start: Int = 0): ApiResult<SearchResults<Category>> {
         return makeApiCall(::search.name, suspend { _categoryApi.search(query, start) })
+    }
+
+    suspend fun getUpdatedCategories(date: Instant): ApiResult<List<Category>> {
+        return makeApiCall(::getUpdatedCategories.name, suspend { _categoryApi.getUpdatedCategories(date) })
     }
 }

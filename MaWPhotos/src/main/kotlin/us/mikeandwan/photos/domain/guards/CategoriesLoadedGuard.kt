@@ -29,7 +29,7 @@ class CategoriesLoadedGuard @Inject constructor (
                     } else {
                         if (allowLoad) {
                             allowLoad = false
-                            categoryRepository.getNewCategories()
+                            categoryRepository.getUpdatedCategories()
                         } else {
                             errorRepository.showError("Unable to load categories")
                             _status.value = GuardStatus.Failed

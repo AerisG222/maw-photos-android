@@ -45,7 +45,7 @@ class UpdateCategoriesWorker @AssistedInject constructor(
         var status = STATUS_UNKNOWN
 
         categoryRepository
-            .getNewCategories()
+            .getUpdatedCategories()
             .collect {
                 when(it) {
                     is ExternalCallStatus.Loading -> { }

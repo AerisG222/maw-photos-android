@@ -27,6 +27,7 @@ import us.mikeandwan.photos.domain.models.Media
 import javax.inject.Inject
 import kotlin.collections.map
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class CategoryRepository @Inject constructor(
@@ -88,15 +89,16 @@ class CategoryRepository @Inject constructor(
 
     override fun getMostRecentYear() = yearDao.getMostRecentYear()
 
-    override fun getNewCategories() = flow {
+    override fun getUpdatedCategories() = flow {
         val modifyDate = catDao
             .getMostRecentModifiedDate()
             .firstOrNull()
 
-        //val categories = loadCategories(category?.id ?: -1, null)
-
-        //emitAll(categories)
-        emit(ExternalCallStatus.Success(emptyList<Category>()))
+        if (modifyDate != null) {
+            emitAll(loadUpdatedCategories(modifyDate))
+        } else {
+            emit(ExternalCallStatus.Success(emptyList<Category>()))
+        }
     }
 
     override fun getMedia(categoryId: Uuid) = flow {
@@ -200,6 +202,42 @@ class CategoryRepository @Inject constructor(
                     }
 
                     emit(ExternalCallStatus.Success(categories))
+                }
+            }
+        }
+    }
+
+    fun loadUpdatedCategories(latestModifyDate: Instant) = flow {
+        emit(ExternalCallStatus.Loading)
+
+        when(val result = api.getUpdatedCategories(latestModifyDate)) {
+            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
+            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
+            is ApiResult.Success -> {
+                val categories = result.result
+
+                if(categories.isEmpty()) {
+                    emit(ExternalCallStatus.Success(emptyList()))
+                } else {
+                    val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
+                    val dbMediaFiles = prepareMediaFilesForDatabase(categories)
+                    val allYears = yearDao
+                        .getYears()
+                        .first()
+
+                    val newYears = categories
+                        .map {c -> c.effectiveDate.year }
+                        .distinct()
+                        .filter { y -> !allYears.contains(y) }
+                        .map { y -> Year(y, false) }
+
+                    db.withTransaction {
+                        catDao.upsertCategories(*dbCategories.toTypedArray())
+                        catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
+                        yearDao.upsert(*newYears.toTypedArray())
+                    }
+
+                    emit(ExternalCallStatus.Success(categories.map { it.toDomainCategory() }))
                 }
             }
         }

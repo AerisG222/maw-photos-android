@@ -149,7 +149,7 @@ class CategoriesViewModel @Inject constructor (
     private fun refreshCategories(id: Int) {
         viewModelScope.launch {
             categoryRepository
-                .getNewCategories()
+                .getUpdatedCategories()
                 .onEach {
                     when(it) {
                         is ExternalCallStatus.Loading -> {
