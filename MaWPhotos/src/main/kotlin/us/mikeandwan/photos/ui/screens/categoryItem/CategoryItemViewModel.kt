@@ -15,7 +15,6 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.GuardStatus
-import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.category.BaseCategoryViewModel
 import java.io.File
@@ -46,9 +45,7 @@ class CategoryItemViewModel @Inject constructor (
     fun toggleSlideshow() { mediaListService.toggleSlideshow() }
     fun toggleShowDetails() { mediaListService.toggleShowDetails() }
 
-    fun initState(categoryId: Uuid, mediaType: String, mediaId: Uuid) {
-        val type = MediaType.valueOf(mediaType)
-
+    fun initState(categoryId: Uuid, mediaId: Uuid) {
         loadCategory(categoryId)
         loadMedia(categoryId)
 

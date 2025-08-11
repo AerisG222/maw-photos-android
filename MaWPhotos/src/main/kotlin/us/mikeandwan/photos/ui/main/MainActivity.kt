@@ -181,7 +181,7 @@ class MainActivity : ComponentActivity() {
                                 categoryScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateToMedia = { vm.navigate(CategoryItemRoute(it.type.name, it.categoryId, it.id)) },
+                                    navigateToMedia = { vm.navigate(CategoryItemRoute(it.categoryId, it.id)) },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
                                 )
                                 categoryItemScreen(

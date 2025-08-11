@@ -37,7 +37,6 @@ import kotlin.uuid.Uuid
 
 @Serializable
 data class CategoryItemRoute (
-    val mediaType: String,
     val categoryId: Uuid,
     val mediaId: Uuid
 )
@@ -82,8 +81,8 @@ fun NavGraphBuilder.categoryItemScreen(
             }
         }
 
-        LaunchedEffect(args.categoryId, args.mediaType, args.mediaId) {
-            vm.initState(args.categoryId, args.mediaType, args.mediaId)
+        LaunchedEffect(args.categoryId, args.mediaId) {
+            vm.initState(args.categoryId, args.mediaId)
         }
 
         // exif
