@@ -146,7 +146,13 @@ class MainActivity : ComponentActivity() {
                                     scrollBehavior,
                                     state = topBarState,
                                     onExpandNavMenu = { vm.openDrawer() },
-                                    onBackClicked = { navController.navigateUp() },
+                                    onBackClicked = {
+                                        if(navController.visibleEntries.value.size > 1) {
+                                            navController.navigateUp()
+                                        } else {
+                                            navController.navigate(CategoriesRoute(null))
+                                        }
+                                    },
                                     onSearch = { vm.navigate(SearchRoute(it)) },
                                 )
                             }

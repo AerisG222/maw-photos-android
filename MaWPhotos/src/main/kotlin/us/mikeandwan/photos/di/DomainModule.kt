@@ -71,6 +71,11 @@ object DomainModule {
 
     @Provides
     @Singleton
+    fun providesNotificationIdRepository(): NotificationIdRepository =
+        NotificationIdRepository()
+
+    @Provides
+    @Singleton
     fun provideCategoryPreferenceRepository(categoryPreferenceDao: CategoryPreferenceDao): CategoryPreferenceRepository =
         CategoryPreferenceRepository(categoryPreferenceDao)
 

@@ -13,6 +13,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.NotificationIdRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Category
@@ -26,7 +27,8 @@ class UpdateCategoriesWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val categoryRepository: CategoryRepository,
     private val preferenceRepository: NotificationPreferenceRepository,
-    private val notificationManager: NotificationManager
+    private val notificationManager: NotificationManager,
+    private val notificationIdRepository: NotificationIdRepository
 ): CoroutineWorker(appContext, params) {
     companion object {
         const val WORK_NAME = "WORK: update_categories"
@@ -102,6 +104,6 @@ class UpdateCategoriesWorker @AssistedInject constructor(
 
         val notification = builder.build()
 
-        notificationManager.notify(0, notification)
+        notificationManager.notify(notificationIdRepository.getAndInc(), notification)
     }
 }

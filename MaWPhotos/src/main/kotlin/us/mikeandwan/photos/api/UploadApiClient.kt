@@ -12,7 +12,7 @@ class UploadApiClient @Inject constructor(
     private val _uploadApi: UploadApi by lazy { retrofit.create(UploadApi::class.java) }
 
     // https://futurestud.io/tutorials/retrofit-2-how-to-upload-files-to-server
-    suspend fun uploadFile(file: File): ApiResult<FileOperationResult> {
+    suspend fun uploadFile(file: File): ApiResult<UploadedFile> {
         val type = getMediaTypeForFile(file)
         val requestFile = file.asRequestBody(type)
         val body = MultipartBody.Part.createFormData("file", file.name, requestFile)

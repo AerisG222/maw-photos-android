@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.api.UploadApiClient
 import us.mikeandwan.photos.domain.FileStorageRepository
+import us.mikeandwan.photos.domain.NotificationIdRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.ui.main.MainActivity
 import us.mikeandwan.photos.utils.NOTIFICATION_CHANNEL_ID_UPLOAD_FILES
@@ -30,7 +31,8 @@ class UploadWorker @AssistedInject constructor(
     private val apiClient: UploadApiClient,
     private val preferenceRepository: NotificationPreferenceRepository,
     private val notificationManager: NotificationManager,
-    private val fileStorageRepository: FileStorageRepository
+    private val fileStorageRepository: FileStorageRepository,
+    private val notificationIdRepository: NotificationIdRepository
 ): CoroutineWorker(appContext, params) {
     companion object {
         const val KEY_FILENAME = "filename"
@@ -99,6 +101,6 @@ class UploadWorker @AssistedInject constructor(
 
         val notification = builder.build()
 
-        notificationManager.notify(0, notification)
+        notificationManager.notify(notificationIdRepository.getAndInc(), notification)
     }
 }
