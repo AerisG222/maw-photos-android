@@ -10,7 +10,7 @@ import javax.inject.Inject
 class MediaFavoriteService @Inject constructor (
     private val mediaRepository: MediaRepository
 ){
-    private val _isFavorite = MutableStateFlow<Boolean>(false)
+    private val _isFavorite = MutableStateFlow(false)
     val isFavorite = _isFavorite.asStateFlow()
 
     suspend fun setIsFavorite(media: Media, isFavorite: Boolean): Boolean {

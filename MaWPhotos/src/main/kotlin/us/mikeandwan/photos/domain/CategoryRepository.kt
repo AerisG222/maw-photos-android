@@ -22,7 +22,6 @@ import us.mikeandwan.photos.database.ScaleDao
 import us.mikeandwan.photos.database.Year
 import us.mikeandwan.photos.database.YearDao
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
 import javax.inject.Inject
 import kotlin.collections.map
@@ -97,12 +96,12 @@ class CategoryRepository @Inject constructor(
         if (modifyDate != null) {
             emitAll(loadUpdatedCategories(modifyDate))
         } else {
-            emit(ExternalCallStatus.Success(emptyList<Category>()))
+            emit(ExternalCallStatus.Success(emptyList()))
         }
     }
 
     override fun getMedia(categoryId: Uuid) = flow {
-        emit(ExternalCallStatus.Success<List<Media>>(emptyList()))
+        emit(ExternalCallStatus.Success(emptyList()))
 
         cachedCategoryMedia[categoryId]?.let {
             emit(ExternalCallStatus.Success(it))
