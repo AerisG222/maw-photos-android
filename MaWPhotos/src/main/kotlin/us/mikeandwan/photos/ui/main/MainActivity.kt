@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
@@ -151,7 +152,13 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         snackbarHost = {
-                            SnackbarHost(hostState = snackbarHostState)
+                            SnackbarHost(hostState = snackbarHostState) { data ->
+                                Snackbar(
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
+                                    snackbarData = data
+                                )
+                            }
                         },
                     ) { innerPadding ->
                         // https://issuetracker.google.com/issues/297824100

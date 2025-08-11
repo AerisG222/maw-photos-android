@@ -1,18 +1,12 @@
 package us.mikeandwan.photos.ui.screens.categories
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -91,7 +85,6 @@ fun CategoriesScreen(
     navigateToCategory: (Category) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         setNavArea(NavigationArea.Category)
@@ -106,13 +99,7 @@ fun CategoriesScreen(
         )
     }
 
-    LaunchedEffect(state.refreshStatus) {
-        if(state.refreshStatus.message != null) {
-            snackbarHostState.showSnackbar(state.refreshStatus.message)
-
-            state.clearRefreshStatus()
-        }
-    }
+    LaunchedEffect(state) { }
 
     val gridState = rememberMediaGridState (
         gridItems = state.categories.map { it.toMediaGridItem(state.preferences.gridThumbnailSize == GridThumbnailSize.Large) },
@@ -120,39 +107,25 @@ fun CategoriesScreen(
         onSelectGridItem = { navigateToCategory(it.data) }
     )
 
-    Scaffold (
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    snackbarData = data
+    PullToRefreshBox(
+        isRefreshing = state.isRefreshing,
+        state = pullToRefreshState,
+        onRefresh = { state.refreshCategories() },
+    ) {
+        when (state.preferences.displayType) {
+            CategoryDisplayType.Grid -> {
+                MediaGrid(gridState)
+            }
+
+            CategoryDisplayType.List -> {
+                CategoryList(
+                    categories = state.categories,
+                    showYear = false,
+                    onSelectCategory = { navigateToCategory(it) }
                 )
             }
-        }
-    ) { innerPadding ->
-        PullToRefreshBox(
-            isRefreshing = state.refreshStatus.isRefreshing,
-            state = pullToRefreshState,
-            onRefresh = { state.refreshCategories() },
-            // don't use padding otherwise a gap is produced between top bar and content
-            //modifier = Modifier.padding(innerPadding)
-        ) {
-            when (state.preferences.displayType) {
-                CategoryDisplayType.Grid -> {
-                    MediaGrid(gridState)
-                }
 
-                CategoryDisplayType.List -> {
-                    CategoryList(
-                        categories = state.categories,
-                        showYear = false,
-                        onSelectCategory = { navigateToCategory(it) }
-                    )
-                }
-
-                else -> {}
-            }
+            else -> {}
         }
     }
 }

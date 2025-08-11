@@ -12,14 +12,14 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
 import us.mikeandwan.photos.domain.guards.GuardStatus
-import us.mikeandwan.photos.domain.models.CategoryRefreshStatus
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Category
 import javax.inject.Inject
 import com.hoc081098.flowext.combine
+import kotlinx.coroutines.delay
 import us.mikeandwan.photos.domain.ConfigRepository
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
-import kotlin.random.Random
 
 sealed class CategoriesState {
     data object Unknown : CategoriesState()
@@ -29,7 +29,7 @@ sealed class CategoriesState {
     data class Valid(
         val year: Int,
         val categories: List<Category>,
-        val refreshStatus: CategoryRefreshStatus,
+        val isRefreshing: Boolean,
         val preferences: CategoryPreference,
         val refreshCategories: () -> Unit,
         val clearRefreshStatus: () -> Unit
@@ -42,11 +42,12 @@ class CategoriesViewModel @Inject constructor (
     authGuard: AuthGuard,
     categoriesLoadedGuard: CategoriesLoadedGuard,
     categoryPreferenceRepository: CategoryPreferenceRepository,
+    private val errorRepository: ErrorRepository,
     private val configRepository: ConfigRepository
 ): ViewModel() {
     private val _year = MutableStateFlow<Int?>(null)
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    private val _refreshStatus = MutableStateFlow(CategoryRefreshStatus(0, false, null))
+    private val _isRefreshing = MutableStateFlow(false)
     private val _preferences = categoryPreferenceRepository
         .getCategoryPreference()
         .stateIn(viewModelScope, WhileSubscribed(5000), CategoryPreference())
@@ -86,7 +87,7 @@ class CategoriesViewModel @Inject constructor (
     }
 
     fun clearRefreshStatus() {
-        _refreshStatus.value = CategoryRefreshStatus(Random.nextInt(),false, null)
+        _isRefreshing.value = false
     }
 
     private var isFetchingCategories = false
@@ -97,7 +98,7 @@ class CategoriesViewModel @Inject constructor (
         categoryRepository.getYears(),
         _categories,
         _year,
-        _refreshStatus,
+        _isRefreshing,
         _preferences
     ) {
         authStatus,
@@ -105,7 +106,7 @@ class CategoriesViewModel @Inject constructor (
         years,
         categories,
         year,
-        refreshStatus,
+        isRefreshing,
         preferences ->
 
         when(authStatus) {
@@ -132,11 +133,11 @@ class CategoriesViewModel @Inject constructor (
                                 else -> CategoriesState.Valid(
                                     year,
                                     categories,
-                                    refreshStatus,
+                                    isRefreshing,
                                     preferences,
-                                    refreshCategories = { refreshCategories(Random.nextInt()) },
+                                    refreshCategories = { refreshCategories() },
                                     clearRefreshStatus = {
-                                        _refreshStatus.value = CategoryRefreshStatus(Random.nextInt(), false, null)
+                                        _isRefreshing.value = false
                                     }
                                 )
                             }
@@ -146,33 +147,36 @@ class CategoriesViewModel @Inject constructor (
         }
         .stateIn(viewModelScope, WhileSubscribed(5000), CategoriesState.Unknown)
 
-    private fun refreshCategories(id: Int) {
+    private fun refreshCategories() {
         viewModelScope.launch {
             categoryRepository
                 .getUpdatedCategories()
                 .onEach {
                     when(it) {
                         is ExternalCallStatus.Loading -> {
-                            _refreshStatus.value = CategoryRefreshStatus(id,true, null)
+                            delay(10)
+                            _isRefreshing.value = true
                         }
                         is ExternalCallStatus.Success -> {
+                            delay(10)
+                            _isRefreshing.value = false
+
                             val msg = when(it.result.count()) {
                                 0 -> "No new categories available"
                                 1 -> "One new category loaded"
                                 else -> "${it.result.count()} categories loaded"
                             }
 
-                            _refreshStatus.value = CategoryRefreshStatus(id,false, msg)
+                            errorRepository.showThenClearError(msg)
                         }
                         is ExternalCallStatus.Error -> {
+                            delay(10)
+                            _isRefreshing.value = false
+
                             Timber.e(it.message)
                             Timber.e(it.cause)
 
-                            _refreshStatus.value = CategoryRefreshStatus(
-                                id,
-                                false,
-                                "There was an error loading categories"
-                            )
+                            errorRepository.showThenClearError("There was an error loading categories")
                         }
                     }
                 }
