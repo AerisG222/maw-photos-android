@@ -83,7 +83,7 @@ class UploadWorker @AssistedInject constructor(
         val detailsIntent = PendingIntent.getActivity(applicationContext, 0, i, pendingIntentFlag)
 
         val title = if(wasSuccessful) "Media Uploaded!" else "Upload Failed"
-        val msg = if(wasSuccessful) "File uploaded.  Go to files.mikeandwan.us to manage your files." else "File was not able to be uploaded after multiple attempts.  Please try again later."
+        val msg = if(wasSuccessful) "File uploaded." else "File failed to upload after multiple attempts.  Please try again later."
 
         val builder =
             NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID_UPLOAD_FILES)
