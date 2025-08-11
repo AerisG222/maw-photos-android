@@ -8,7 +8,7 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Serializable
-data class Category constructor(
+data class Category(
     val id: Uuid,
     val name: String,
     @Serializable(with = LocalDateIso8601Serializer::class)
