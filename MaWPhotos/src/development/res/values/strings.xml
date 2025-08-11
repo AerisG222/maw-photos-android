@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth0_client_id">DPt0lW0I54xvm3EwVNvNChnhGz48csq6</string>
+    <string name="auth0_audience_api">https://dev-media.mikeandwan.us</string>
+</resources>
