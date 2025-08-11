@@ -90,7 +90,7 @@ fun LoginScreen(
                 contentDescription = "MaW Photos Banner",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .height(120.dp)
+                    .height(150.dp)
                     .padding(0.dp, 0.dp, 0.dp, 32.dp)
             )
         }
