@@ -1,6 +1,10 @@
 package us.mikeandwan.photos.domain
 
 import androidx.room.withTransaction
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.ScaleDao
@@ -11,13 +15,29 @@ class ConfigRepository @Inject constructor(
     private val db: MawDatabase,
     private val scaleDao: ScaleDao,
     private val apiErrorHandler: ApiErrorHandler
-)
-{
+) {
     companion object {
-        private const val ERR_MSG_LOAD_SCALES = "Unable to load configuration data at this time.  Please try again later."
+        private const val ERR_MSG_LOAD_SCALES =
+            "Unable to load configuration data at this time.  Please try again later."
     }
 
-    fun loadScales() = api.loadData(
+    fun getScales() = flow {
+        val scales = scaleDao
+            .getScales()
+            .map { dbScales ->
+                dbScales.map { it.toDomainScale() }
+            }
+
+        if(scales.first().isEmpty()) {
+            emit(emptyList())
+            loadScales()
+                .collect { }
+        }
+
+        emitAll(scales)
+    }
+
+    private fun loadScales() = api.loadData(
         apiCall = { api.getScales() },
         onSuccess = { scales ->
             val dbScales = scales.map { s -> s.toDatabaseScale() }

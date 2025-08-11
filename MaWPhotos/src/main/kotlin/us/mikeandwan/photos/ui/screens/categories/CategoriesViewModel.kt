@@ -66,7 +66,7 @@ class CategoriesViewModel @Inject constructor (
 
         viewModelScope.launch {
             configRepository
-                .loadScales()
+                .getScales()
                 .collect { }
         }
 
