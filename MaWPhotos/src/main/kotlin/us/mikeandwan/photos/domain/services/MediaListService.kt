@@ -108,6 +108,8 @@ class MediaListService @Inject constructor (
                 val updatedMedia = _media.value.toMutableList()
                 updatedMedia[activeIndex.value] = activeMedia.value!!.copy(isFavorite = resultIsFav)
                 _media.value = updatedMedia
+
+                categoryRepository.tryUpdateCache(updatedMedia[activeIndex.value])
             }
         }
     }

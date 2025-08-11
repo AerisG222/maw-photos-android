@@ -268,6 +268,20 @@ class CategoryRepository @Inject constructor(
         }
     }
 
+    fun tryUpdateCache(media: Media) {
+        val mediaList = cachedCategoryMedia[media.categoryId]
+
+        if(mediaList != null) {
+            val updatedList = mediaList.toMutableList()
+            val index = updatedList.indexOfFirst { it.id == media.id }
+
+            if(index >= 0) {
+                updatedList[index] = media
+                cachedCategoryMedia.put(media.categoryId, updatedList)
+            }
+        }
+    }
+
     fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category {
         return us.mikeandwan.photos.database.Category(
             this.id,
