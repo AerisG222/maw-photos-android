@@ -14,7 +14,7 @@ plugins {
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
     namespace = "us.mikeandwan.photos"
 
     defaultConfig {
@@ -24,7 +24,7 @@ android {
         )
         applicationId = "us.mikeandwan.pictures"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 74
         versionName = "8.6"
 
