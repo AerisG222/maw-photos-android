@@ -21,6 +21,6 @@ internal interface CategoryApi {
     @GET("categories/search")
     suspend fun search(@Query("s") query: String, @Query("o") start: Int): Response<SearchResults<Category>>
 
-    @GET("categories/update/{date}")
+    @GET("categories/updates/{date}")
     suspend fun getUpdatedCategories(@Path("date") date: Instant): Response<List<Category>>
 }
