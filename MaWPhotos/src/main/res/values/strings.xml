@@ -25,6 +25,10 @@
     <!-- category list item -->
     <string name="li_category_thumbnail_description">Thumbnail</string>
 
+    <!-- inactive user activity -->
+    <string name="activity_inactive_user_recheck_status">Re-check Status</string>
+    <string name="activity_inactive_user_logout">Logout</string>
+
     <!-- login activity -->
     <string name="activity_login_bg_description">Bittersweet Berries</string>
     <string name="activity_login_title">mikeandwan.us\nPhotos</string>

@@ -1,13 +1,21 @@
 package us.mikeandwan.photos.domain
 
 import androidx.room.withTransaction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.ScaleDao
+import us.mikeandwan.photos.domain.models.UserStatus
 import javax.inject.Inject
 
 class ConfigRepository @Inject constructor(
@@ -19,7 +27,38 @@ class ConfigRepository @Inject constructor(
     companion object {
         private const val ERR_MSG_LOAD_SCALES =
             "Unable to load configuration data at this time.  Please try again later."
+
+        private const val ERR_MSG_ACCOUNT_STATUS =
+            "Unable to verify account status at this time.  Please try again later."
     }
+
+    private val _userStatus = MutableStateFlow<UserStatus>(UserStatus.Unknown)
+    val userStatus = _userStatus.asStateFlow()
+
+    fun clearUserStatus() {
+        _userStatus.value = UserStatus.Unknown
+    }
+
+    suspend fun getUserStatus() {
+        loadUserStatus().collect { }
+    }
+
+    private fun loadUserStatus() = api.loadData(
+        apiCall = { api.getAccountStatus() },
+        onSuccess = { status ->
+            val userStatus = if (status.status == "active") {
+                UserStatus.Active(status.isAdmin)
+            } else {
+                UserStatus.Inactive
+            }
+
+            _userStatus.value = userStatus
+
+            userStatus
+        },
+        errorMessage = ERR_MSG_ACCOUNT_STATUS,
+        apiErrorHandler
+    )
 
     fun getScales() = flow {
         val scales = scaleDao

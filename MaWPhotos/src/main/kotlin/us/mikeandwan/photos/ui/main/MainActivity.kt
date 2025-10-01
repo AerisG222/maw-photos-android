@@ -32,7 +32,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import us.mikeandwan.photos.authorization.AuthStatus
+import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.controls.navigation.NavigationRail
 import us.mikeandwan.photos.ui.controls.topbar.TopBar
 import us.mikeandwan.photos.ui.screens.about.AboutRoute
@@ -43,6 +48,8 @@ import us.mikeandwan.photos.ui.screens.category.CategoryRoute
 import us.mikeandwan.photos.ui.screens.category.categoryScreen
 import us.mikeandwan.photos.ui.screens.categoryItem.CategoryItemRoute
 import us.mikeandwan.photos.ui.screens.categoryItem.categoryItemScreen
+import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
+import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUserScreen
 import us.mikeandwan.photos.ui.screens.login.LoginRoute
 import us.mikeandwan.photos.ui.screens.login.loginScreen
 import us.mikeandwan.photos.ui.screens.random.RandomRoute
@@ -108,6 +115,39 @@ class MainActivity : ComponentActivity() {
                 vm.errorsToDisplay.collect {
                     snackbarHostState.showSnackbar(it.message)
                 }
+            }
+
+            // monitor login status and once logged in, check for active or inactive user
+            LaunchedEffect(Unit) {
+                vm.authenticationStatus.onEach {
+                    if(it is AuthStatus.Authorized) {
+                        vm.queryUserStatus()
+                    }
+                }.collect { }
+            }
+
+            // monitor user status and navigate to inactive screen if needed
+            LaunchedEffect(Unit) {
+                combine(
+                    vm.userStatus,
+                    vm.authenticationStatus
+                ) {
+                    userStatus,
+                    authStatus ->
+
+                    if(userStatus is UserStatus.Unknown && authStatus is AuthStatus.Authorized) {
+                        vm.queryUserStatus()
+                    }
+
+                    if(userStatus is UserStatus.Inactive) {
+                        Timber.w("YO INACTIVE!")
+                        vm.navigate(InactiveUserRoute)
+                    }
+
+                    if(userStatus is UserStatus.Active && authStatus is AuthStatus.Authorized) {
+                        vm.navigate(CategoriesRoute(null))
+                    }
+                }.collect {  }
             }
 
             AppTheme {
@@ -177,7 +217,13 @@ class MainActivity : ComponentActivity() {
                                 loginScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateAfterLogin = { vm.navigate(CategoriesRoute(null)) }
+                                    navigateAfterLogin = { /* this is now handled by monitoring user status */ }
+                                )
+                                inactiveUserScreen(
+                                    updateTopBar = vm::updateTopBar,
+                                    setNavArea = vm::setNavArea,
+                                    navigateToLogin = { vm.navigate(LoginRoute) },
+                                    navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) }
                                 )
                                 aboutScreen(
                                     updateTopBar = vm::updateTopBar,

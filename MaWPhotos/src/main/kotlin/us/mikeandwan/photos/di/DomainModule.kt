@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import us.mikeandwan.photos.api.CategoryApiClient
+import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.database.*
 import us.mikeandwan.photos.domain.*
@@ -37,6 +38,16 @@ object DomainModule {
         apiErrorHandler: ApiErrorHandler
     ): CategoryRepository =
         CategoryRepository(api, db, yearDao, categoryDao, scaleDao, apiErrorHandler)
+
+    @Provides
+    @Singleton
+    fun provideConfigRepository(
+        api: ConfigApiClient,
+        db: MawDatabase,
+        scaleDao: ScaleDao,
+        apiErrorHandler: ApiErrorHandler
+    ): ConfigRepository =
+        ConfigRepository(api, db, scaleDao, apiErrorHandler)
 
     @Provides
     @Singleton

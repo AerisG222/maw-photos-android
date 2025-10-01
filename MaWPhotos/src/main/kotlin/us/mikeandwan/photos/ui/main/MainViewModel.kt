@@ -24,9 +24,12 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
@@ -41,12 +44,16 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     errorRepository: ErrorRepository,
     categoryRepository: CategoryRepository,
+    authService: AuthService,
+    private val configRepository: ConfigRepository,
     private val imageLoader: ImageLoader,
     private val application: Application,
     private val fileStorageRepository: FileStorageRepository,
     private val searchRepository: SearchRepository,
     private val randomMediaRepository: RandomMediaRepository
 ): ViewModel() {
+    val authenticationStatus = authService.authStatus
+    val userStatus = configRepository.userStatus
     val years = categoryRepository.getYears()
 
     private val _activeYear = MutableStateFlow(-1)
@@ -147,6 +154,12 @@ class MainViewModel @Inject constructor(
 
         if(mediaUris != null) {
             enqueueUpload(*mediaUris.toTypedArray())
+        }
+    }
+
+    fun queryUserStatus() {
+        viewModelScope.launch {
+            configRepository.getUserStatus()
         }
     }
 
