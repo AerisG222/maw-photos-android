@@ -24,7 +24,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.jeziellago.compose.markdowntext.MarkdownText
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownTypography
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.NavigationArea
@@ -65,8 +66,6 @@ fun AboutScreen(
     state: AboutState.Loaded
 ) {
     val tangerine = remember { FontFamily(Font(R.font.tangerine)) }
-    val markdownStyle = MaterialTheme.typography.bodyMedium
-        .merge(color = MaterialTheme.colorScheme.onSurface)
 
     Column {
         Row(
@@ -85,7 +84,8 @@ fun AboutScreen(
         ) {
             Text(
                 text = "mikeandwan.us",
-                fontSize = 42.sp,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 48.sp,
                 fontFamily = tangerine,
             )
         }
@@ -95,30 +95,41 @@ fun AboutScreen(
         ) {
             Text(
                 text = "Photos",
-                fontSize = 42.sp,
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 48.sp,
                 fontFamily = tangerine,
             )
         }
         Row(
             modifier = Modifier
-                .padding(0.dp, 0.dp, 0.dp, 16.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = state.version
+                text = state.version,
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 48.sp,
+                fontFamily = tangerine,
             )
         }
 
         Row(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(8.dp, 16.dp, 8.dp, 8.dp)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            MarkdownText(
-                markdown = state.history,
-                style = markdownStyle
+            Markdown(state.history,
+                typography = markdownTypography(
+                    h1 = MaterialTheme.typography.headlineMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 24.sp
+                    ),
+                    h2 = MaterialTheme.typography.headlineSmall.copy(
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 20.sp
+                    )
+                )
             )
         }
     }

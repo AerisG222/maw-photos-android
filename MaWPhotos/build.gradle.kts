@@ -25,8 +25,8 @@ android {
         applicationId = "us.mikeandwan.pictures"
         minSdk = 26
         targetSdk = 36
-        versionCode = 74
-        versionName = "8.6"
+        versionCode = 75
+        versionName = "9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -155,6 +155,7 @@ dependencies {
     implementation(libs.compose.ratingbar)
     implementation(libs.flowext)
     implementation(libs.markdown)
+    implementation(libs.markdown.material)
     implementation(platform(libs.okhttp.bom))
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)

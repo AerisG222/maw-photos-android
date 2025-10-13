@@ -33,7 +33,7 @@ ksp = "2.2.20-2.0.3"
 auth0 = "3.10.0"
 coil = "3.3.0"
 flowext = "1.0.0"
-markdown = "0.5.7"
+markdown = "0.37.0"
 ratingbar = "2.1.1"
 retrofit = "3.0.0"
 timber = "5.0.1"
@@ -88,7 +88,8 @@ coil-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versio
 compose-ratingbar = { group = "com.github.SmartToolFactory", name = "Compose-RatingBar", version.ref = "ratingbar" }
 flowext = { group = "io.github.hoc081098", name = "FlowExt", version.ref = "flowext" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-markdown = { group = "com.github.jeziellago", name = "compose-markdown", version.ref = "markdown" }
+markdown = { group = "com.mikepenz", name="multiplatform-markdown-renderer-android", version.ref = "markdown" }
+markdown-material = { group = "com.mikepenz", name="multiplatform-markdown-renderer-m3", version.ref = "markdown" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
