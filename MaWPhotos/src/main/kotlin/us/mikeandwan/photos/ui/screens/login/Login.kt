@@ -114,7 +114,8 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "mikeandwan.us",
-                    fontSize = 72.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 64.sp,
                     fontFamily = tangerine,
                 )
             }
@@ -124,7 +125,8 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "Photos",
-                    fontSize = 72.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 64.sp,
                     fontFamily = tangerine,
                 )
             }
