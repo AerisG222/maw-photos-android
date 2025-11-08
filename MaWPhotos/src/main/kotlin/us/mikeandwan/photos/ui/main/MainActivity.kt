@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -68,7 +67,6 @@ import us.mikeandwan.photos.ui.theme.AppTheme
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val activity = this
 
@@ -208,9 +206,11 @@ class MainActivity : ComponentActivity() {
                         },
                     ) { innerPadding ->
                         // https://issuetracker.google.com/issues/297824100
-                        Column(modifier = Modifier.fillMaxSize()) {
+                        Column(modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                        ) {
                             NavHost(
-                                modifier = Modifier.padding(innerPadding),
                                 navController = navController,
                                 startDestination = CategoriesRoute(null)
                             ) {
