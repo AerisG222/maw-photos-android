@@ -1,5 +1,10 @@
 # Release Notes
 
+## v9.1 : 11/08/2025
+- avoid scenario where swiping back leaves you stuck on a loading screen
+- improve styling of login screen
+- update dependencies
+
 ## v9.0 : 10/13/2025
 - major update to account for changes on the backend
 - categories can now contain both photos and videos
