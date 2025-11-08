@@ -113,9 +113,14 @@ class CategoriesViewModel @Inject constructor (
             is GuardStatus.NotInitialized -> authGuard.initializeGuard()
             is GuardStatus.Failed -> CategoriesState.NotAuthorized
             is GuardStatus.Passed -> {
-                if (year == null)
+                if (year == null) {
+                    if (!years.isEmpty()) {
+                        // this happens when trying to navigate back via swipe
+                        setYear(years.max())
+                    }
+
                     CategoriesState.Unknown
-                else
+                } else
                     when(categoriesStatus) {
                         is GuardStatus.NotInitialized -> categoriesLoadedGuard.initializeGuard()
                         is GuardStatus.Failed -> CategoriesState.Error
