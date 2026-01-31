@@ -10,15 +10,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ExifHeader(
-    name: String
-) {
+fun ExifHeader(name: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = name,
             fontSize = 14.sp,
             modifier = Modifier
-                .padding(4.dp, 2.dp)
+                .padding(4.dp, 2.dp),
         )
     }
 }

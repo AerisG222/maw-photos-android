@@ -21,7 +21,8 @@ import us.mikeandwan.photos.workers.UpdateCategoriesWorker
 class MawApplication :
     Application(),
     Configuration.Provider {
-    @Inject lateinit var workerFactory: HiltWorkerFactory
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     override fun onCreate() {
         super.onCreate()

@@ -26,10 +26,10 @@ import us.mikeandwan.photos.R
 @Composable
 fun TopSearchBar(
     initialSearchTerm: String,
-    onSearch: (String) -> Unit
+    onSearch: (String) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val (searchTerm, setSearchTerm) = remember{ mutableStateOf(initialSearchTerm) }
+    val (searchTerm, setSearchTerm) = remember { mutableStateOf(initialSearchTerm) }
 
     LaunchedEffect(initialSearchTerm) {
         setSearchTerm(initialSearchTerm)
@@ -51,23 +51,23 @@ fun TopSearchBar(
                 trailingIcon = {
                     IconButton(
                         modifier = Modifier.size(32.dp),
-                        onClick = { search(searchTerm) }
+                        onClick = { search(searchTerm) },
                     ) {
                         AsyncImage(
                             model = R.drawable.ic_search,
                             contentDescription = stringResource(R.string.search_icon_description),
                             alignment = Alignment.Center,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                         )
                     }
-                }
+                },
             )
         },
         content = { },
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .padding(0.dp, 0.dp, 0.dp, 8.dp)
+            .padding(0.dp, 0.dp, 0.dp, 8.dp),
     )
 }
 
@@ -76,6 +76,6 @@ fun TopSearchBar(
 fun SearchBarPreview() {
     TopSearchBar(
         initialSearchTerm = "Search",
-        onSearch = {}
+        onSearch = {},
     )
 }

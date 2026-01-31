@@ -14,7 +14,7 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 fun <T> MediaGrid(state: MediaGridState<T>) {
     val size = remember(state.thumbnailSize) { getSize(state.thumbnailSize) }
 
-    if(size > 0.dp) {
+    if (size > 0.dp) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = size),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -22,24 +22,23 @@ fun <T> MediaGrid(state: MediaGridState<T>) {
         ) {
             items(
                 state.gridItems,
-                key = { item -> item.id }
+                key = { item -> item.id },
             ) {
                 MediaGridImage(
                     item = it,
                     size = size,
-                    onSelectImage = { item -> state.onSelectGridItem(item) }
+                    onSelectImage = { item -> state.onSelectGridItem(item) },
                 )
             }
         }
     }
 }
 
-fun getSize(size: GridThumbnailSize): Dp {
-    return when (size) {
+fun getSize(size: GridThumbnailSize): Dp =
+    when (size) {
         GridThumbnailSize.ExtraSmall -> 60.dp
         GridThumbnailSize.Small -> 90.dp
         GridThumbnailSize.Medium -> 120.dp
         GridThumbnailSize.Large -> 180.dp
         GridThumbnailSize.Unspecified -> 0.dp
     }
-}

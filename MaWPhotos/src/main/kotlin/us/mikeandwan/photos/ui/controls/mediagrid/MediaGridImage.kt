@@ -23,7 +23,7 @@ fun <T> MediaGridImage(
     item: MediaGridItem<T>,
     size: Dp,
     onSelectImage: (MediaGridItem<T>) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box {
         AsyncImage(
@@ -36,10 +36,10 @@ fun <T> MediaGridImage(
                 .height(size)
                 .clickable {
                     onSelectImage(item)
-                }
+                },
         )
 
-        if(item.showVideoBadge) {
+        if (item.showVideoBadge) {
             AsyncImage(
                 model = R.drawable.mdi_video,
                 contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
@@ -47,7 +47,7 @@ fun <T> MediaGridImage(
                 modifier = modifier
                     .align(Alignment.TopStart)
                     .padding(2.dp)
-                    .size(16.dp)
+                    .size(16.dp),
             )
         }
     }

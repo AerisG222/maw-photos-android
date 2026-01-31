@@ -13,19 +13,19 @@ import us.mikeandwan.photos.domain.models.Category
 fun CategoryList(
     categories: List<Category>,
     showYear: Boolean,
-    onSelectCategory: (Category) -> Unit
+    onSelectCategory: (Category) -> Unit,
 ) {
     LazyColumn(
-        Modifier.fillMaxSize()
+        Modifier.fillMaxSize(),
     ) {
         itemsIndexed(
             categories,
-            key = { index, item -> item.id }
+            key = { index, item -> item.id },
         ) { index, category ->
             CategoryListItem(
                 category,
                 showYear,
-                onSelectCategory
+                onSelectCategory,
             )
 
             if (index != categories.size - 1) {

@@ -1,6 +1,12 @@
 package us.mikeandwan.photos.domain
 
-import kotlinx.coroutines.flow.*
+import java.util.Calendar
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.CategoryApiClient
@@ -10,109 +16,125 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.SearchRequest
 import us.mikeandwan.photos.domain.models.SearchSource
-import java.util.*
-import javax.inject.Inject
 
-class SearchRepository @Inject constructor(
-    private val api: CategoryApiClient,
-    private val searchHistoryDao: SearchHistoryDao,
-    private val searchPreferenceRepository: SearchPreferenceRepository,
-    private val apiErrorHandler: ApiErrorHandler
-) {
-    companion object {
-        private const val ERR_MSG_SEARCH = "Unable to search at this time.  Please try again later."
-    }
-
-    private val _searchRequest = MutableStateFlow(SearchRequest("", SearchSource.None))
-    private val searchRequest = _searchRequest.asStateFlow()
-
-    private val _searchResults = MutableStateFlow<List<Category>>(emptyList())
-    val searchResults = _searchResults.asStateFlow()
-
-    private val _hasMoreResults = MutableStateFlow(false)
-    val hasMoreResults = _hasMoreResults.asStateFlow()
-
-    private val _activeSearchTerm = MutableStateFlow("")
-    val activeSearchTerm = _activeSearchTerm.asStateFlow()
-
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
-
-    fun getSearchHistory() = searchHistoryDao
-        .getSearchTerms()
-        .map { history -> history.map { it.toDomainSearchHistory() }}
-
-    suspend fun clearHistory() {
-        searchHistoryDao.clearHistory()
-    }
-
-    fun performSearch(query: String, searchSource: SearchSource) = flow {
-        val currentQuery = searchRequest.value.query
-
-        if(query.isNotBlank() && !currentQuery.equals(query, true)) {
-            _activeSearchTerm.value = query
-            _searchResults.value = emptyList()
-            _searchRequest.value = SearchRequest(query, searchSource)
-            _isSearching.value = true
-
-            executeSearch(query, 0)
-                .collect { emit(it) }
-
-            if (searchResults.value.isNotEmpty()) {
-                addSearchHistory(query)
-            }
-
-            _isSearching.value = false
+class SearchRepository
+    @Inject
+    constructor(
+        private val api: CategoryApiClient,
+        private val searchHistoryDao: SearchHistoryDao,
+        private val searchPreferenceRepository: SearchPreferenceRepository,
+        private val apiErrorHandler: ApiErrorHandler,
+    ) {
+        companion object {
+            private const val ERR_MSG_SEARCH = "Unable to search at this time.  Please try again later."
         }
-    }
 
-    fun continueSearch() = flow {
-        val query = searchRequest.value.query
-        val position = searchResults.value.size
+        private val _searchRequest = MutableStateFlow(SearchRequest("", SearchSource.None))
+        private val searchRequest = _searchRequest.asStateFlow()
 
-        if(query.isNotBlank() && hasMoreResults.value) {
-            executeSearch(query, position)
-                .collect{ emit(it) }
+        private val _searchResults = MutableStateFlow<List<Category>>(emptyList())
+        val searchResults = _searchResults.asStateFlow()
+
+        private val _hasMoreResults = MutableStateFlow(false)
+        val hasMoreResults = _hasMoreResults.asStateFlow()
+
+        private val _activeSearchTerm = MutableStateFlow("")
+        val activeSearchTerm = _activeSearchTerm.asStateFlow()
+
+        private val _isSearching = MutableStateFlow(false)
+        val isSearching = _isSearching.asStateFlow()
+
+        fun getSearchHistory() =
+            searchHistoryDao
+                .getSearchTerms()
+                .map { history -> history.map { it.toDomainSearchHistory() } }
+
+        suspend fun clearHistory() {
+            searchHistoryDao.clearHistory()
         }
-    }
 
-    private fun executeSearch(query: String, startPosition: Int) = flow {
-        val currentResults = searchResults.value
+        fun performSearch(
+            query: String,
+            searchSource: SearchSource,
+        ) = flow {
+            val currentQuery = searchRequest.value.query
 
-        emit(ExternalCallStatus.Loading)
+            if (query.isNotBlank() && !currentQuery.equals(query, true)) {
+                _activeSearchTerm.value = query
+                _searchResults.value = emptyList()
+                _searchRequest.value = SearchRequest(query, searchSource)
+                _isSearching.value = true
 
-        when(val result = api.search(query, startPosition)) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_SEARCH))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_SEARCH))
-            is ApiResult.Success -> {
-                val searchResults = result.result.results
-                val domainResults = searchResults.map { it.toDomainCategory() }
+                executeSearch(query, 0)
+                    .collect { emit(it) }
 
-                _searchResults.value = currentResults + domainResults
-                _hasMoreResults.value = result.result.hasMoreResults
+                if (searchResults.value.isNotEmpty()) {
+                    addSearchHistory(query)
+                }
 
-                emit(domainResults)
+                _isSearching.value = false
             }
         }
-    }
 
-    private suspend fun addSearchHistory(term: String) {
-        searchHistoryDao.addSearchTerm(SearchHistory(
-            term,
-            Calendar.getInstance()
-        ))
+        fun continueSearch() =
+            flow {
+                val query = searchRequest.value.query
+                val position = searchResults.value.size
 
-        cleanSearchHistory()
-    }
+                if (query.isNotBlank() && hasMoreResults.value) {
+                    executeSearch(query, position)
+                        .collect { emit(it) }
+                }
+            }
 
-    private suspend fun cleanSearchHistory() {
-        try {
-            val historyToKeep = searchPreferenceRepository.getSearchesToSaveCount().first()
-            val earliestDateToRemove = searchHistoryDao.getEarliestDateToRemove(historyToKeep)
+        private fun executeSearch(
+            query: String,
+            startPosition: Int,
+        ) = flow {
+            val currentResults = searchResults.value
 
-            searchHistoryDao.removeOldHistory(earliestDateToRemove)
-        } catch(t: Throwable) {
-            Timber.e(t, "Error trying to clean up search history")
+            emit(ExternalCallStatus.Loading)
+
+            when (val result = api.search(query, startPosition)) {
+                is ApiResult.Error -> {
+                    emit(apiErrorHandler.handleError(result, ERR_MSG_SEARCH))
+                }
+
+                is ApiResult.Empty -> {
+                    emit(apiErrorHandler.handleEmpty(result, ERR_MSG_SEARCH))
+                }
+
+                is ApiResult.Success -> {
+                    val searchResults = result.result.results
+                    val domainResults = searchResults.map { it.toDomainCategory() }
+
+                    _searchResults.value = currentResults + domainResults
+                    _hasMoreResults.value = result.result.hasMoreResults
+
+                    emit(domainResults)
+                }
+            }
+        }
+
+        private suspend fun addSearchHistory(term: String) {
+            searchHistoryDao.addSearchTerm(
+                SearchHistory(
+                    term,
+                    Calendar.getInstance(),
+                ),
+            )
+
+            cleanSearchHistory()
+        }
+
+        private suspend fun cleanSearchHistory() {
+            try {
+                val historyToKeep = searchPreferenceRepository.getSearchesToSaveCount().first()
+                val earliestDateToRemove = searchHistoryDao.getEarliestDateToRemove(historyToKeep)
+
+                searchHistoryDao.removeOldHistory(earliestDateToRemove)
+            } catch (t: Throwable) {
+                Timber.e(t, "Error trying to clean up search history")
+            }
         }
     }
-}

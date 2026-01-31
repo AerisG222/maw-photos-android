@@ -18,9 +18,9 @@ fun PrimaryNavigationLink(
     descriptionStringId: Int,
     isActiveArea: Boolean,
     onNavigate: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
-    val color = when(isActiveArea) {
+    val color = when (isActiveArea) {
         true -> MaterialTheme.colorScheme.primary
         false -> MaterialTheme.colorScheme.onSurface
     }
@@ -33,6 +33,6 @@ fun PrimaryNavigationLink(
         modifier = modifier
             .padding(top = 8.dp, bottom = 8.dp)
             .width(32.dp)
-            .clickable { onNavigate() }
+            .clickable { onNavigate() },
     )
 }

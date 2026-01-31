@@ -47,8 +47,8 @@ object SettingsRoute
 
 fun NavGraphBuilder.settingsScreen(
     navigateToLogin: () -> Unit,
-    updateTopBar : (TopBarState) -> Unit,
-    setNavArea: (NavigationArea) -> Unit
+    updateTopBar: (TopBarState) -> Unit,
+    setNavArea: (NavigationArea) -> Unit,
 ) {
     composable<SettingsRoute> {
         val context = LocalContext.current
@@ -76,23 +76,25 @@ fun NavGraphBuilder.settingsScreen(
             updateTopBar(
                 TopBarState().copy(
                     showAppIcon = false,
-                    title = "Settings"
-                )
+                    title = "Settings",
+                ),
             )
         }
 
         fun areNotificationsPermitted(): Boolean {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                return  ContextCompat.checkSelfPermission(
+                return ContextCompat.checkSelfPermission(
                     context,
-                    android.Manifest.permission.POST_NOTIFICATIONS
+                    android.Manifest.permission.POST_NOTIFICATIONS,
                 ) == PackageManager.PERMISSION_GRANTED
             }
 
             return true
         }
 
-        val (permissionPostNotificationAllowed, setPermissionPostNotificationAllowed) = mutableStateOf(areNotificationsPermitted())
+        val (permissionPostNotificationAllowed, setPermissionPostNotificationAllowed) = mutableStateOf(
+            areNotificationsPermitted(),
+        )
 
         LaunchedEffect(Unit) {
             setPermissionPostNotificationAllowed(areNotificationsPermitted())
@@ -100,7 +102,7 @@ fun NavGraphBuilder.settingsScreen(
 
         // https://stackoverflow.com/questions/60608101/how-request-permissions-with-jetpack-compose
         val permissionLauncher = rememberLauncherForActivityResult(
-            ActivityResultContracts.RequestPermission()
+            ActivityResultContracts.RequestPermission(),
         ) {
             if (it) {
                 setPermissionPostNotificationAllowed(true)
@@ -147,7 +149,7 @@ fun NavGraphBuilder.settingsScreen(
             logout = {
                 viewModel.logout(context)
                 navigateToLogin()
-            }
+            },
         )
     }
 }
@@ -177,7 +179,7 @@ fun SettingsScreen(
     setSearchQueryCount: (Int) -> Unit,
     setSearchDisplayType: (CategoryDisplayType) -> Unit,
     setSearchThumbnailSize: (GridThumbnailSize) -> Unit,
-    logout: () -> Unit
+    logout: () -> Unit,
 ) {
     val displayTypeList = listOf("Grid", "List")
     val thumbnailSizeList = listOf("ExtraSmall", "Small", "Medium", "Large")
@@ -188,23 +190,23 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         // --- NOTIFICATIONS ----
         Heading(stringId = R.string.pref_notifications_header)
         SwitchPreference(
             labelStringId = R.string.pref_notifications_new_message_title,
             isChecked = notificationDoNotify && permissionPostNotificationAllowed,
-            onChange = { setNotificationDoNotify(it) }
+            onChange = { setNotificationDoNotify(it) },
         )
         SwitchPreference(
             labelStringId = R.string.pref_notifications_vibrate,
             isChecked = notificationDoVibrate,
-            onChange = { setNotificationDoVibrate(it) }
+            onChange = { setNotificationDoVibrate(it) },
         )
         HorizontalDivider(
             modifier = dividerModifier,
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         // --- CATEGORY LIST ----
@@ -215,7 +217,7 @@ fun SettingsScreen(
             selectedValue = categoryDisplayType.toString(),
             onSelect = {
                 setCategoryDisplayType(enumValueOf(it))
-            }
+            },
         )
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
@@ -223,11 +225,11 @@ fun SettingsScreen(
             selectedValue = categoryThumbnailSize.toString(),
             onSelect = {
                 setCategoryThumbnailSize(enumValueOf(it))
-            }
+            },
         )
         HorizontalDivider(
             modifier = dividerModifier,
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         // --- CATEGORY / PHOTO ----
@@ -238,7 +240,7 @@ fun SettingsScreen(
             selectedValue = "${photoSlideshowInterval}s",
             onSelect = {
                 setPhotoSlideshowInterval(it.substring(0, it.length - 1).toInt())
-            }
+            },
         )
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
@@ -246,11 +248,11 @@ fun SettingsScreen(
             selectedValue = photoThumbnailSize.toString(),
             onSelect = {
                 setPhotoThumbnailSize(enumValueOf(it))
-            }
+            },
         )
         HorizontalDivider(
             modifier = dividerModifier,
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         // --- RANDOM ----
@@ -261,7 +263,7 @@ fun SettingsScreen(
             selectedValue = "${randomSlideshowInterval}s",
             onSelect = {
                 setRandomSlideshowInterval(it.substring(0, it.length - 1).toInt())
-            }
+            },
         )
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
@@ -269,11 +271,11 @@ fun SettingsScreen(
             selectedValue = randomThumbnailSize.toString(),
             onSelect = {
                 setRandomThumbnailSize(enumValueOf(it))
-            }
+            },
         )
         HorizontalDivider(
             modifier = dividerModifier,
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         // --- SEARCH ----
@@ -284,7 +286,7 @@ fun SettingsScreen(
             selectedValue = searchQueryCount.toString(),
             onSelect = {
                 setSearchQueryCount(it.toInt())
-            }
+            },
         )
         MenuPreference(
             labelStringId = R.string.pref_category_display_header,
@@ -292,7 +294,7 @@ fun SettingsScreen(
             selectedValue = searchDisplayType.toString(),
             onSelect = {
                 setSearchDisplayType(enumValueOf(it))
-            }
+            },
         )
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
@@ -300,11 +302,11 @@ fun SettingsScreen(
             selectedValue = searchThumbnailSize.toString(),
             onSelect = {
                 setSearchThumbnailSize(enumValueOf(it))
-            }
+            },
         )
         HorizontalDivider(
             modifier = dividerModifier,
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         // --- ADVANCED ----
@@ -313,7 +315,7 @@ fun SettingsScreen(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(24.dp),
         ) {
             OutlinedButton(
                 onClick = logout,
@@ -321,9 +323,9 @@ fun SettingsScreen(
                     MaterialTheme.colorScheme.surface,
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.colorScheme.surface,
-                    MaterialTheme.colorScheme.onSurface
+                    MaterialTheme.colorScheme.onSurface,
                 ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
                 AsyncImage(
                     model = R.drawable.ic_logout,
@@ -332,12 +334,12 @@ fun SettingsScreen(
                     modifier = Modifier
                         .padding(4.dp, 4.dp, 12.dp, 4.dp)
                         .height(24.dp)
-                        .width(24.dp)
+                        .width(24.dp),
                 )
 
                 Text(
                     text = stringResource(id = R.string.fragment_settings_log_out),
-                    modifier = Modifier.padding(0.dp, 4.dp, 4.dp, 4.dp)
+                    modifier = Modifier.padding(0.dp, 4.dp, 4.dp, 4.dp),
                 )
             }
         }

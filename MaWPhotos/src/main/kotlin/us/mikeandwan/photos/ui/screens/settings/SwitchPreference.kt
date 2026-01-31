@@ -14,25 +14,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SwitchPreference (
+fun SwitchPreference(
     labelStringId: Int,
     isChecked: Boolean,
-    onChange: (Boolean) -> Unit
+    onChange: (Boolean) -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp, 0.dp, 16.dp, 8.dp)
+            .padding(8.dp, 0.dp, 16.dp, 8.dp),
     ) {
         Text(
             style = MaterialTheme.typography.titleSmall,
-            text = stringResource(id = labelStringId)
+            text = stringResource(id = labelStringId),
         )
         Switch(
             checked = isChecked,
-            onCheckedChange = { onChange(it) }
+            onCheckedChange = { onChange(it) },
         )
     }
 }

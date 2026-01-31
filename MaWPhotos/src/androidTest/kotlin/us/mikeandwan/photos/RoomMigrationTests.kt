@@ -2,35 +2,35 @@ import androidx.room.Room.databaseBuilder
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.platform.app.InstrumentationRegistry
+import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
 import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
 import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
-import java.io.IOException
 
 class RoomMigrationTests {
-    private val TEST_DB = "migration-test"
+    private val testDb = "migration-test"
 
-    private val ALL_MIGRATIONS = arrayOf(
+    private val allMigrations = arrayOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
-        MIGRATION_3_4
+        MIGRATION_3_4,
     )
 
     @get:Rule
     val helper: MigrationTestHelper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),
         MawDatabase::class.java.canonicalName,
-        FrameworkSQLiteOpenHelperFactory()
+        FrameworkSQLiteOpenHelperFactory(),
     )
 
     @Test
     @Throws(IOException::class)
     fun migrateAll() {
         // Create earliest version of the database.
-        helper.createDatabase(TEST_DB, 1).apply {
+        helper.createDatabase(testDb, 1).apply {
             close()
         }
 
@@ -39,8 +39,8 @@ class RoomMigrationTests {
         databaseBuilder(
             InstrumentationRegistry.getInstrumentation().targetContext,
             MawDatabase::class.java,
-            TEST_DB
-        ).addMigrations(*ALL_MIGRATIONS).build().apply {
+            testDb,
+        ).addMigrations(*allMigrations).build().apply {
             openHelper.writableDatabase.close()
         }
     }

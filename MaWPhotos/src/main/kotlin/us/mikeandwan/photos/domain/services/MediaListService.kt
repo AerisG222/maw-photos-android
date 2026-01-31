@@ -1,6 +1,9 @@
 package us.mikeandwan.photos.domain.services
 
 import android.graphics.drawable.Drawable
+import java.io.File
+import javax.inject.Inject
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,178 +17,187 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.PeriodicJob
-import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Category
-import java.io.File
-import javax.inject.Inject
-import kotlin.uuid.Uuid
+import us.mikeandwan.photos.domain.models.Media
 
-class MediaListService @Inject constructor (
-    private val categoryRepository: CategoryRepository,
-    private val fileRepository: FileStorageRepository,
-    private val mediaFavoriteService: MediaFavoriteService,
-    private val mediaCommentService: MediaCommentService,
-    private val mediaExifService: MediaExifService
-) {
-    private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
-    private val _media = MutableStateFlow<List<Media>>(emptyList())
+class MediaListService
+    @Inject
+    constructor(
+        private val categoryRepository: CategoryRepository,
+        private val fileRepository: FileStorageRepository,
+        private val mediaFavoriteService: MediaFavoriteService,
+        private val mediaCommentService: MediaCommentService,
+        private val mediaExifService: MediaExifService,
+    ) {
+        private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+        private val _media = MutableStateFlow<List<Media>>(emptyList())
 
-    private val _slideshowJob = PeriodicJob { moveNext() }
+        private val _slideshowJob = PeriodicJob { moveNext() }
 
-    private val _resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
-    val isSlideshowPlaying = _slideshowJob.doJob
+        private val _resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
+        val isSlideshowPlaying = _slideshowJob.doJob
 
-    private val _showDetailSheet = MutableStateFlow(false)
-    val showDetailSheet = _showDetailSheet.asStateFlow()
+        private val _showDetailSheet = MutableStateFlow(false)
+        val showDetailSheet = _showDetailSheet.asStateFlow()
 
-    private val _category = MutableStateFlow<Category?>(null)
-    val category = _category.asStateFlow()
+        private val _category = MutableStateFlow<Category?>(null)
+        val category = _category.asStateFlow()
 
-    private val _activeIndex = MutableStateFlow(-1)
-    val activeIndex = _activeIndex.asStateFlow()
+        private val _activeIndex = MutableStateFlow(-1)
+        val activeIndex = _activeIndex.asStateFlow()
 
-    val activeMedia = combine(_media, activeIndex) { media, index ->
-        media.getOrNull(index)
-    }.stateIn(scope, WhileSubscribed(5000), null)
+        val activeMedia = combine(_media, activeIndex) { media, index ->
+            media.getOrNull(index)
+        }.stateIn(scope, WhileSubscribed(5000), null)
 
-    val activeId = activeMedia
-        .map { media -> media?.id ?: Uuid.NIL }
-        .stateIn(scope, WhileSubscribed(5000), Uuid.NIL)
+        val activeId = activeMedia
+            .map { media -> media?.id ?: Uuid.NIL }
+            .stateIn(scope, WhileSubscribed(5000), Uuid.NIL)
 
-    fun setActiveIndex(index: Int) {
-        _activeIndex.value = index
-    }
-
-    fun setActiveId(id: Uuid) {
-        setActiveIndex(_media.value.indexOfFirst { it.id == id })
-    }
-
-    fun toggleSlideshow() {
-        if(_slideshowJob.doJob.value) {
-            stopSlideshow()
-        } else {
-            startSlideshow()
+        fun setActiveIndex(index: Int) {
+            _activeIndex.value = index
         }
-    }
 
-    private fun startSlideshow() { _slideshowJob.start() }
-    private fun stopSlideshow() { _slideshowJob.stop() }
+        fun setActiveId(id: Uuid) {
+            setActiveIndex(_media.value.indexOfFirst { it.id == id })
+        }
 
-    fun toggleShowDetails() {
-        if(_showDetailSheet.value) {
-            // detail sheet to be hidden
-            if(_resumeSlideshowAfterShowingDetails.value) {
-                _slideshowJob.start()
+        fun toggleSlideshow() {
+            if (_slideshowJob.doJob.value) {
+                stopSlideshow()
+            } else {
+                startSlideshow()
             }
-        } else {
-            _resumeSlideshowAfterShowingDetails.value = isSlideshowPlaying.value
+        }
+
+        private fun startSlideshow() {
+            _slideshowJob.start()
+        }
+
+        private fun stopSlideshow() {
             _slideshowJob.stop()
         }
 
-        _showDetailSheet.value = !_showDetailSheet.value
-    }
+        fun toggleShowDetails() {
+            if (_showDetailSheet.value) {
+                // detail sheet to be hidden
+                if (_resumeSlideshowAfterShowingDetails.value) {
+                    _slideshowJob.start()
+                }
+            } else {
+                _resumeSlideshowAfterShowingDetails.value = isSlideshowPlaying.value
+                _slideshowJob.stop()
+            }
 
-    fun saveFileToShare(drawable: Drawable, filename: String, onComplete: (File) -> Unit) {
-        scope.launch {
-            val file = fileRepository.savePhotoToShare(drawable, filename)
-
-            onComplete(file)
+            _showDetailSheet.value = !_showDetailSheet.value
         }
-    }
 
-    // TODO: pass in media rather than relying on activeMedia?
-
-    // FAVORITES
-    val isFavorite = mediaFavoriteService.isFavorite
-
-    fun setIsFavorite(isFavorite: Boolean) {
-        activeMedia.value?.let {
+        fun saveFileToShare(
+            drawable: Drawable,
+            filename: String,
+            onComplete: (File) -> Unit,
+        ) {
             scope.launch {
-                val resultIsFav = mediaFavoriteService.setIsFavorite(activeMedia.value!!, isFavorite)
-                val updatedMedia = _media.value.toMutableList()
-                updatedMedia[activeIndex.value] = activeMedia.value!!.copy(isFavorite = resultIsFav)
-                _media.value = updatedMedia
+                val file = fileRepository.savePhotoToShare(drawable, filename)
 
-                categoryRepository.tryUpdateCache(updatedMedia[activeIndex.value])
+                onComplete(file)
             }
         }
-    }
 
-    // EXIF
-    val exif = mediaExifService.exif
+        // TODO: pass in media rather than relying on activeMedia?
 
-    fun fetchExif() {
-        activeMedia.value?.let {
-            scope.launch {
-                mediaExifService.fetchExifDetails(it)
+        // FAVORITES
+        val isFavorite = mediaFavoriteService.isFavorite
+
+        fun setIsFavorite(isFavorite: Boolean) {
+            activeMedia.value?.let {
+                scope.launch {
+                    val resultIsFav = mediaFavoriteService.setIsFavorite(activeMedia.value!!, isFavorite)
+                    val updatedMedia = _media.value.toMutableList()
+                    updatedMedia[activeIndex.value] = activeMedia.value!!.copy(isFavorite = resultIsFav)
+                    _media.value = updatedMedia
+
+                    categoryRepository.tryUpdateCache(updatedMedia[activeIndex.value])
+                }
             }
         }
-    }
 
-    // COMMENTS
-    val comments = mediaCommentService.comments
+        // EXIF
+        val exif = mediaExifService.exif
 
-    fun fetchComments() {
-        activeMedia.value?.let {
-            scope.launch {
-                mediaCommentService.fetchCommentDetails(activeMedia.value!!)
+        fun fetchExif() {
+            activeMedia.value?.let {
+                scope.launch {
+                    mediaExifService.fetchExifDetails(it)
+                }
             }
         }
-    }
 
-    fun addComment(comment: String) {
-        activeMedia.value?.let {
-            scope.launch {
-                mediaCommentService.addComment(activeMedia.value!!, comment)
+        // COMMENTS
+        val comments = mediaCommentService.comments
+
+        fun fetchComments() {
+            activeMedia.value?.let {
+                scope.launch {
+                    mediaCommentService.fetchCommentDetails(activeMedia.value!!)
+                }
             }
         }
+
+        fun addComment(comment: String) {
+            activeMedia.value?.let {
+                scope.launch {
+                    mediaCommentService.addComment(activeMedia.value!!, comment)
+                }
+            }
+        }
+
+        fun initialize(
+            media: StateFlow<List<Media>>,
+            slideshowDurationInMillis: StateFlow<Long>,
+        ) {
+            scope.launch {
+                media
+                    .collect { _media.value = it }
+            }
+
+            scope.launch {
+                activeMedia
+                    .filterNotNull()
+                    .collect { loadCategory(it.categoryId) }
+            }
+
+            scope.launch {
+                slideshowDurationInMillis
+                    .collect { _slideshowJob.setIntervalMillis(it) }
+            }
+        }
+
+        private fun loadCategory(categoryId: Uuid) {
+            if (category.value?.id == categoryId) {
+                return
+            }
+
+            _category.value = null
+
+            scope.launch {
+                categoryRepository
+                    .getCategory(categoryId)
+                    .collect { _category.value = it }
+            }
+        }
+
+        private fun moveNext() =
+            flow<Unit> {
+                val nextIndex = activeIndex.value + 1
+
+                if (nextIndex < _media.value.size) {
+                    setActiveIndex(nextIndex)
+                } else {
+                    stopSlideshow()
+                }
+            }
     }
-
-    fun initialize(
-        media: StateFlow<List<Media>>,
-        slideshowDurationInMillis: StateFlow<Long>
-    ) {
-        scope.launch {
-            media
-                .collect { _media.value = it }
-        }
-
-        scope.launch {
-            activeMedia
-                .filterNotNull()
-                .collect { loadCategory(it.categoryId) }
-        }
-
-        scope.launch {
-            slideshowDurationInMillis
-                .collect { _slideshowJob.setIntervalMillis(it) }
-        }
-    }
-
-    private fun loadCategory(categoryId: Uuid) {
-        if(category.value?.id == categoryId) {
-            return
-        }
-
-        _category.value = null
-
-        scope.launch {
-            categoryRepository
-                .getCategory(categoryId)
-                .collect { _category.value = it }
-        }
-    }
-
-    private fun moveNext() = flow<Unit> {
-        val nextIndex = activeIndex.value + 1
-
-        if(nextIndex < _media.value.size) {
-            setActiveIndex(nextIndex)
-        } else {
-            stopSlideshow()
-        }
-    }
-}

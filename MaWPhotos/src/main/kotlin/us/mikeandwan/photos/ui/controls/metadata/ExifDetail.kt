@@ -16,11 +16,12 @@ import kotlinx.serialization.json.jsonPrimitive
 fun ExifDetail(
     bgColor: androidx.compose.ui.graphics.Color,
     txtColor: androidx.compose.ui.graphics.Color,
-    detail: JsonObject
+    detail: JsonObject,
 ) {
-    Row(Modifier
-        .fillMaxWidth()
-        .background(bgColor)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(bgColor),
     ) {
         Text(
             text = detail["desc"]?.jsonPrimitive?.content ?: "",
@@ -28,7 +29,7 @@ fun ExifDetail(
             fontSize = 12.sp,
             modifier = Modifier
                 .weight(1f)
-                .padding(4.dp, 2.dp)
+                .padding(4.dp, 2.dp),
         )
         Text(
             text = detail["val"]?.jsonPrimitive?.content ?: "",
@@ -36,7 +37,7 @@ fun ExifDetail(
             fontSize = 12.sp,
             modifier = Modifier
                 .weight(1f)
-                .padding(4.dp, 2.dp)
+                .padding(4.dp, 2.dp),
         )
     }
 }

@@ -13,18 +13,16 @@ import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.R
 
 @Composable
-fun Heading (
-    stringId: Int
-) {
+fun Heading(stringId: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(8.dp),
     ) {
         Text(
             text = stringResource(id = stringId),
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.secondary,
         )
     }
 }

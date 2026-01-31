@@ -26,7 +26,7 @@ data class TopBarState(
     var showAppIcon: Boolean = true,
     var title: String = "",
     var initialSearchTerm: String = "",
-    var showSearch: Boolean = false
+    var showSearch: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +36,7 @@ fun TopBar(
     state: TopBarState,
     onExpandNavMenu: () -> Unit,
     onBackClicked: () -> Unit,
-    onSearch: (String) -> Unit
+    onSearch: (String) -> Unit,
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -46,26 +46,26 @@ fun TopBar(
             titleContentColor = MaterialTheme.colorScheme.primary,
         ),
         title = {
-            if(state.showSearch) {
+            if (state.showSearch) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(0.dp)
+                    modifier = Modifier.padding(0.dp),
                 ) {
                     TopSearchBar(
                         state.initialSearchTerm,
-                        onSearch
+                        onSearch,
                     )
                 }
             } else {
                 Text(
                     text = state.title,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         },
         navigationIcon = {
-            if(state.showAppIcon) {
+            if (state.showAppIcon) {
                 AsyncImage(
                     model = R.drawable.ic_launch,
                     contentDescription = stringResource(R.string.application_menu_icon_description),
@@ -74,7 +74,7 @@ fun TopBar(
                         .height(56.dp)
                         .width(56.dp)
                         .padding(8.dp)
-                        .clickable { onExpandNavMenu() }
+                        .clickable { onExpandNavMenu() },
                 )
             } else {
                 AsyncImage(
@@ -86,9 +86,9 @@ fun TopBar(
                         .height(56.dp)
                         .width(56.dp)
                         .padding(8.dp)
-                        .clickable { onBackClicked() }
+                        .clickable { onBackClicked() },
                 )
             }
-        }
+        },
     )
 }

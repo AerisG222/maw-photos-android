@@ -29,21 +29,21 @@ fun MenuPreferenceCard(
     options: List<String>,
     selectedValue: String,
     onSelect: (String) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier
             .height(400.dp)
             .width(300.dp),
         colors = CardDefaults.elevatedCardColors().copy(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        ),
     ) {
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Column {
                 Text(
@@ -52,33 +52,34 @@ fun MenuPreferenceCard(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = 16.dp),
                 )
 
                 LazyColumn(Modifier.height(280.dp)) {
                     itemsIndexed(options) { index, option ->
-                        val bgColor = when(option == selectedValue) {
+                        val bgColor = when (option == selectedValue) {
                             true -> MaterialTheme.colorScheme.primary
                             else -> MaterialTheme.colorScheme.background
                         }
 
-                        val textColor = when(option == selectedValue) {
+                        val textColor = when (option == selectedValue) {
                             true -> MaterialTheme.colorScheme.onPrimary
                             else -> MaterialTheme.colorScheme.onBackground
                         }
 
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .background(color = bgColor)
-                            .padding(8.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(color = bgColor)
+                                .padding(8.dp),
                         ) {
                             TextButton(
                                 onClick = { onSelect(option) },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text(
                                     text = option,
-                                    color = textColor
+                                    color = textColor,
                                 )
                             }
                         }

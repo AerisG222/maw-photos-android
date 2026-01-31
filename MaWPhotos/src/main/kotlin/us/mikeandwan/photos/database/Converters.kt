@@ -1,7 +1,7 @@
 package us.mikeandwan.photos.database
 
 import androidx.room.TypeConverter
-import java.util.*
+import java.util.Calendar
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.datetime.LocalDate

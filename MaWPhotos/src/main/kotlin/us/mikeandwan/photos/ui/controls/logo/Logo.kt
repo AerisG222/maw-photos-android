@@ -13,6 +13,6 @@ fun Logo() {
     AsyncImage(
         model = R.drawable.ic_launch,
         contentDescription = stringResource(id = R.string.logo_description),
-        modifier = Modifier.size(96.dp)
+        modifier = Modifier.size(96.dp),
     )
 }

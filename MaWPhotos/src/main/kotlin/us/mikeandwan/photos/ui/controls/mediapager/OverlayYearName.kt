@@ -14,14 +14,13 @@ import us.mikeandwan.photos.domain.models.Category
 fun OverlayYearName(
     category: Category,
     onClickYear: (Int) -> Unit,
-    onClickCategory: (Category) -> Unit
+    onClickCategory: (Category) -> Unit,
 ) {
     Row(modifier = Modifier.padding(4.dp, 2.dp)) {
         Text(
             text = category.year.toString(),
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.
-                clickable { onClickYear(category.year) }
+            modifier = Modifier.clickable { onClickYear(category.year) },
         )
 
         Text(text = " / ")
@@ -29,8 +28,7 @@ fun OverlayYearName(
         Text(
             text = category.name,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.
-                clickable { onClickCategory(category) }
+            modifier = Modifier.clickable { onClickCategory(category) },
         )
     }
 }

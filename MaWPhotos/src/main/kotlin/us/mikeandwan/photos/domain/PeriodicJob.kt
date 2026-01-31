@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 class PeriodicJob<T>(
     doJob: Boolean = false,
     intervalMillis: Long = 3000,
-    private val func: () -> Flow<T>
+    private val func: () -> Flow<T>,
 ) {
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var nextJob: Job? = null
@@ -43,9 +43,12 @@ class PeriodicJob<T>(
         nextJob = null
     }
 
-    private fun scheduleNextJob(scope: CoroutineScope, interval: Long) {
+    private fun scheduleNextJob(
+        scope: CoroutineScope,
+        interval: Long,
+    ) {
         nextJob = scope.launch {
-            while(isActive) {
+            while (isActive) {
                 delay(interval)
                 func().collect { }
             }
@@ -56,11 +59,11 @@ class PeriodicJob<T>(
         scope.launch {
             combine(
                 _doJob,
-                _intervalMillis
-            ){ doJob, interval -> Pair(doJob, interval) }
+                _intervalMillis,
+            ) { doJob, interval -> Pair(doJob, interval) }
                 .onEach { (doJob, interval) ->
-                    if(doJob) {
-                        if(nextJob != null) {
+                    if (doJob) {
+                        if (nextJob != null) {
                             cancelNextJob()
                         }
 
@@ -68,8 +71,7 @@ class PeriodicJob<T>(
                     } else {
                         cancelNextJob()
                     }
-                }
-                .launchIn(this)
+                }.launchIn(this)
         }
     }
 }

@@ -15,15 +15,15 @@ fun YearListItem(
     year: Int,
     isActive: Boolean,
     onYearSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // https://stackoverflow.com/a/75062699
-    val bgColor = when(isActive) {
+    val bgColor = when (isActive) {
         true -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.secondaryContainer
     }
 
-    val textColor = when(isActive) {
+    val textColor = when (isActive) {
         true -> MaterialTheme.colorScheme.onPrimary
         else -> MaterialTheme.colorScheme.onSecondaryContainer
     }
@@ -32,15 +32,15 @@ fun YearListItem(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .background(color = bgColor)
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         TextButton(
             onClick = { onYearSelected(year) },
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier.fillMaxWidth(),
         ) {
             Text(
                 text = year.toString(),
-                color = textColor
+                color = textColor,
             )
         }
     }

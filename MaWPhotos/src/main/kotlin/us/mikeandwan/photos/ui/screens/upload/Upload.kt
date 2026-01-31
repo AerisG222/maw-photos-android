@@ -17,6 +17,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil3.compose.AsyncImage
+import java.io.File
+import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
@@ -25,16 +27,14 @@ import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import java.io.File
-import kotlin.uuid.Uuid
 
 @Serializable
 object UploadRoute
 
 fun NavGraphBuilder.uploadScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
 ) {
     composable<UploadRoute> {
         val vm: UploadViewModel = hiltViewModel()
@@ -42,7 +42,7 @@ fun NavGraphBuilder.uploadScreen(
         val isAuthorized by vm.isAuthorized.collectAsStateWithLifecycle()
 
         LaunchedEffect(isAuthorized) {
-            if(!isAuthorized) {
+            if (!isAuthorized) {
                 navigateToLogin()
             }
         }
@@ -50,16 +50,16 @@ fun NavGraphBuilder.uploadScreen(
         UploadScreen(
             updateTopBar,
             setNavArea,
-            files
+            files,
         )
     }
 }
 
 @Composable
 fun UploadScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    files: List<File>
+    files: List<File>,
 ) {
     LaunchedEffect(Unit) {
         setNavArea(NavigationArea.Upload)
@@ -67,20 +67,20 @@ fun UploadScreen(
         updateTopBar(
             TopBarState().copy(
                 showAppIcon = false,
-                title = "Upload Queue"
-            )
+                title = "Upload Queue",
+            ),
         )
     }
 
     val gridState = rememberMediaGridState(
         gridItems = files.mapIndexed { id, file -> MediaGridItem(Uuid.random(), file.path, false, file) },
         thumbnailSize = GridThumbnailSize.Medium,
-        onSelectGridItem = { }
+        onSelectGridItem = { },
     )
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         AsyncImage(
             model = R.drawable.ic_share,
@@ -88,7 +88,7 @@ fun UploadScreen(
             contentDescription = stringResource(id = R.string.share_photo_icon_description),
             modifier = Modifier
                 .padding(40.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
         )
     }
 

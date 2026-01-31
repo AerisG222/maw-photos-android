@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun OverlayPositionCount(
     position: Int,
-    count: Int
+    count: Int,
 ) {
     Row(modifier = Modifier.padding(4.dp, 2.dp)) {
         Text(text = position.toString())

@@ -27,42 +27,43 @@ import us.mikeandwan.photos.domain.models.SearchHistory
 fun SearchListMenu(
     recentSearchTerms: List<SearchHistory>,
     onTermSelected: (String) -> Unit,
-    onClearSearchHistory: () -> Unit
+    onClearSearchHistory: () -> Unit,
 ) {
     val termDividerModifier = Modifier.padding(16.dp, 0.dp)
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(color = MaterialTheme.colorScheme.secondaryContainer)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.secondaryContainer),
     ) {
-        if(recentSearchTerms.isEmpty()) {
+        if (recentSearchTerms.isEmpty()) {
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .padding(16.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             ) {
                 Text(
                     text = "No recent searches",
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    fontStyle = FontStyle.Italic
+                    fontStyle = FontStyle.Italic,
                 )
             }
         } else {
             LazyColumn {
                 itemsIndexed(
                     recentSearchTerms,
-                    key = { index, item -> item.term }
+                    key = { index, item -> item.term },
                 ) { index, term ->
                     SearchListItem(
                         term.term,
-                        { newTerm -> onTermSelected(newTerm) }
+                        { newTerm -> onTermSelected(newTerm) },
                     )
 
                     if (index != recentSearchTerms.size - 1) {
                         HorizontalDivider(
                             modifier = termDividerModifier,
-                            color = MaterialTheme.colorScheme.inverseOnSurface
+                            color = MaterialTheme.colorScheme.inverseOnSurface,
                         )
                     }
                 }
@@ -72,7 +73,7 @@ fun SearchListMenu(
 
             HorizontalDivider(
                 modifier = Modifier.padding(16.dp, 24.dp, 16.dp, 8.dp),
-                color = MaterialTheme.colorScheme.inverseOnSurface
+                color = MaterialTheme.colorScheme.inverseOnSurface,
             )
 
             OutlinedButton(
@@ -80,10 +81,10 @@ fun SearchListMenu(
                 modifier = Modifier
                     .padding(16.dp, 4.dp, 16.dp, 16.dp)
                     .fillMaxWidth(),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
                 Text(
-                    text = stringResource(id = R.string.clear_search_history)
+                    text = stringResource(id = R.string.clear_search_history),
                 )
             }
         }

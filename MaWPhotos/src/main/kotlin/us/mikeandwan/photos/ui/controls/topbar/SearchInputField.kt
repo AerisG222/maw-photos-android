@@ -50,34 +50,35 @@ fun SearchInputField(
         textStyle = LocalTextStyle.current.merge(
             TextStyle(
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                color = MaterialTheme.colorScheme.onSurface)
+                color = MaterialTheme.colorScheme.onSurface,
+            ),
         ),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
         decorationBox =
-        @Composable { innerTextField ->
-            TextFieldDefaults.DecorationBox(
-                value = query,
-                innerTextField = innerTextField,
-                enabled = enabled,
-                singleLine = true,
-                visualTransformation = VisualTransformation.None,
-                placeholder = placeholder,
-                leadingIcon =
-                leadingIcon?.let { leading ->
-                    { Box(Modifier.offset(x = 4.dp)) { leading() } }
-                },
-                trailingIcon =
-                trailingIcon?.let { trailing ->
-                    { Box(Modifier.offset(x = (-4).dp)) { trailing() } }
-                },
-                shape = SearchBarDefaults.inputFieldShape,
-                colors = colors,
-                contentPadding = PaddingValues(16.dp, 2.dp),
-                interactionSource = interactionSource,
-                container = {}
-            )
-        }
+            @Composable { innerTextField ->
+                TextFieldDefaults.DecorationBox(
+                    value = query,
+                    innerTextField = innerTextField,
+                    enabled = enabled,
+                    singleLine = true,
+                    visualTransformation = VisualTransformation.None,
+                    placeholder = placeholder,
+                    leadingIcon =
+                        leadingIcon?.let { leading ->
+                            { Box(Modifier.offset(x = 4.dp)) { leading() } }
+                        },
+                    trailingIcon =
+                        trailingIcon?.let { trailing ->
+                            { Box(Modifier.offset(x = (-4).dp)) { trailing() } }
+                        },
+                    shape = SearchBarDefaults.inputFieldShape,
+                    colors = colors,
+                    contentPadding = PaddingValues(16.dp, 2.dp),
+                    interactionSource = interactionSource,
+                    container = {},
+                )
+            },
     )
 }

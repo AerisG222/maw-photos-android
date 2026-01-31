@@ -14,17 +14,17 @@ fun DetailBottomSheet(
     activeMedia: Media,
     exifState: ExifState,
     commentState: CommentState,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
 ) {
     ModalBottomSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        onDismissRequest = { onDismissRequest() }
+        onDismissRequest = { onDismissRequest() },
     ) {
         DetailTabs(
             activeMedia = activeMedia,
             exifState = exifState,
-            commentState = commentState
+            commentState = commentState,
         )
     }
 }

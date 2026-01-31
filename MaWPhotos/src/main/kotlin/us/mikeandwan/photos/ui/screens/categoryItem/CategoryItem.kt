@@ -13,41 +13,41 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import kotlin.reflect.typeOf
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.MediaListState
-import us.mikeandwan.photos.ui.controls.scaffolds.ItemPagerScaffold
+import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.controls.loading.Loading
+import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
+import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
+import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
+import us.mikeandwan.photos.ui.controls.mediapager.rememberRotation
 import us.mikeandwan.photos.ui.controls.metadata.CommentState
 import us.mikeandwan.photos.ui.controls.metadata.DetailBottomSheet
 import us.mikeandwan.photos.ui.controls.metadata.ExifState
 import us.mikeandwan.photos.ui.controls.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.controls.metadata.rememberExifState
-import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
-import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
-import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
-import us.mikeandwan.photos.ui.controls.mediapager.rememberRotation
+import us.mikeandwan.photos.ui.controls.scaffolds.ItemPagerScaffold
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.rememberMediaListState
 import us.mikeandwan.photos.ui.shareMedia
-import kotlin.reflect.typeOf
-import kotlin.uuid.Uuid
 
 @Serializable
-data class CategoryItemRoute (
+data class CategoryItemRoute(
     val categoryId: Uuid,
-    val mediaId: Uuid
+    val mediaId: Uuid,
 )
 
 fun NavGraphBuilder.categoryItemScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
 ) {
     composable<CategoryItemRoute>(
-        typeMap = mapOf(typeOf<Uuid>() to UuidNavType)
+        typeMap = mapOf(typeOf<Uuid>() to UuidNavType),
     ) { backStackEntry ->
         val vm: CategoryItemViewModel = hiltViewModel()
         val args = backStackEntry.toRoute<CategoryItemRoute>()
@@ -76,7 +76,7 @@ fun NavGraphBuilder.categoryItemScreen(
         )
 
         LaunchedEffect(isAuthorized) {
-            if(!isAuthorized) {
+            if (!isAuthorized) {
                 navigateToLogin()
             }
         }
@@ -89,7 +89,7 @@ fun NavGraphBuilder.categoryItemScreen(
         val exif by vm.exif.collectAsStateWithLifecycle()
         val exifState = rememberExifState(
             exif,
-            fetchExif = { vm.fetchExif() }
+            fetchExif = { vm.fetchExif() },
         )
 
         // comments
@@ -97,22 +97,26 @@ fun NavGraphBuilder.categoryItemScreen(
         val commentState = rememberCommentState(
             comments = comments,
             fetchComments = { vm.fetchCommentDetails() },
-            addComment = { vm.addComment(it) }
+            addComment = { vm.addComment(it) },
         )
 
-        when(mediaListState) {
-            is MediaListState.Loading -> Loading()
+        when (mediaListState) {
+            is MediaListState.Loading -> {
+                Loading()
+            }
+
             is MediaListState.CategoryLoaded -> {
                 LaunchedEffect(mediaListState.category) {
                     updateTopBar(
                         TopBarState().copy(
-                            title = mediaListState.category.name
-                        )
+                            title = mediaListState.category.name,
+                        ),
                     )
                 }
 
                 Loading()
             }
+
             is MediaListState.Loaded -> {
                 CategoryItemScreen(
                     mediaListState,
@@ -120,7 +124,7 @@ fun NavGraphBuilder.categoryItemScreen(
                     commentState,
                     vm.videoPlayerDataSourceFactory,
                     updateTopBar,
-                    setNavArea
+                    setNavArea,
                 )
             }
         }
@@ -134,7 +138,7 @@ fun CategoryItemScreen(
     exifState: ExifState,
     commentState: CommentState,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
 ) {
     val context = LocalContext.current
@@ -149,8 +153,8 @@ fun CategoryItemScreen(
     LaunchedEffect(mediaListState.category) {
         updateTopBar(
             TopBarState().copy(
-                title = mediaListState.category.name
-            )
+                title = mediaListState.category.name,
+            ),
         )
     }
 
@@ -159,7 +163,7 @@ fun CategoryItemScreen(
         topRightContent = {
             OverlayPositionCount(
                 position = mediaListState.activeIndex + 1,
-                count = mediaListState.media.size
+                count = mediaListState.media.size,
             )
         },
         bottomBarContent = {
@@ -176,7 +180,7 @@ fun CategoryItemScreen(
                         shareMedia(context, mediaListState.saveMediaToShare, mediaListState.activeMedia)
                     }
                 },
-                onViewDetails = mediaListState.toggleDetails
+                onViewDetails = mediaListState.toggleDetails,
             )
         },
         detailSheetContent = {
@@ -185,16 +189,16 @@ fun CategoryItemScreen(
                 sheetState = sheetState,
                 exifState = exifState,
                 commentState = commentState,
-                onDismissRequest = mediaListState.toggleDetails
+                onDismissRequest = mediaListState.toggleDetails,
             )
-        }
+        },
     ) {
         MediaPager(
             mediaListState.media,
             mediaListState.activeIndex,
             rotationState.activeRotation,
             videoPlayerDataSourceFactory,
-            setActiveIndex = { index -> mediaListState.setActiveIndex(index) }
+            setActiveIndex = { index -> mediaListState.setActiveIndex(index) },
         )
     }
 }

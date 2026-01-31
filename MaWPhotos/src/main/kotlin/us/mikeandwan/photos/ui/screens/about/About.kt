@@ -37,8 +37,8 @@ import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 object AboutRoute
 
 fun NavGraphBuilder.aboutScreen(
-    updateTopBar : (TopBarState) -> Unit,
-    setNavArea: (NavigationArea) -> Unit
+    updateTopBar: (TopBarState) -> Unit,
+    setNavArea: (NavigationArea) -> Unit,
 ) {
     composable<AboutRoute> {
         val vm: AboutViewModel = hiltViewModel()
@@ -49,22 +49,25 @@ fun NavGraphBuilder.aboutScreen(
             updateTopBar(
                 TopBarState().copy(
                     showAppIcon = false,
-                    title = "About"
-                )
+                    title = "About",
+                ),
             )
         }
 
-        when(state) {
-            is AboutState.Loading -> { Loading() }
-            is AboutState.Loaded -> AboutScreen((state as AboutState.Loaded))
+        when (state) {
+            is AboutState.Loading -> {
+                Loading()
+            }
+
+            is AboutState.Loaded -> {
+                AboutScreen((state as AboutState.Loaded))
+            }
         }
     }
 }
 
 @Composable
-fun AboutScreen(
-    state: AboutState.Loaded
-) {
+fun AboutScreen(state: AboutState.Loaded) {
     val tangerine = remember { FontFamily(Font(R.font.tangerine)) }
 
     Column {
@@ -73,14 +76,14 @@ fun AboutScreen(
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             Logo()
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = "mikeandwan.us",
@@ -91,7 +94,7 @@ fun AboutScreen(
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = "Photos",
@@ -103,7 +106,7 @@ fun AboutScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = state.version,
@@ -117,19 +120,20 @@ fun AboutScreen(
             modifier = Modifier
                 .padding(8.dp, 16.dp, 8.dp, 8.dp)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
         ) {
-            Markdown(state.history,
+            Markdown(
+                state.history,
                 typography = markdownTypography(
                     h1 = MaterialTheme.typography.headlineMedium.copy(
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 24.sp
+                        fontSize = 24.sp,
                     ),
                     h2 = MaterialTheme.typography.headlineSmall.copy(
                         color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 20.sp
-                    )
-                )
+                        fontSize = 20.sp,
+                    ),
+                ),
             )
         }
     }
@@ -139,6 +143,6 @@ fun AboutScreen(
 @Composable
 fun AboutScreenPreview() {
     AboutScreen(
-        AboutState.Loaded("vX.Y.Z", "Release Notes")
+        AboutState.Loaded("vX.Y.Z", "Release Notes"),
     )
 }

@@ -19,14 +19,14 @@ fun MenuPreferenceSummary(
             Text(
                 text = stringResource(id = labelStringId),
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
         Row(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = selectedValue,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }

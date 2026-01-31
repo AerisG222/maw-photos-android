@@ -8,30 +8,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import kotlin.reflect.typeOf
+import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
+import us.mikeandwan.photos.ui.UuidNavType
+import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
-import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.UuidNavType
-import kotlin.reflect.typeOf
-import kotlin.uuid.Uuid
 
 @Serializable
-data class CategoryRoute (
-    val categoryId: Uuid
+data class CategoryRoute(
+    val categoryId: Uuid,
 )
 
 fun NavGraphBuilder.categoryScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToMedia: (Media) -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
 ) {
     composable<CategoryRoute>(
-        typeMap = mapOf(typeOf<Uuid>() to UuidNavType)
+        typeMap = mapOf(typeOf<Uuid>() to UuidNavType),
     ) { backStackEntry ->
         val vm: CategoryViewModel = hiltViewModel()
         val args = backStackEntry.toRoute<CategoryRoute>()
@@ -41,31 +41,36 @@ fun NavGraphBuilder.categoryScreen(
             vm.initState(args.categoryId)
         }
 
-        when(state) {
+        when (state) {
             is CategoryState.NotAuthorized -> {
                 LaunchedEffect(state) {
                     navigateToLogin()
                 }
             }
-            is CategoryState.Loading -> Loading()
+
+            is CategoryState.Loading -> {
+                Loading()
+            }
+
             is CategoryState.Loaded -> {
                 val s = state as CategoryState.Loaded
 
                 LaunchedEffect(s.category) {
                     updateTopBar(
                         TopBarState().copy(
-                            title = s.category.name
-                        )
+                            title = s.category.name,
+                        ),
                     )
                 }
 
                 CategoryScreen(
                     s,
                     setNavArea,
-                    navigateToMedia
+                    navigateToMedia,
                 )
             }
-            is CategoryState.Error -> { }  // rely on error snackbar message
+
+            is CategoryState.Error -> {} // rely on error snackbar message
         }
     }
 }
@@ -74,7 +79,7 @@ fun NavGraphBuilder.categoryScreen(
 fun CategoryScreen(
     state: CategoryState.Loaded,
     setNavArea: (NavigationArea) -> Unit,
-    navigateToMedia: (Media) -> Unit
+    navigateToMedia: (Media) -> Unit,
 ) {
     LaunchedEffect(Unit) {
         setNavArea(NavigationArea.Category)
@@ -83,7 +88,7 @@ fun CategoryScreen(
     val gridState = rememberMediaGridState(
         gridItems = state.gridItems,
         thumbnailSize = state.gridItemThumbnailSize,
-        onSelectGridItem = { navigateToMedia(it.data) }
+        onSelectGridItem = { navigateToMedia(it.data) },
     )
 
     MediaGrid(gridState)

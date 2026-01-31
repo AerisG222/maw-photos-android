@@ -52,7 +52,7 @@ class UpdateCategoriesWorker
                 .getUpdatedCategories()
                 .collect {
                     when (it) {
-                        is ExternalCallStatus.Loading -> { }
+                        is ExternalCallStatus.Loading -> {}
 
                         is ExternalCallStatus.Success -> {
                             status = STATUS_SUCCESS

@@ -13,29 +13,29 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.domain.models.CategoryDisplayType
-import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
+import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
-import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toMediaGridItem
 
 @Serializable
-data class CategoriesRoute (
-    val year: Int?
+data class CategoriesRoute(
+    val year: Int?,
 )
 
 fun NavGraphBuilder.categoriesScreen(
     navigateToCategory: (Category) -> Unit,
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setActiveYear: (Int) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateToCategories: (Int) -> Unit
+    navigateToCategories: (Int) -> Unit,
 ) {
     composable<CategoriesRoute> { backStackEntry ->
         val vm: CategoriesViewModel = hiltViewModel()
@@ -52,17 +52,24 @@ fun NavGraphBuilder.categoriesScreen(
             }
         }
 
-        when(state) {
-            is CategoriesState.Unknown -> Loading()
-            is CategoriesState.NotAuthorized ->
+        when (state) {
+            is CategoriesState.Unknown -> {
+                Loading()
+            }
+
+            is CategoriesState.NotAuthorized -> {
                 LaunchedEffect(state) {
                     navigateToLogin()
                 }
-            is CategoriesState.InvalidYear ->
+            }
+
+            is CategoriesState.InvalidYear -> {
                 LaunchedEffect(state) {
                     navigateToCategories((state as CategoriesState.InvalidYear).mostRecentYear)
                 }
-            is CategoriesState.Valid ->
+            }
+
+            is CategoriesState.Valid -> {
                 CategoriesScreen(
                     state as CategoriesState.Valid,
                     updateTopBar,
@@ -70,7 +77,9 @@ fun NavGraphBuilder.categoriesScreen(
                     setNavArea,
                     navigateToCategory,
                 )
-            is CategoriesState.Error -> { }
+            }
+
+            is CategoriesState.Error -> {}
         }
     }
 }
@@ -79,7 +88,7 @@ fun NavGraphBuilder.categoriesScreen(
 @Composable
 fun CategoriesScreen(
     state: CategoriesState.Valid,
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setActiveYear: (Int) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToCategory: (Category) -> Unit,
@@ -94,17 +103,21 @@ fun CategoriesScreen(
         setActiveYear(state.year)
         updateTopBar(
             TopBarState().copy(
-                title = state.year.toString()
-            )
+                title = state.year.toString(),
+            ),
         )
     }
 
     LaunchedEffect(state) { }
 
-    val gridState = rememberMediaGridState (
-        gridItems = state.categories.map { it.toMediaGridItem(state.preferences.gridThumbnailSize == GridThumbnailSize.Large) },
+    val gridState = rememberMediaGridState(
+        gridItems = state.categories.map {
+            it.toMediaGridItem(
+                state.preferences.gridThumbnailSize == GridThumbnailSize.Large,
+            )
+        },
         thumbnailSize = state.preferences.gridThumbnailSize,
-        onSelectGridItem = { navigateToCategory(it.data) }
+        onSelectGridItem = { navigateToCategory(it.data) },
     )
 
     PullToRefreshBox(
@@ -121,7 +134,7 @@ fun CategoriesScreen(
                 CategoryList(
                     categories = state.categories,
                     showYear = false,
-                    onSelectCategory = { navigateToCategory(it) }
+                    onSelectCategory = { navigateToCategory(it) },
                 )
             }
 

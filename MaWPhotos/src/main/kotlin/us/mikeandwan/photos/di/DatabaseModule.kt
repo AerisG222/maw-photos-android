@@ -7,7 +7,16 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import us.mikeandwan.photos.database.*
+import us.mikeandwan.photos.database.CategoryDao
+import us.mikeandwan.photos.database.CategoryPreferenceDao
+import us.mikeandwan.photos.database.MawDatabase
+import us.mikeandwan.photos.database.MediaPreferenceDao
+import us.mikeandwan.photos.database.NotificationPreferenceDao
+import us.mikeandwan.photos.database.RandomPreferenceDao
+import us.mikeandwan.photos.database.ScaleDao
+import us.mikeandwan.photos.database.SearchHistoryDao
+import us.mikeandwan.photos.database.SearchPreferenceDao
+import us.mikeandwan.photos.database.YearDao
 import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
 import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
 import us.mikeandwan.photos.database.migrations.MIGRATION_3_4

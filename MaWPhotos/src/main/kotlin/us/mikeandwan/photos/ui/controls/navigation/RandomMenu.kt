@@ -23,42 +23,42 @@ import us.mikeandwan.photos.R
 @Composable
 fun RandomMenu(
     fetchRandomPhotos: (Int) -> Unit,
-    clearRandomPhotos: () -> Unit
+    clearRandomPhotos: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.secondaryContainer)
+            .background(color = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             TextButton(
-                onClick = { fetchRandomPhotos(10) }
+                onClick = { fetchRandomPhotos(10) },
             ) {
                 Text(
                     text = stringResource(id = R.string.fetch_10_photos),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
         }
 
         HorizontalDivider(
             modifier = Modifier.padding(16.dp, 0.dp),
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             TextButton(
-                onClick = { fetchRandomPhotos(20) }
+                onClick = { fetchRandomPhotos(20) },
             ) {
                 Text(
                     text = stringResource(id = R.string.fetch_20_photos),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
         }
@@ -67,7 +67,7 @@ fun RandomMenu(
 
         HorizontalDivider(
             modifier = Modifier.padding(16.dp, 24.dp, 16.dp, 8.dp),
-            color = MaterialTheme.colorScheme.inverseOnSurface
+            color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
         OutlinedButton(
@@ -75,10 +75,10 @@ fun RandomMenu(
             modifier = Modifier
                 .padding(16.dp, 4.dp, 16.dp, 16.dp)
                 .fillMaxWidth(),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         ) {
             Text(
-                text = stringResource(id = R.string.clear_random_photos)
+                text = stringResource(id = R.string.clear_random_photos),
             )
         }
     }

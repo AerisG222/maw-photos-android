@@ -1,7 +1,19 @@
 package us.mikeandwan.photos.domain
 
 import java.net.HttpURLConnection
-import us.mikeandwan.photos.domain.models.*
+import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.CategoryPreference
+import us.mikeandwan.photos.domain.models.Comment
+import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFile
+import us.mikeandwan.photos.domain.models.MediaFileType
+import us.mikeandwan.photos.domain.models.MediaPreference
+import us.mikeandwan.photos.domain.models.MediaType
+import us.mikeandwan.photos.domain.models.NotificationPreference
+import us.mikeandwan.photos.domain.models.RandomPreference
+import us.mikeandwan.photos.domain.models.Scale
+import us.mikeandwan.photos.domain.models.SearchHistory
+import us.mikeandwan.photos.domain.models.SearchPreference
 
 fun us.mikeandwan.photos.database.CategoryDetail.toDomainCategory(): Category =
     Category(

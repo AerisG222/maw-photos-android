@@ -29,17 +29,17 @@ fun MediaPager(
     activeIndex: Int,
     activeRotation: Float = 0f,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
-    setActiveIndex: (Int) -> Unit
+    setActiveIndex: (Int) -> Unit,
 ) {
     val pagerState = rememberPagerState(
         pageCount = { media.size },
-        initialPage = activeIndex
+        initialPage = activeIndex,
     )
     val zoomState = rememberZoomState()
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            if(page >= 0) {
+            if (page >= 0) {
                 setActiveIndex(page)
             }
         }
@@ -53,7 +53,7 @@ fun MediaPager(
         state = pagerState,
         contentPadding = PaddingValues(0.dp),
         userScrollEnabled = true,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { index ->
         val activeMedia = media[index]
 
@@ -61,7 +61,7 @@ fun MediaPager(
             .graphicsLayer {
                 val pageOffset =
                     (pagerState.currentPage - index) +
-                            pagerState.currentPageOffsetFraction
+                        pagerState.currentPageOffsetFraction
 
                 alpha = lerp(
                     start = 0.4f,
@@ -86,7 +86,7 @@ fun MediaPager(
                 }
             }
 
-        when(activeMedia.type) {
+        when (activeMedia.type) {
             MediaType.Photo -> {
                 AsyncImage(
                     model = activeMedia.getMediaUrl(),
@@ -96,19 +96,19 @@ fun MediaPager(
                         .fillMaxSize()
                         .zoomable(
                             zoomState,
-                            scrollGesturePropagation = ScrollGesturePropagation.NotZoomed
-                        )
-                        .then(swipeAnimation)
-                        .rotate(activeRotation)
+                            scrollGesturePropagation = ScrollGesturePropagation.NotZoomed,
+                        ).then(swipeAnimation)
+                        .rotate(activeRotation),
                 )
             }
+
             MediaType.Video -> {
                 VideoPlayer(
                     activeMedia,
                     videoPlayerDataSourceFactory,
                     Modifier
                         .fillMaxSize()
-                        .then(swipeAnimation)
+                        .then(swipeAnimation),
                 )
             }
         }

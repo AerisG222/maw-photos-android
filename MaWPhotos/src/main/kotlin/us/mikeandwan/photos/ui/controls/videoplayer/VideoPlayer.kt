@@ -25,24 +25,24 @@ import us.mikeandwan.photos.ui.getMediaUrl
 fun VideoPlayer(
     activeMedia: Media,
     videoPlayerHttpDataSourceFactory: HttpDataSource.Factory,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    if(activeMedia.type != MediaType.Video) {
+    if (activeMedia.type != MediaType.Video) {
         return
     }
 
     val context = LocalContext.current
-    val exoPlayer = ExoPlayer.Builder(context)
+    val exoPlayer = ExoPlayer
+        .Builder(context)
         .setMediaSourceFactory(
             DefaultMediaSourceFactory(context)
-                .setDataSourceFactory(videoPlayerHttpDataSourceFactory)
-        )
-        .setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
+                .setDataSourceFactory(videoPlayerHttpDataSourceFactory),
+        ).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
         .build()
         .apply {
             setMediaItem(MediaItem.fromUri(activeMedia.getMediaUrl()))
             prepare()
-            //playWhenReady = true
+            // playWhenReady = true
         }
 
     DisposableEffect(Unit) {
@@ -59,6 +59,6 @@ fun VideoPlayer(
                 layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                 player = exoPlayer
             }
-        }
+        },
     )
 }

@@ -26,8 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -44,28 +44,36 @@ import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 object InactiveUserRoute
 
 fun NavGraphBuilder.inactiveUserScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
-    navigateAfterActivated: () -> Unit
+    navigateAfterActivated: () -> Unit,
 ) {
     composable<InactiveUserRoute> {
         val vm: InactiveUserViewModel = hiltViewModel()
         val userStatus by vm.userStatus.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
-        when(userStatus) {
-            is UserStatus.Unknown -> { Timber.w("YO!  UNK!") }
-            is UserStatus.Active ->
+        when (userStatus) {
+            is UserStatus.Unknown -> {
+                Timber.w("YO!  UNK!")
+            }
+
+            is UserStatus.Active -> {
                 LaunchedEffect(userStatus) {
                     navigateAfterActivated()
                 }
+            }
+
             is UserStatus.Inactive -> {
                 InactiveUserScreen(
                     updateTopBar,
                     setNavArea,
                     requeryStatus = { vm.queryUserStatus() },
-                    logout = { vm.logout(context); navigateToLogin() }
+                    logout = {
+                        vm.logout(context)
+                        navigateToLogin()
+                    },
                 )
             }
         }
@@ -74,10 +82,10 @@ fun NavGraphBuilder.inactiveUserScreen(
 
 @Composable
 fun InactiveUserScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     requeryStatus: () -> Unit,
-    logout: () -> Unit
+    logout: () -> Unit,
 ) {
     BackHandler(enabled = true) {
         // Do nothing on back press
@@ -87,8 +95,8 @@ fun InactiveUserScreen(
     LaunchedEffect(Unit) {
         updateTopBar(
             TopBarState().copy(
-                show = false
-            )
+                show = false,
+            ),
         )
 
         setNavArea(NavigationArea.Login)
@@ -96,7 +104,7 @@ fun InactiveUserScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         item {
             AsyncImage(
@@ -105,7 +113,7 @@ fun InactiveUserScreen(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .height(150.dp)
-                    .padding(0.dp, 0.dp, 0.dp, 32.dp)
+                    .padding(0.dp, 0.dp, 0.dp, 32.dp),
             )
         }
 
@@ -113,34 +121,34 @@ fun InactiveUserScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(24.dp),
             ) {
                 Text(
                     text = "Thank you for logging into photos.mikeandwan.us!",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(24.dp),
             ) {
                 Text(
                     color = MaterialTheme.colorScheme.secondary,
                     text = "Your account has been created but has not been assigned any permissions. " +
                         "An administrator will review this shortly and get back to you once your account is all set.",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp)
+                    .padding(24.dp),
             ) {
                 Text(
                     fontStyle = FontStyle.Italic,
                     text = "Please email the administrator if they have not gotten back to you!",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
@@ -150,14 +158,14 @@ fun InactiveUserScreen(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(0.dp, 32.dp, 0.dp, 16.dp)
+                    .padding(0.dp, 32.dp, 0.dp, 16.dp),
             ) {
                 Button(
-                    onClick = requeryStatus
+                    onClick = requeryStatus,
                 ) {
                     Text(
                         text = stringResource(id = R.string.activity_inactive_user_recheck_status),
-                        modifier = Modifier.padding( 4.dp)
+                        modifier = Modifier.padding(4.dp),
                     )
                 }
             }
@@ -165,7 +173,7 @@ fun InactiveUserScreen(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(0.dp, 16.dp, 0.dp, 24.dp)
+                    .padding(0.dp, 16.dp, 0.dp, 24.dp),
             ) {
                 OutlinedButton(
                     onClick = logout,
@@ -173,9 +181,9 @@ fun InactiveUserScreen(
                         MaterialTheme.colorScheme.surface,
                         MaterialTheme.colorScheme.primary,
                         MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.onSurface
+                        MaterialTheme.colorScheme.onSurface,
                     ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 ) {
                     AsyncImage(
                         model = R.drawable.ic_logout,
@@ -184,12 +192,12 @@ fun InactiveUserScreen(
                         modifier = Modifier
                             .padding(4.dp, 4.dp, 12.dp, 4.dp)
                             .height(24.dp)
-                            .width(24.dp)
+                            .width(24.dp),
                     )
 
                     Text(
                         text = stringResource(id = R.string.activity_inactive_user_logout),
-                        modifier = Modifier.padding(0.dp, 4.dp, 4.dp, 4.dp)
+                        modifier = Modifier.padding(0.dp, 4.dp, 4.dp, 4.dp),
                     )
                 }
             }
@@ -205,6 +213,6 @@ fun InactiveUserScreenPreview() {
         updateTopBar = {},
         setNavArea = {},
         requeryStatus = {},
-        logout = {}
+        logout = {},
     )
 }

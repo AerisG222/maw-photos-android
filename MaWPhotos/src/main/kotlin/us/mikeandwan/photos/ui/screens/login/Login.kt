@@ -39,26 +39,29 @@ import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 object LoginRoute
 
 fun NavGraphBuilder.loginScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    navigateAfterLogin: () -> Unit
+    navigateAfterLogin: () -> Unit,
 ) {
     composable<LoginRoute> {
         val vm: LoginViewModel = hiltViewModel()
         val state by vm.state.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
-        when(state) {
+        when (state) {
             is LoginState.Unknown -> {}
-            is LoginState.Authorized ->
+
+            is LoginState.Authorized -> {
                 LaunchedEffect(state) {
                     navigateAfterLogin()
                 }
+            }
+
             is LoginState.NotAuthorized -> {
                 LoginScreen(
                     updateTopBar,
                     setNavArea,
-                    { vm.login(context) }
+                    { vm.login(context) },
                 )
             }
         }
@@ -67,17 +70,17 @@ fun NavGraphBuilder.loginScreen(
 
 @Composable
 fun LoginScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    login: () -> Unit
+    login: () -> Unit,
 ) {
     val tangerine = FontFamily(Font(R.font.tangerine))
 
     LaunchedEffect(Unit) {
         updateTopBar(
             TopBarState().copy(
-                show = false
-            )
+                show = false,
+            ),
         )
 
         setNavArea(NavigationArea.Login)
@@ -85,7 +88,7 @@ fun LoginScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
         item {
             AsyncImage(
@@ -94,7 +97,7 @@ fun LoginScreen(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .height(150.dp)
-                    .padding(0.dp, 0.dp, 0.dp, 32.dp)
+                    .padding(0.dp, 0.dp, 0.dp, 32.dp),
             )
         }
 
@@ -103,14 +106,14 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(0.dp, 0.dp, 0.dp, 32.dp)
+                    .padding(0.dp, 0.dp, 0.dp, 32.dp),
             ) {
                 Logo()
             }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = "mikeandwan.us",
@@ -121,7 +124,7 @@ fun LoginScreen(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = "Photos",
@@ -137,10 +140,10 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(0.dp, 32.dp, 0.dp, 24.dp)
+                    .padding(0.dp, 32.dp, 0.dp, 24.dp),
             ) {
                 Button(
-                    onClick = login
+                    onClick = login,
                 ) {
                     AsyncImage(
                         model = R.drawable.ic_login,
@@ -149,11 +152,11 @@ fun LoginScreen(
                         modifier = Modifier
                             .padding(4.dp, 4.dp, 12.dp, 4.dp)
                             .height(24.dp)
-                            .width(24.dp)
+                            .width(24.dp),
                     )
 
                     Text(
-                        text = stringResource(id = R.string.activity_login_login_button_text)
+                        text = stringResource(id = R.string.activity_login_login_button_text),
                     )
                 }
             }
@@ -167,6 +170,6 @@ fun LoginScreenPreview() {
     LoginScreen(
         {},
         {},
-        {}
+        {},
     )
 }

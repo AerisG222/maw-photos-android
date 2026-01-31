@@ -15,30 +15,31 @@ import androidx.compose.ui.unit.dp
 fun YearListMenu(
     years: List<Int>,
     activeYear: Int,
-    onYearSelected: (Int) -> Unit
+    onYearSelected: (Int) -> Unit,
 ) {
     val yearDividerModifier = Modifier
         .padding(16.dp, 0.dp)
         .background(color = MaterialTheme.colorScheme.secondary)
 
-    LazyColumn(Modifier
-        .fillMaxSize()
-        .background(color = MaterialTheme.colorScheme.secondaryContainer)
+    LazyColumn(
+        Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         itemsIndexed(
             years,
-            key = { index, item -> item }
+            key = { index, item -> item },
         ) { index, year ->
             YearListItem(
                 year,
                 year == activeYear,
-                { x -> onYearSelected(x) }
+                { x -> onYearSelected(x) },
             )
 
             if (index != years.size - 1) {
                 HorizontalDivider(
                     modifier = yearDividerModifier,
-                    color = MaterialTheme.colorScheme.inverseOnSurface
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
                 )
             }
         }

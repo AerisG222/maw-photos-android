@@ -26,7 +26,7 @@ import us.mikeandwan.photos.domain.models.Comment
 @Composable
 fun CommentTable(
     comments: List<Comment>,
-    footer: @Composable () -> Unit
+    footer: @Composable () -> Unit,
 ) {
     val fmt = remember { LocalDateTime.Format { date(LocalDate.Formats.ISO) } }
     val bgHead = MaterialTheme.colorScheme.surfaceVariant
@@ -36,17 +36,18 @@ fun CommentTable(
 
     LazyColumn {
         itemsIndexed(comments) { index, comment ->
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .background(bgHead)
-                .padding(4.dp, 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(bgHead)
+                    .padding(4.dp, 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     color = txtHead,
-                    text = comment.createdBy
+                    text = comment.createdBy,
                 )
                 Text(
                     maxLines = 1,
@@ -55,17 +56,18 @@ fun CommentTable(
                     textAlign = TextAlign.End,
                     text = comment.created
                         .toLocalDateTime(TimeZone.currentSystemDefault())
-                        .format(fmt)
+                        .format(fmt),
                 )
             }
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .background(bgRow)
-                .padding(4.dp, 2.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(bgRow)
+                    .padding(4.dp, 2.dp),
             ) {
                 Text(
                     color = txtRow,
-                    text = comment.body
+                    text = comment.body,
                 )
             }
 

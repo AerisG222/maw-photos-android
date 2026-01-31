@@ -27,10 +27,10 @@ import androidx.navigation.toRoute
 import coil3.compose.AsyncImage
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.controls.categorylist.CategoryList
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
@@ -38,15 +38,15 @@ import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toMediaGridItem
 
 @Serializable
-data class SearchRoute (
-    val searchTerm: String? = null
+data class SearchRoute(
+    val searchTerm: String? = null,
 )
 
 fun NavGraphBuilder.searchScreen(
     navigateToCategory: (Category) -> Unit,
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
 ) {
     composable<SearchRoute> { backStackEntry ->
         val vm: SearchViewModel = hiltViewModel()
@@ -56,7 +56,7 @@ fun NavGraphBuilder.searchScreen(
         val activeTerm by vm.activeTerm.collectAsStateWithLifecycle()
 
         LaunchedEffect(isAuthorized) {
-            if(!isAuthorized) {
+            if (!isAuthorized) {
                 navigateToLogin()
             }
         }
@@ -66,7 +66,7 @@ fun NavGraphBuilder.searchScreen(
 
             var term = args.searchTerm
 
-            if(term.isNullOrBlank()) {
+            if (term.isNullOrBlank()) {
                 // incoming term is blank, then set to the one in the view model / repository
                 // as it will also contain the results from the last query
                 term = activeTerm
@@ -78,8 +78,8 @@ fun NavGraphBuilder.searchScreen(
             updateTopBar(
                 TopBarState().copy(
                     showSearch = true,
-                    initialSearchTerm = term
-                )
+                    initialSearchTerm = term,
+                ),
             )
         }
 
@@ -94,7 +94,7 @@ fun NavGraphBuilder.searchScreen(
             displayType,
             thumbSize,
             onNavigateToCategory = navigateToCategory,
-            continueSearch = { vm.continueSearch() }
+            continueSearch = { vm.continueSearch() },
         )
     }
 }
@@ -106,43 +106,44 @@ fun SearchScreen(
     displayType: CategoryDisplayType,
     thumbSize: GridThumbnailSize,
     onNavigateToCategory: (Category) -> Unit,
-    continueSearch: () -> Unit
+    continueSearch: () -> Unit,
 ) {
-    if(results.isEmpty()) {
+    if (results.isEmpty()) {
         AsyncImage(
             model = R.drawable.ic_search,
             contentDescription = stringResource(id = R.string.search_icon_description),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
             modifier = Modifier
                 .padding(40.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
         )
 
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             Text(
                 text = stringResource(id = R.string.fragment_search_no_results_found),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontStyle = FontStyle.Italic
+                fontStyle = FontStyle.Italic,
             )
         }
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
         ) {
             when (displayType) {
                 CategoryDisplayType.Grid -> {
                     val gridState = rememberMediaGridState(
                         gridItems = results.map { it.toMediaGridItem(thumbSize == GridThumbnailSize.Large) },
                         thumbnailSize = thumbSize,
-                        onSelectGridItem = { onNavigateToCategory(it.data) }
+                        onSelectGridItem = { onNavigateToCategory(it.data) },
                     )
 
                     MediaGrid(gridState)
@@ -152,7 +153,7 @@ fun SearchScreen(
                     CategoryList(
                         categories = results,
                         showYear = true,
-                        onSelectCategory = onNavigateToCategory
+                        onSelectCategory = onNavigateToCategory,
                     )
                 }
 
@@ -165,13 +166,13 @@ fun SearchScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(8.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    if(hasMore) {
+                    if (hasMore) {
                         Button(onClick = { continueSearch() }) {
                             Text(text = stringResource(id = R.string.fragment_search_load_more))
                         }

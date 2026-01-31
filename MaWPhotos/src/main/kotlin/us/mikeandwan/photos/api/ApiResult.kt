@@ -1,7 +1,7 @@
 package us.mikeandwan.photos.api
 
 import java.io.IOException
-import java.util.*
+import java.util.Locale
 import retrofit2.Response
 
 sealed class ApiResult<out T> {

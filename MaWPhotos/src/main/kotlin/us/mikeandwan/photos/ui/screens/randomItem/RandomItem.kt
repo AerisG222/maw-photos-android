@@ -13,44 +13,44 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import kotlin.reflect.typeOf
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.MediaListState
+import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.controls.loading.Loading
+import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
+import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
+import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
+import us.mikeandwan.photos.ui.controls.mediapager.OverlayYearName
+import us.mikeandwan.photos.ui.controls.mediapager.rememberRotation
 import us.mikeandwan.photos.ui.controls.metadata.CommentState
 import us.mikeandwan.photos.ui.controls.metadata.DetailBottomSheet
 import us.mikeandwan.photos.ui.controls.metadata.ExifState
 import us.mikeandwan.photos.ui.controls.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.controls.metadata.rememberExifState
-import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
-import us.mikeandwan.photos.ui.controls.mediapager.OverlayPositionCount
-import us.mikeandwan.photos.ui.controls.mediapager.OverlayYearName
-import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
-import us.mikeandwan.photos.ui.controls.mediapager.rememberRotation
-import us.mikeandwan.photos.ui.shareMedia
 import us.mikeandwan.photos.ui.controls.scaffolds.ItemPagerScaffold
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.rememberMediaListState
-import kotlin.reflect.typeOf
-import kotlin.uuid.Uuid
+import us.mikeandwan.photos.ui.shareMedia
 
 @Serializable
-data class RandomItemRoute (
-    val mediaId: Uuid
+data class RandomItemRoute(
+    val mediaId: Uuid,
 )
 
 fun NavGraphBuilder.randomItemScreen(
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToYear: (Int) -> Unit,
     navigateToCategory: (Category) -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToLogin: () -> Unit,
 ) {
     composable<RandomItemRoute>(
-        typeMap = mapOf(typeOf<Uuid>() to UuidNavType)
+        typeMap = mapOf(typeOf<Uuid>() to UuidNavType),
     ) { backStackEntry ->
         val vm: RandomItemViewModel = hiltViewModel()
         val args = backStackEntry.toRoute<RandomItemRoute>()
@@ -79,7 +79,7 @@ fun NavGraphBuilder.randomItemScreen(
         )
 
         LaunchedEffect(isAuthorized) {
-            if(!isAuthorized) {
+            if (!isAuthorized) {
                 navigateToLogin()
             }
         }
@@ -101,7 +101,7 @@ fun NavGraphBuilder.randomItemScreen(
         val exif by vm.exif.collectAsStateWithLifecycle()
         val exifState = rememberExifState(
             exif,
-            fetchExif = { vm.fetchExif() }
+            fetchExif = { vm.fetchExif() },
         )
 
         // comments
@@ -109,12 +109,18 @@ fun NavGraphBuilder.randomItemScreen(
         val commentState = rememberCommentState(
             comments = comments,
             fetchComments = { vm.fetchCommentDetails() },
-            addComment = { vm.addComment(it) }
+            addComment = { vm.addComment(it) },
         )
 
-        when(mediaListState) {
-            is MediaListState.Loading -> Loading()
-            is MediaListState.CategoryLoaded -> Loading()
+        when (mediaListState) {
+            is MediaListState.Loading -> {
+                Loading()
+            }
+
+            is MediaListState.CategoryLoaded -> {
+                Loading()
+            }
+
             is MediaListState.Loaded -> {
                 RandomItemScreen(
                     mediaListState,
@@ -124,7 +130,7 @@ fun NavGraphBuilder.randomItemScreen(
                     updateTopBar,
                     setNavArea,
                     navigateToYear,
-                    navigateToCategory
+                    navigateToCategory,
                 )
             }
         }
@@ -138,10 +144,10 @@ fun RandomItemScreen(
     exifState: ExifState,
     commentState: CommentState,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
-    updateTopBar : (TopBarState) -> Unit,
+    updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToYear: (Int) -> Unit,
-    navigateToCategory: (Category) -> Unit
+    navigateToCategory: (Category) -> Unit,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -152,8 +158,8 @@ fun RandomItemScreen(
         setNavArea(NavigationArea.Random)
         updateTopBar(
             TopBarState().copy(
-                title = "Random"
-            )
+                title = "Random",
+            ),
         )
     }
 
@@ -163,12 +169,13 @@ fun RandomItemScreen(
             OverlayYearName(
                 category = mediaListState.category,
                 onClickYear = { year -> navigateToYear(year) },
-                onClickCategory = { category -> navigateToCategory(category) })
+                onClickCategory = { category -> navigateToCategory(category) },
+            )
         },
         topRightContent = {
             OverlayPositionCount(
                 position = mediaListState.activeIndex + 1,
-                count = mediaListState.media.size
+                count = mediaListState.media.size,
             )
         },
         bottomBarContent = {
@@ -182,10 +189,10 @@ fun RandomItemScreen(
                 onToggleSlideshow = mediaListState.toggleSlideshow,
                 onShare = {
                     coroutineScope.launch {
-                       shareMedia(context, mediaListState.saveMediaToShare, mediaListState.activeMedia)
+                        shareMedia(context, mediaListState.saveMediaToShare, mediaListState.activeMedia)
                     }
                 },
-                onViewDetails = mediaListState.toggleDetails
+                onViewDetails = mediaListState.toggleDetails,
             )
         },
         detailSheetContent = {
@@ -194,16 +201,16 @@ fun RandomItemScreen(
                 sheetState = sheetState,
                 exifState = exifState,
                 commentState = commentState,
-                onDismissRequest = mediaListState.toggleDetails
+                onDismissRequest = mediaListState.toggleDetails,
             )
-        }
+        },
     ) {
         MediaPager(
             mediaListState.media,
             mediaListState.activeIndex,
             rotationState.activeRotation,
             videoPlayerDataSourceFactory,
-            setActiveIndex = { index -> mediaListState.setActiveIndex(index) }
+            setActiveIndex = { index -> mediaListState.setActiveIndex(index) },
         )
     }
 }

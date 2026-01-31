@@ -28,29 +28,30 @@ fun ItemPagerScaffold(
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = bgColor)
+                .background(color = bgColor),
         ) {
             topLeftContent()
             Spacer(Modifier.weight(1f))
             topRightContent()
         }
 
-        Row(modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth()
-            .background(color = bgColor)
+        Row(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth()
+                .background(color = bgColor),
         ) {
             bottomBarContent()
         }
     }
 
-    if(showDetails) {
+    if (showDetails) {
         detailSheetContent()
     }
 }

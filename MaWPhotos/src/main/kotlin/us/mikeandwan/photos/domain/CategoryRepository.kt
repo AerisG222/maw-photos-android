@@ -2,6 +2,10 @@ package us.mikeandwan.photos.domain
 
 import androidx.collection.LruCache
 import androidx.room.withTransaction
+import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,310 +27,349 @@ import us.mikeandwan.photos.database.Year
 import us.mikeandwan.photos.database.YearDao
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
-import javax.inject.Inject
-import kotlin.collections.map
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.time.Instant
-import kotlin.uuid.Uuid
 
-class CategoryRepository @Inject constructor(
-    private val api: CategoryApiClient,
-    private val db: MawDatabase,
-    private val yearDao: YearDao,
-    private val catDao: CategoryDao,
-    private val scaleDao: ScaleDao,
-    private val apiErrorHandler: ApiErrorHandler
-) : ICategoryRepository {
-    companion object {
-        private const val ERR_MSG_LOAD_YEARS = "Unable to load years at this time.  Please try again later."
-        private const val ERR_MSG_LOAD_CATEGORIES = "Unable to load categories at this time.  Please try again later."
-        private const val ERR_MSG_LOAD_MEDIA = "Unable to load media for the category at this time.  Please try again later."
-    }
+class CategoryRepository
+    @Inject
+    constructor(
+        private val api: CategoryApiClient,
+        private val db: MawDatabase,
+        private val yearDao: YearDao,
+        private val catDao: CategoryDao,
+        private val scaleDao: ScaleDao,
+        private val apiErrorHandler: ApiErrorHandler,
+    ) : ICategoryRepository {
+        companion object {
+            private const val ERR_MSG_LOAD_YEARS = "Unable to load years at this time.  Please try again later."
+            private const val ERR_MSG_LOAD_CATEGORIES = "Unable to load categories at this time.  Please try again later."
+            private const val ERR_MSG_LOAD_MEDIA =
+                "Unable to load media for the category at this time.  Please try again later."
+        }
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var cachedCategoryMedia = LruCache<Uuid, List<Media>>(8)
+        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        private var cachedCategoryMedia = LruCache<Uuid, List<Media>>(8)
 
-    init {
-        scope.launch {
-            // background task to load years that haven't pulled categories yet
-            // add a delay to avoid hammering the app and API
-            yearDao
-                .getYearsNeedingInitialization()
-                .collectLatest { years ->
-                    try
-                    {
-                        years.forEach { year ->
-                            delay(2000)
+        init {
+            scope.launch {
+                // background task to load years that haven't pulled categories yet
+                // add a delay to avoid hammering the app and API
+                yearDao
+                    .getYearsNeedingInitialization()
+                    .collectLatest { years ->
+                        try {
+                            years.forEach { year ->
+                                delay(2000)
 
-                            loadCategories(year)
-                                .collect { status ->
-                                    if (status is ExternalCallStatus.Success) {
-                                        yearDao.upsert(Year(year, true))
+                                loadCategories(year)
+                                    .collect { status ->
+                                        if (status is ExternalCallStatus.Success) {
+                                            yearDao.upsert(Year(year, true))
+                                        }
                                     }
-                                }
+                            }
+                        } catch (e: CancellationException) {
+                            // list changed which could be expected based on updating the year a few lines above, swallow
                         }
                     }
-                    catch(e: CancellationException) {
-                        // list changed which could be expected based on updating the year a few lines above, swallow
-                    }
-                }
-        }
-    }
-
-    override fun getYears() = flow {
-        val years = yearDao
-            .getYears()
-
-        if(years.first().isEmpty()) {
-            emit(emptyList())
-            loadYears(ERR_MSG_LOAD_YEARS)
-                .collect { }
-        }
-
-        emitAll(years)
-    }
-
-    override fun getMostRecentYear() = yearDao.getMostRecentYear()
-
-    override fun getUpdatedCategories() = flow {
-        val modifyDate = catDao
-            .getMostRecentModifiedDate()
-            .firstOrNull()
-
-        if (modifyDate != null) {
-            emitAll(loadUpdatedCategories(modifyDate))
-        } else {
-            emit(ExternalCallStatus.Success(emptyList()))
-        }
-    }
-
-    override fun getMedia(categoryId: Uuid) = flow {
-        emit(ExternalCallStatus.Success(emptyList()))
-
-        cachedCategoryMedia[categoryId]?.let {
-            emit(ExternalCallStatus.Success(it))
-            return@flow
-        }
-
-        emit(ExternalCallStatus.Loading)
-
-        when(val result = api.getMediaForCategory(categoryId)) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_MEDIA))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_MEDIA))
-            is ApiResult.Success -> {
-                val media = result.result.map { it.toDomainMedia() }
-
-                if (media.isNotEmpty()) {
-                    cachedCategoryMedia.put(categoryId, media)
-                }
-
-                emit(ExternalCallStatus.Success(media))
             }
         }
-    }
 
-    override fun getCategories(year: Int) = flow {
-        val cat = catDao
-            .getCategoriesForYear(year)
-            .map { dbList ->
-                dbList.map { dbCat -> dbCat.toDomainCategory() }
+        override fun getYears() =
+            flow {
+                val years = yearDao
+                    .getYears()
+
+                if (years.first().isEmpty()) {
+                    emit(emptyList())
+                    loadYears(ERR_MSG_LOAD_YEARS)
+                        .collect { }
+                }
+
+                emitAll(years)
             }
 
-        if(cat.first().isEmpty()) {
-            emit(emptyList())
-            loadCategories(year)
-                .collect { }
-        }
+        override fun getMostRecentYear() = yearDao.getMostRecentYear()
 
-        emitAll(cat)
-    }
+        override fun getUpdatedCategories() =
+            flow {
+                val modifyDate = catDao
+                    .getMostRecentModifiedDate()
+                    .firstOrNull()
 
-    override fun getCategory(categoryId: Uuid) = flow {
-        val cat = catDao
-            .getCategory(categoryId)
-            .map { dbCat -> dbCat?.toDomainCategory() }
-
-        if(cat.first() == null) {
-            loadCategory(categoryId)
-                .filterNotNull()
-                .collect { }
-        }
-
-        emitAll(cat)
-    }
-
-    fun loadYears(errorMessage: String?) = flow {
-        emit(ExternalCallStatus.Loading)
-
-        when(val result = api.getYears()) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, errorMessage))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, errorMessage))
-            is ApiResult.Success -> {
-                val years = result.result
-
-                if(years.isEmpty()) {
+                if (modifyDate != null) {
+                    emitAll(loadUpdatedCategories(modifyDate))
+                } else {
                     emit(ExternalCallStatus.Success(emptyList()))
-                } else {
-                    val dbYears = years.map { y -> Year(y) }
+                }
+            }
 
-                    db.withTransaction {
-                        yearDao.upsert(*dbYears.toTypedArray())
+        override fun getMedia(categoryId: Uuid) =
+            flow {
+                emit(ExternalCallStatus.Success(emptyList()))
+
+                cachedCategoryMedia[categoryId]?.let {
+                    emit(ExternalCallStatus.Success(it))
+                    return@flow
+                }
+
+                emit(ExternalCallStatus.Loading)
+
+                when (val result = api.getMediaForCategory(categoryId)) {
+                    is ApiResult.Error -> {
+                        emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_MEDIA))
                     }
 
-                    emit(ExternalCallStatus.Success(dbYears.map { it.year }))
+                    is ApiResult.Empty -> {
+                        emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_MEDIA))
+                    }
+
+                    is ApiResult.Success -> {
+                        val media = result.result.map { it.toDomainMedia() }
+
+                        if (media.isNotEmpty()) {
+                            cachedCategoryMedia.put(categoryId, media)
+                        }
+
+                        emit(ExternalCallStatus.Success(media))
+                    }
+                }
+            }
+
+        override fun getCategories(year: Int) =
+            flow {
+                val cat = catDao
+                    .getCategoriesForYear(year)
+                    .map { dbList ->
+                        dbList.map { dbCat -> dbCat.toDomainCategory() }
+                    }
+
+                if (cat.first().isEmpty()) {
+                    emit(emptyList())
+                    loadCategories(year)
+                        .collect { }
+                }
+
+                emitAll(cat)
+            }
+
+        override fun getCategory(categoryId: Uuid) =
+            flow {
+                val cat = catDao
+                    .getCategory(categoryId)
+                    .map { dbCat -> dbCat?.toDomainCategory() }
+
+                if (cat.first() == null) {
+                    loadCategory(categoryId)
+                        .filterNotNull()
+                        .collect { }
+                }
+
+                emitAll(cat)
+            }
+
+        fun loadYears(errorMessage: String?) =
+            flow {
+                emit(ExternalCallStatus.Loading)
+
+                when (val result = api.getYears()) {
+                    is ApiResult.Error -> {
+                        emit(apiErrorHandler.handleError(result, errorMessage))
+                    }
+
+                    is ApiResult.Empty -> {
+                        emit(apiErrorHandler.handleEmpty(result, errorMessage))
+                    }
+
+                    is ApiResult.Success -> {
+                        val years = result.result
+
+                        if (years.isEmpty()) {
+                            emit(ExternalCallStatus.Success(emptyList()))
+                        } else {
+                            val dbYears = years.map { y -> Year(y) }
+
+                            db.withTransaction {
+                                yearDao.upsert(*dbYears.toTypedArray())
+                            }
+
+                            emit(ExternalCallStatus.Success(dbYears.map { it.year }))
+                        }
+                    }
+                }
+            }
+
+        fun loadCategories(year: Int) =
+            flow {
+                emit(ExternalCallStatus.Loading)
+
+                when (val result = api.getCategoriesForYear(year)) {
+                    is ApiResult.Error -> {
+                        emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
+                    }
+
+                    is ApiResult.Empty -> {
+                        emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
+                    }
+
+                    is ApiResult.Success -> {
+                        val categories = result.result
+
+                        if (categories.isEmpty()) {
+                            emit(ExternalCallStatus.Success(emptyList()))
+                        } else {
+                            val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
+                            val dbMediaFiles = prepareMediaFilesForDatabase(categories)
+
+                            db.withTransaction {
+                                catDao.upsertCategories(*dbCategories.toTypedArray())
+                                catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
+                                yearDao.upsert(Year(year, true))
+                            }
+
+                            emit(ExternalCallStatus.Success(categories))
+                        }
+                    }
+                }
+            }
+
+        fun loadUpdatedCategories(latestModifyDate: Instant) =
+            flow {
+                emit(ExternalCallStatus.Loading)
+
+                when (val result = api.getUpdatedCategories(latestModifyDate)) {
+                    is ApiResult.Error -> {
+                        emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
+                    }
+
+                    is ApiResult.Empty -> {
+                        emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
+                    }
+
+                    is ApiResult.Success -> {
+                        val categories = result.result
+
+                        if (categories.isEmpty()) {
+                            emit(ExternalCallStatus.Success(emptyList()))
+                        } else {
+                            val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
+                            val dbMediaFiles = prepareMediaFilesForDatabase(categories)
+                            val allYears = yearDao
+                                .getYears()
+                                .first()
+
+                            val newYears = categories
+                                .map { c -> c.effectiveDate.year }
+                                .distinct()
+                                .filter { y -> !allYears.contains(y) }
+                                .map { y -> Year(y, false) }
+
+                            db.withTransaction {
+                                catDao.upsertCategories(*dbCategories.toTypedArray())
+                                catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
+                                yearDao.upsert(*newYears.toTypedArray())
+                            }
+
+                            emit(ExternalCallStatus.Success(categories.map { it.toDomainCategory() }))
+                        }
+                    }
+                }
+            }
+
+        fun loadCategory(categoryId: Uuid) =
+            flow {
+                emit(ExternalCallStatus.Loading)
+
+                when (val result = api.getCategory(categoryId)) {
+                    is ApiResult.Error -> {
+                        emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
+                    }
+
+                    is ApiResult.Empty -> {
+                        emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
+                    }
+
+                    is ApiResult.Success -> {
+                        val category = result.result
+
+                        if (category == null) {
+                            emit(ExternalCallStatus.Error("Category not found"))
+                        } else {
+                            val dbCategory = category.toDatabaseCategory()
+                            val dbMediaFiles = prepareMediaFilesForDatabase(listOf(category))
+
+                            db.withTransaction {
+                                catDao.upsertCategories(dbCategory)
+                                catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
+                            }
+
+                            emit(ExternalCallStatus.Success(category))
+                        }
+                    }
+                }
+            }
+
+        fun tryUpdateCache(media: Media) {
+            val mediaList = cachedCategoryMedia[media.categoryId]
+
+            if (mediaList != null) {
+                val updatedList = mediaList.toMutableList()
+                val index = updatedList.indexOfFirst { it.id == media.id }
+
+                if (index >= 0) {
+                    updatedList[index] = media
+                    cachedCategoryMedia.put(media.categoryId, updatedList)
                 }
             }
         }
-    }
 
-    fun loadCategories(year: Int) = flow {
-        emit(ExternalCallStatus.Loading)
-
-        when(val result = api.getCategoriesForYear(year)) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
-            is ApiResult.Success -> {
-                val categories = result.result
-
-                if(categories.isEmpty()) {
-                    emit(ExternalCallStatus.Success(emptyList()))
-                } else {
-                    val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
-                    val dbMediaFiles = prepareMediaFilesForDatabase(categories)
-
-                    db.withTransaction {
-                        catDao.upsertCategories(*dbCategories.toTypedArray())
-                        catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
-                        yearDao.upsert(Year(year, true))
-                    }
-
-                    emit(ExternalCallStatus.Success(categories))
-                }
-            }
-        }
-    }
-
-    fun loadUpdatedCategories(latestModifyDate: Instant) = flow {
-        emit(ExternalCallStatus.Loading)
-
-        when(val result = api.getUpdatedCategories(latestModifyDate)) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
-            is ApiResult.Success -> {
-                val categories = result.result
-
-                if(categories.isEmpty()) {
-                    emit(ExternalCallStatus.Success(emptyList()))
-                } else {
-                    val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
-                    val dbMediaFiles = prepareMediaFilesForDatabase(categories)
-                    val allYears = yearDao
-                        .getYears()
-                        .first()
-
-                    val newYears = categories
-                        .map {c -> c.effectiveDate.year }
-                        .distinct()
-                        .filter { y -> !allYears.contains(y) }
-                        .map { y -> Year(y, false) }
-
-                    db.withTransaction {
-                        catDao.upsertCategories(*dbCategories.toTypedArray())
-                        catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
-                        yearDao.upsert(*newYears.toTypedArray())
-                    }
-
-                    emit(ExternalCallStatus.Success(categories.map { it.toDomainCategory() }))
-                }
-            }
-        }
-    }
-
-    fun loadCategory(categoryId: Uuid) = flow {
-        emit(ExternalCallStatus.Loading)
-
-        when(val result = api.getCategory(categoryId)) {
-            is ApiResult.Error -> emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_CATEGORIES))
-            is ApiResult.Empty -> emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_CATEGORIES))
-            is ApiResult.Success -> {
-                val category = result.result
-
-                if(category == null) {
-                    emit(ExternalCallStatus.Error("Category not found"))
-                } else {
-                    val dbCategory = category.toDatabaseCategory()
-                    val dbMediaFiles = prepareMediaFilesForDatabase(listOf(category))
-
-                    db.withTransaction {
-                        catDao.upsertCategories(dbCategory)
-                        catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
-                    }
-
-                    emit(ExternalCallStatus.Success(category))
-                }
-            }
-        }
-    }
-
-    fun tryUpdateCache(media: Media) {
-        val mediaList = cachedCategoryMedia[media.categoryId]
-
-        if(mediaList != null) {
-            val updatedList = mediaList.toMutableList()
-            val index = updatedList.indexOfFirst { it.id == media.id }
-
-            if(index >= 0) {
-                updatedList[index] = media
-                cachedCategoryMedia.put(media.categoryId, updatedList)
-            }
-        }
-    }
-
-    fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category {
-        return us.mikeandwan.photos.database.Category(
-            this.id,
-            this.effectiveDate.year,
-            this.name,
-            this.effectiveDate,
-            this.modified,
-            this.isFavorite
-        )
-    }
-
-    suspend fun prepareMediaFilesForDatabase(categories: List<us.mikeandwan.photos.api.Category>): List<us.mikeandwan.photos.database.MediaFile> {
-        val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
-        val scales = scaleDao
-            .getScales()
-            .first()
-
-        for (category in categories) {
-            val adaptedFiles = buildMediaFiles(category, scales)
-            result.addAll(adaptedFiles)
-        }
-
-        return result
-    }
-
-    fun buildMediaFiles(category: us.mikeandwan.photos.api.Category, scales: List<us.mikeandwan.photos.database.Scale>): List<us.mikeandwan.photos.database.MediaFile> {
-        val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
-
-        for(file in category.teaser.files) {
-            val scale = scales.firstOrNull { it.code == file.scale }
-
-            if (scale == null) {
-                throw IllegalArgumentException("Scale ${file.scale} not found in database")
-            }
-
-            result.add(
-                us.mikeandwan.photos.database.MediaFile(
-                    category.id,
-                    scale.id,
-                    file.type,
-                    file.path
-                )
+        fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category =
+            us.mikeandwan.photos.database.Category(
+                this.id,
+                this.effectiveDate.year,
+                this.name,
+                this.effectiveDate,
+                this.modified,
+                this.isFavorite,
             )
+
+        suspend fun prepareMediaFilesForDatabase(
+            categories: List<us.mikeandwan.photos.api.Category>,
+        ): List<us.mikeandwan.photos.database.MediaFile> {
+            val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
+            val scales = scaleDao
+                .getScales()
+                .first()
+
+            for (category in categories) {
+                val adaptedFiles = buildMediaFiles(category, scales)
+                result.addAll(adaptedFiles)
+            }
+
+            return result
         }
 
-        return result
+        fun buildMediaFiles(
+            category: us.mikeandwan.photos.api.Category,
+            scales: List<us.mikeandwan.photos.database.Scale>,
+        ): List<us.mikeandwan.photos.database.MediaFile> {
+            val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
+
+            for (file in category.teaser.files) {
+                val scale = scales.firstOrNull { it.code == file.scale }
+
+                if (scale == null) {
+                    throw IllegalArgumentException("Scale ${file.scale} not found in database")
+                }
+
+                result.add(
+                    us.mikeandwan.photos.database.MediaFile(
+                        category.id,
+                        scale.id,
+                        file.type,
+                        file.path,
+                    ),
+                )
+            }
+
+            return result
+        }
     }
-}

@@ -9,8 +9,29 @@ import javax.inject.Singleton
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.MediaApiClient
-import us.mikeandwan.photos.database.*
-import us.mikeandwan.photos.domain.*
+import us.mikeandwan.photos.database.CategoryDao
+import us.mikeandwan.photos.database.CategoryPreferenceDao
+import us.mikeandwan.photos.database.MawDatabase
+import us.mikeandwan.photos.database.MediaPreferenceDao
+import us.mikeandwan.photos.database.NotificationPreferenceDao
+import us.mikeandwan.photos.database.RandomPreferenceDao
+import us.mikeandwan.photos.database.ScaleDao
+import us.mikeandwan.photos.database.SearchHistoryDao
+import us.mikeandwan.photos.database.SearchPreferenceDao
+import us.mikeandwan.photos.database.YearDao
+import us.mikeandwan.photos.domain.ApiErrorHandler
+import us.mikeandwan.photos.domain.CategoryPreferenceRepository
+import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.ConfigRepository
+import us.mikeandwan.photos.domain.ErrorRepository
+import us.mikeandwan.photos.domain.FileStorageRepository
+import us.mikeandwan.photos.domain.MediaPreferenceRepository
+import us.mikeandwan.photos.domain.NotificationIdRepository
+import us.mikeandwan.photos.domain.NotificationPreferenceRepository
+import us.mikeandwan.photos.domain.RandomMediaRepository
+import us.mikeandwan.photos.domain.RandomPreferenceRepository
+import us.mikeandwan.photos.domain.SearchPreferenceRepository
+import us.mikeandwan.photos.domain.SearchRepository
 
 @Module
 @InstallIn(SingletonComponent::class)

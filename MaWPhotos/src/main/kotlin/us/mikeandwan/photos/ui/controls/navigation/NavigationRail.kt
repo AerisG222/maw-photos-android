@@ -30,19 +30,20 @@ fun NavigationRail(
     navigateToRandom: () -> Unit,
     navigateToUpload: () -> Unit,
     navigateToAbout: () -> Unit,
-    navigateToSettings: () -> Unit
+    navigateToSettings: () -> Unit,
 ) {
     Row(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier
-            .fillMaxHeight()
-            .width(64.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(64.dp),
         ) {
             PrimaryNavigationLink(
                 iconId = R.drawable.ic_home,
                 descriptionStringId = R.string.categories_icon_description,
                 isActiveArea = NavigationArea.Category == activeArea,
                 onNavigate = { navigateToCategories() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
             PrimaryNavigationLink(
@@ -50,7 +51,7 @@ fun NavigationRail(
                 descriptionStringId = R.string.search_icon_description,
                 isActiveArea = NavigationArea.Search == activeArea,
                 onNavigate = { navigateToSearch() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
             PrimaryNavigationLink(
@@ -58,7 +59,7 @@ fun NavigationRail(
                 descriptionStringId = R.string.random_photos_icon_description,
                 isActiveArea = NavigationArea.Random == activeArea,
                 onNavigate = { navigateToRandom() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -68,7 +69,7 @@ fun NavigationRail(
                 descriptionStringId = R.string.upload_queue_icon_description,
                 isActiveArea = NavigationArea.Upload == activeArea,
                 onNavigate = { navigateToUpload() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
             PrimaryNavigationLink(
@@ -76,7 +77,7 @@ fun NavigationRail(
                 descriptionStringId = R.string.help_icon_description,
                 isActiveArea = NavigationArea.About == activeArea,
                 onNavigate = { navigateToAbout() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
             PrimaryNavigationLink(
@@ -84,33 +85,36 @@ fun NavigationRail(
                 descriptionStringId = R.string.settings_icon_description,
                 isActiveArea = NavigationArea.Settings == activeArea,
                 onNavigate = { navigateToSettings() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            when(activeArea) {
+            when (activeArea) {
                 NavigationArea.Category -> {
                     YearListMenu(
                         years = years,
                         activeYear = activeYear,
-                        onYearSelected = { year -> navigateToCategoriesByYear(year) }
+                        onYearSelected = { year -> navigateToCategoriesByYear(year) },
                     )
                 }
+
                 NavigationArea.Random -> {
                     RandomMenu(
                         fetchRandomPhotos = fetchRandomPhotos,
-                        clearRandomPhotos = clearRandomPhotos
+                        clearRandomPhotos = clearRandomPhotos,
                     )
                 }
+
                 NavigationArea.Search -> {
                     SearchListMenu(
                         recentSearchTerms = recentSearchTerms,
                         onTermSelected = { term -> navigateToSearchWithTerm(term) },
-                        onClearSearchHistory = { clearSearchHistory() }
+                        onClearSearchHistory = { clearSearchHistory() },
                     )
                 }
-                else -> { }
+
+                else -> {}
             }
         }
     }

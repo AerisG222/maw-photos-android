@@ -1,9 +1,15 @@
 package us.mikeandwan.photos.domain
 
 import javax.inject.Inject
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.domain.models.ExternalCallStatus

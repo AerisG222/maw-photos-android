@@ -16,10 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Media
-import kotlin.uuid.Uuid
 
 private object TabIndex {
     const val COMMENT = 0
@@ -30,7 +30,7 @@ private object TabIndex {
 fun DetailTabs(
     activeMedia: Media,
     exifState: ExifState,
-    commentState: CommentState
+    commentState: CommentState,
 ) {
     val tabs = listOf(TabIndex.COMMENT, TabIndex.EXIF)
 
@@ -46,7 +46,7 @@ fun DetailTabs(
     Column(modifier = Modifier.fillMaxSize()) {
         SecondaryTabRow(
             selectedTabIndex = pagerState.currentPage,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
             Tab(
                 selected = pagerState.currentPage == TabIndex.COMMENT,
@@ -60,12 +60,16 @@ fun DetailTabs(
                         model = R.drawable.ic_comment_white,
                         contentDescription = "Comment",
                         modifier = Modifier.size(32.dp),
-                        colorFilter = if(pagerState.currentPage == TabIndex.COMMENT) { bgActive } else { bgInactive }
+                        colorFilter = if (pagerState.currentPage == TabIndex.COMMENT) {
+                            bgActive
+                        } else {
+                            bgInactive
+                        },
                     )
-                }
+                },
             )
 
-            if(tabs.contains(TabIndex.EXIF)) {
+            if (tabs.contains(TabIndex.EXIF)) {
                 Tab(
                     selected = pagerState.currentPage == TabIndex.EXIF,
                     onClick = {
@@ -78,9 +82,13 @@ fun DetailTabs(
                             model = R.drawable.ic_tune,
                             contentDescription = "Exif",
                             modifier = Modifier.size(32.dp),
-                            colorFilter = if(pagerState.currentPage == TabIndex.EXIF) { bgActive } else { bgInactive }
+                            colorFilter = if (pagerState.currentPage == TabIndex.EXIF) {
+                                bgActive
+                            } else {
+                                bgInactive
+                            },
                         )
-                    }
+                    },
                 )
             }
         }
@@ -89,17 +97,18 @@ fun DetailTabs(
             state = pagerState,
             userScrollEnabled = false,
             pageContent = {
-                when(it) {
+                when (it) {
                     TabIndex.COMMENT -> {
-                        if(activeMedia.id != commentMediaId) {
+                        if (activeMedia.id != commentMediaId) {
                             setCommentMediaId(activeMedia.id)
                             commentState.fetchComments()
                         }
 
                         CommentScreen(commentState)
                     }
+
                     TabIndex.EXIF -> {
-                        if(activeMedia.id != exifMediaId) {
+                        if (activeMedia.id != exifMediaId) {
                             setExifMediaId(activeMedia.id)
                             exifState.fetchExif()
                         }
@@ -107,7 +116,7 @@ fun DetailTabs(
                         ExifScreen(exifState)
                     }
                 }
-            }
+            },
         )
     }
 }

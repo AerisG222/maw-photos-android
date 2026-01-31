@@ -17,7 +17,7 @@ fun MenuPreference(
     labelStringId: Int,
     options: List<String>,
     selectedValue: String,
-    onSelect: (String) -> Unit
+    onSelect: (String) -> Unit,
 ) {
     val (display, setDisplay) = remember { mutableStateOf(false) }
 
@@ -26,14 +26,14 @@ fun MenuPreference(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { setDisplay(!display) }
+            .clickable { setDisplay(!display) },
     ) {
         MenuPreferenceSummary(
             labelStringId = labelStringId,
-            selectedValue = selectedValue
+            selectedValue = selectedValue,
         )
 
-        if(display) {
+        if (display) {
             Dialog(onDismissRequest = { setDisplay(false) }) {
                 MenuPreferenceCard(
                     labelStringId = labelStringId,
@@ -43,7 +43,7 @@ fun MenuPreference(
                         setDisplay(false)
                         onSelect(it)
                     },
-                    onCancel = { setDisplay(false) }
+                    onCancel = { setDisplay(false) },
                 )
             }
         }

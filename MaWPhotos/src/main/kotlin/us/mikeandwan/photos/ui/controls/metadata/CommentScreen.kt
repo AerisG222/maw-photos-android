@@ -38,9 +38,10 @@ fun CommentScreen(commentState: CommentState) {
 
     Column(modifier = Modifier.fillMaxHeight()) {
         CommentTable(comments = commentState.comments) {
-            Row(modifier = Modifier
-                .padding(8.dp, 8.dp)
-                .fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .padding(8.dp, 8.dp)
+                    .fillMaxWidth(),
             ) {
                 TextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -51,28 +52,29 @@ fun CommentScreen(commentState: CommentState) {
                     interactionSource = interactionSource,
                     onValueChange = { setNewComment(it) },
                     keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Done,
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { addComment() }
+                        onDone = { addComment() },
                     ),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    ),
                 )
             }
 
-            Row(modifier = Modifier
-                .padding(0.dp, 0.dp, 0.dp, 8.dp)
-                .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+            Row(
+                modifier = Modifier
+                    .padding(0.dp, 0.dp, 0.dp, 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Button(
                     onClick = { addComment() },
                 ) {
                     Text(
-                        text = stringResource(id = R.string.frg_comment_add_comment)
+                        text = stringResource(id = R.string.frg_comment_add_comment),
                     )
                 }
             }

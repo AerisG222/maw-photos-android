@@ -3,7 +3,9 @@ package us.mikeandwan.photos.api
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import retrofit2.Response
-import retrofit2.http.*
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 internal interface CategoryApi {
     @GET("categories/years")

@@ -27,7 +27,7 @@ fun ButtonBar(
     onToggleFavorite: () -> Unit,
     onToggleSlideshow: () -> Unit,
     onShare: () -> Unit,
-    onViewDetails: () -> Unit
+    onViewDetails: () -> Unit,
 ) {
     val color = MaterialTheme.colorScheme.onSurface
     val slideshowIcon = remember(isSlideshowPlaying) {
@@ -48,15 +48,15 @@ fun ButtonBar(
         horizontalArrangement = Arrangement.Absolute.SpaceAround,
         modifier = Modifier
             .padding(2.dp, 8.dp, 2.dp, 8.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
-        if(activeMediaType == MediaType.Photo) {
+        if (activeMediaType == MediaType.Photo) {
             IconButton(onClick = onRotateLeft) {
                 AsyncImage(
                     model = R.drawable.ic_rotate_left,
                     contentDescription = stringResource(id = R.string.rotate_left_icon_description),
                     modifier = Modifier.size(48.dp),
-                    colorFilter = ColorFilter.tint(color)
+                    colorFilter = ColorFilter.tint(color),
                 )
             }
 
@@ -65,7 +65,7 @@ fun ButtonBar(
                     model = R.drawable.ic_rotate_right,
                     contentDescription = stringResource(id = R.string.rotate_right_icon_description),
                     modifier = Modifier.size(48.dp),
-                    colorFilter = ColorFilter.tint(color)
+                    colorFilter = ColorFilter.tint(color),
                 )
             }
 
@@ -74,7 +74,7 @@ fun ButtonBar(
                     model = favoriteIcon,
                     contentDescription = stringResource(id = R.string.toggle_favorite_icon_description),
                     modifier = Modifier.size(48.dp),
-                    colorFilter = ColorFilter.tint(color)
+                    colorFilter = ColorFilter.tint(color),
                 )
             }
 
@@ -83,7 +83,7 @@ fun ButtonBar(
                     model = slideshowIcon,
                     contentDescription = stringResource(id = R.string.toggle_slideshow_icon_description),
                     modifier = Modifier.size(48.dp),
-                    colorFilter = ColorFilter.tint(color)
+                    colorFilter = ColorFilter.tint(color),
                 )
             }
 
@@ -92,7 +92,7 @@ fun ButtonBar(
                     model = R.drawable.ic_share,
                     contentDescription = stringResource(id = R.string.toggle_slideshow_icon_description),
                     modifier = Modifier.size(48.dp),
-                    colorFilter = ColorFilter.tint(color)
+                    colorFilter = ColorFilter.tint(color),
                 )
             }
         }
@@ -102,7 +102,7 @@ fun ButtonBar(
                 model = R.drawable.ic_keyboard_double_arrow_up,
                 contentDescription = stringResource(id = R.string.view_media_details_icon_description),
                 modifier = Modifier.size(48.dp),
-                colorFilter = ColorFilter.tint(color)
+                colorFilter = ColorFilter.tint(color),
             )
         }
     }

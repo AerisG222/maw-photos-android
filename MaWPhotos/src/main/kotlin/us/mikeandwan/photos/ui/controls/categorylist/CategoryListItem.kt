@@ -27,7 +27,7 @@ fun CategoryListItem(
     Row(
         modifier
             .fillMaxWidth()
-            .clickable { onSelectCategory(category) }
+            .clickable { onSelectCategory(category) },
     ) {
         AsyncImage(
             model = category.findTeaserImage(false).path,
@@ -36,16 +36,16 @@ fun CategoryListItem(
             modifier = Modifier
                 .height(60.dp)
                 .width(60.dp)
-                .padding(2.dp)
+                .padding(2.dp),
         )
 
-        if(showYear) {
+        if (showYear) {
             Text(
                 style = MaterialTheme.typography.titleMedium,
                 text = category.year.toString(),
                 modifier = Modifier
                     .padding(8.dp)
-                    .align(Alignment.CenterVertically)
+                    .align(Alignment.CenterVertically),
             )
         }
 
@@ -54,7 +54,7 @@ fun CategoryListItem(
             text = category.name,
             modifier = Modifier
                 .padding(8.dp)
-                .align(Alignment.CenterVertically)
+                .align(Alignment.CenterVertically),
         )
     }
 }
