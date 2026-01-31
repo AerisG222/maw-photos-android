@@ -5,10 +5,10 @@ import kotlinx.datetime.serializers.FormattedInstantSerializer
 
 object InstantSerializer : FormattedInstantSerializer(
     "instant serializer",
-    format = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET
+    format = DateTimeComponents.Formats.ISO_DATE_TIME_OFFSET,
 )
 
-//KSerializer<Calendar> {
+// KSerializer<Calendar> {
 //    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Calendar", PrimitiveKind.STRING)
 //    private val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
 //
@@ -24,4 +24,4 @@ object InstantSerializer : FormattedInstantSerializer(
 //
 //        return calendar
 //    }
-//}
+// }

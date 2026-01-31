@@ -1,7 +1,7 @@
 package us.mikeandwan.photos.api
 
-import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class Media(
@@ -9,5 +9,5 @@ data class Media(
     val categoryId: Uuid,
     val type: String,
     val isFavorite: Boolean,
-    val files: List<MediaFile> = ArrayList()
+    val files: List<MediaFile> = ArrayList(),
 )

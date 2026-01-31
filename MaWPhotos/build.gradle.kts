@@ -1,6 +1,6 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -19,7 +19,7 @@ android {
     defaultConfig {
         manifestPlaceholders += mapOf(
             "auth0Domain" to "@string/auth0_domain",
-            "auth0Scheme" to "@string/auth0_scheme"
+            "auth0Scheme" to "@string/auth0_scheme",
         )
         applicationId = "us.mikeandwan.pictures"
         minSdk = 26
@@ -83,7 +83,7 @@ android {
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-maw.pro"
+                "proguard-maw.pro",
             )
 
             // lets run manually for now - before running, ensure there is an authenticated session

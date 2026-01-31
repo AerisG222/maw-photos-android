@@ -8,5 +8,5 @@ import java.util.*
 @Entity(tableName = "search_history")
 data class SearchHistory(
     @PrimaryKey val term: String,
-    @ColumnInfo(name = "search_date") val searchDate: Calendar
+    @ColumnInfo(name = "search_date") val searchDate: Calendar,
 )

@@ -8,5 +8,5 @@ import androidx.room.PrimaryKey
 data class NotificationPreference(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "do_notify") val doNotify: Boolean,
-    @ColumnInfo(name = "do_vibrate") val doVibrate: Boolean
+    @ColumnInfo(name = "do_vibrate") val doVibrate: Boolean,
 )

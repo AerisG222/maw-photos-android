@@ -10,5 +10,5 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 data class CategoryPreference(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "display_type") val displayType: CategoryDisplayType,
-    @ColumnInfo(name="grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize
+    @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize,
 )

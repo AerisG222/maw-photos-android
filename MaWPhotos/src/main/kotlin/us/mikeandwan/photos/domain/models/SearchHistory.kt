@@ -4,5 +4,5 @@ import java.util.*
 
 data class SearchHistory(
     val term: String,
-    val searchDate: Calendar
+    val searchDate: Calendar,
 )

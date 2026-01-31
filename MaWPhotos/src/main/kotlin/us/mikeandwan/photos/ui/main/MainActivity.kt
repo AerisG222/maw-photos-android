@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 vm.drawerState.collect {
                     coroutineScope.launch {
-                        when(it) {
+                        when (it) {
                             DrawerValue.Closed -> drawerState.close()
                             DrawerValue.Open -> drawerState.open()
                         }
@@ -117,35 +117,37 @@ class MainActivity : ComponentActivity() {
 
             // monitor login status and once logged in, check for active or inactive user
             LaunchedEffect(Unit) {
-                vm.authenticationStatus.onEach {
-                    if(it is AuthStatus.Authorized) {
-                        vm.queryUserStatus()
-                    }
-                }.collect { }
+                vm.authenticationStatus
+                    .onEach {
+                        if (it is AuthStatus.Authorized) {
+                            vm.queryUserStatus()
+                        }
+                    }.collect { }
             }
 
             // monitor user status and navigate to inactive screen if needed
             LaunchedEffect(Unit) {
                 combine(
                     vm.userStatus,
-                    vm.authenticationStatus
+                    vm.authenticationStatus,
                 ) {
                     userStatus,
-                    authStatus ->
+                    authStatus,
+                    ->
 
-                    if(userStatus is UserStatus.Unknown && authStatus is AuthStatus.Authorized) {
+                    if (userStatus is UserStatus.Unknown && authStatus is AuthStatus.Authorized) {
                         vm.queryUserStatus()
                     }
 
-                    if(userStatus is UserStatus.Inactive) {
+                    if (userStatus is UserStatus.Inactive) {
                         Timber.w("YO INACTIVE!")
                         vm.navigate(InactiveUserRoute)
                     }
 
-                    if(userStatus is UserStatus.Active && authStatus is AuthStatus.Authorized) {
+                    if (userStatus is UserStatus.Active && authStatus is AuthStatus.Authorized) {
                         vm.navigate(CategoriesRoute(null))
                     }
-                }.collect {  }
+                }.collect { }
             }
 
             AppTheme {
@@ -171,10 +173,10 @@ class MainActivity : ComponentActivity() {
                                 navigateToSearchWithTerm = { vm.navigateAndCloseDrawer(SearchRoute(it)) },
                                 navigateToSettings = { vm.navigateAndCloseDrawer(SettingsRoute) },
                                 navigateToUpload = { vm.navigateAndCloseDrawer(UploadRoute) },
-                                navigateToAbout = { vm.navigateAndCloseDrawer(AboutRoute) }
+                                navigateToAbout = { vm.navigateAndCloseDrawer(AboutRoute) },
                             )
                         }
-                    }
+                    },
                 ) {
                     Scaffold(
                         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -185,7 +187,7 @@ class MainActivity : ComponentActivity() {
                                     state = topBarState,
                                     onExpandNavMenu = { vm.openDrawer() },
                                     onBackClicked = {
-                                        if(navController.visibleEntries.value.size > 1) {
+                                        if (navController.visibleEntries.value.size > 1) {
                                             navController.navigateUp()
                                         } else {
                                             navController.navigate(CategoriesRoute(null))
@@ -200,34 +202,35 @@ class MainActivity : ComponentActivity() {
                                 Snackbar(
                                     containerColor = MaterialTheme.colorScheme.surface,
                                     contentColor = MaterialTheme.colorScheme.onSurface,
-                                    snackbarData = data
+                                    snackbarData = data,
                                 )
                             }
                         },
                     ) { innerPadding ->
                         // https://issuetracker.google.com/issues/297824100
-                        Column(modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
+                        Column(
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .fillMaxSize(),
                         ) {
                             NavHost(
                                 navController = navController,
-                                startDestination = CategoriesRoute(null)
+                                startDestination = CategoriesRoute(null),
                             ) {
                                 loginScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateAfterLogin = { /* this is now handled by monitoring user status */ }
+                                    navigateAfterLogin = { /* this is now handled by monitoring user status */ },
                                 )
                                 inactiveUserScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
                                     navigateToLogin = { vm.navigate(LoginRoute) },
-                                    navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) }
+                                    navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) },
                                 )
                                 aboutScreen(
                                     updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea
+                                    setNavArea = vm::setNavArea,
                                 )
                                 categoriesScreen(
                                     updateTopBar = vm::updateTopBar,
@@ -235,7 +238,7 @@ class MainActivity : ComponentActivity() {
                                     setActiveYear = vm::setActiveYear,
                                     navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
-                                    navigateToCategories = { vm.navigate(CategoriesRoute(it)) }
+                                    navigateToCategories = { vm.navigate(CategoriesRoute(it)) },
                                 )
                                 categoryScreen(
                                     updateTopBar = vm::updateTopBar,
@@ -285,12 +288,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun handleIntent(intent: Intent, vm: MainViewModel, navController: NavController) {
+    private fun handleIntent(
+        intent: Intent,
+        vm: MainViewModel,
+        navController: NavController,
+    ) {
         when (intent.action) {
             Intent.ACTION_SEND -> {
                 vm.handleSendSingle(intent)
                 navController.navigate(UploadRoute)
             }
+
             Intent.ACTION_SEND_MULTIPLE -> {
                 vm.handleSendMultiple(intent)
                 navController.navigate(UploadRoute)

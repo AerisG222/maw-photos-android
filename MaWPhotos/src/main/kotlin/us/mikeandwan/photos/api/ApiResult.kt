@@ -1,13 +1,21 @@
 package us.mikeandwan.photos.api
 
-import retrofit2.Response
 import java.io.IOException
 import java.util.*
+import retrofit2.Response
 
 sealed class ApiResult<out T> {
-    data class Error(val error: String, val errorCode: Int? = null, val exception: Throwable? = null): ApiResult<Nothing>()
-    data object Empty: ApiResult<Nothing>()
-    data class Success<out T>(val result: T): ApiResult<T>()
+    data class Error(
+        val error: String,
+        val errorCode: Int? = null,
+        val exception: Throwable? = null,
+    ) : ApiResult<Nothing>()
+
+    data object Empty : ApiResult<Nothing>()
+
+    data class Success<out T>(
+        val result: T,
+    ) : ApiResult<T>()
 
     companion object {
         fun <T> build(response: Response<T>?): ApiResult<T> {
@@ -18,7 +26,7 @@ sealed class ApiResult<out T> {
             if (response.isSuccessful) {
                 val result = response.body()
 
-                return if(result == null) {
+                return if (result == null) {
                     Empty
                 } else {
                     Success<T>(result)
@@ -39,7 +47,7 @@ sealed class ApiResult<out T> {
                     Locale.ENGLISH,
                     "api error response: %d | %s",
                     response.code(),
-                    message
+                    message,
                 )
 
                 return Error(error, response.code())

@@ -9,10 +9,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import us.mikeandwan.photos.authorization.AuthService
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -22,46 +22,42 @@ object AuthModule {
     fun provideAuthService(
         application: Application,
         auth0: Auth0,
-        credManager: CredentialsManager
-    ): AuthService =
-        AuthService(application, auth0, credManager)
+        credManager: CredentialsManager,
+    ): AuthService = AuthService(application, auth0, credManager)
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(application: Application, authService: AuthService, credManager: CredentialsManager): AuthInterceptor =
-        AuthInterceptor(application, authService, credManager)
+    fun provideAuthInterceptor(
+        application: Application,
+        authService: AuthService,
+        credManager: CredentialsManager,
+    ): AuthInterceptor = AuthInterceptor(application, authService, credManager)
 
     @Provides
     @Singleton
-    fun provideAuth0(
-        application: Application
-    ): Auth0 = Auth0.getInstance(
-        application.getString(R.string.auth0_client_id),
-        application.getString(R.string.auth0_domain)
-    )
+    fun provideAuth0(application: Application): Auth0 =
+        Auth0.getInstance(
+            application.getString(R.string.auth0_client_id),
+            application.getString(R.string.auth0_domain),
+        )
 
     @Provides
     @Singleton
-    fun provideAuth0AuthenticationClient(
-        account: Auth0
-    ): AuthenticationAPIClient =
-        AuthenticationAPIClient(account)
+    fun provideAuth0AuthenticationClient(account: Auth0): AuthenticationAPIClient = AuthenticationAPIClient(account)
 
     @Provides
     @Singleton
-    fun provideAuth0SharedPreferencesStorage(
-        application: Application
-    ): SharedPreferencesStorage =
+    fun provideAuth0SharedPreferencesStorage(application: Application): SharedPreferencesStorage =
         SharedPreferencesStorage(application)
 
     @Provides
     @Singleton
     fun provideAuth0CredentialManager(
         client: AuthenticationAPIClient,
-        storage: SharedPreferencesStorage
+        storage: SharedPreferencesStorage,
     ): CredentialsManager =
         CredentialsManager(
             client,
-            storage
+            storage,
         )
 }

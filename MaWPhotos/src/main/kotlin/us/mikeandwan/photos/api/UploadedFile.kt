@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UploadedFile(
     val name: String,
-    val size: Long
+    val size: Long,
 )

@@ -8,5 +8,5 @@ data class Comment(
     val created: Instant,
     val createdBy: String,
     val modified: Instant,
-    val body: String
+    val body: String,
 )

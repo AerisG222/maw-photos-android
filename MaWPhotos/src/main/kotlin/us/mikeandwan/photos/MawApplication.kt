@@ -12,13 +12,15 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
-import timber.log.Timber
-import us.mikeandwan.photos.workers.UpdateCategoriesWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import timber.log.Timber
+import us.mikeandwan.photos.workers.UpdateCategoriesWorker
 
 @HiltAndroidApp
-class MawApplication : Application(), Configuration.Provider {
+class MawApplication :
+    Application(),
+    Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     override fun onCreate() {
@@ -28,20 +30,22 @@ class MawApplication : Application(), Configuration.Provider {
             Timber.plant(Timber.DebugTree())
 
             StrictMode.setThreadPolicy(
-                ThreadPolicy.Builder()
+                ThreadPolicy
+                    .Builder()
                     .detectDiskReads()
                     .detectDiskWrites()
                     .detectNetwork() // or .detectAll() for all detectable problems
                     .penaltyLog()
-                    .build()
+                    .build(),
             )
 
             StrictMode.setVmPolicy(
-                VmPolicy.Builder()
+                VmPolicy
+                    .Builder()
                     .detectLeakedSqlLiteObjects()
                     .penaltyLog()
                     .penaltyDeath()
-                    .build()
+                    .build(),
             )
         }
 
@@ -49,12 +53,14 @@ class MawApplication : Application(), Configuration.Provider {
     }
 
     override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
+        get() = Configuration
+            .Builder()
             .setWorkerFactory(workerFactory)
             .build()
 
     private fun schedulePeriodicRefresh() {
-        val constraints = Constraints.Builder()
+        val constraints = Constraints
+            .Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
@@ -65,7 +71,7 @@ class MawApplication : Application(), Configuration.Provider {
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             UpdateCategoriesWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
-            work
+            work,
         )
     }
 }

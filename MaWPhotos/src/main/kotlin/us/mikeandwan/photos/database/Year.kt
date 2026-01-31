@@ -7,5 +7,5 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "year")
 data class Year(
     @PrimaryKey val year: Int,
-    @ColumnInfo(name = "has_initialized_categories") val hasInitializedCategories: Boolean = false
+    @ColumnInfo(name = "has_initialized_categories") val hasInitializedCategories: Boolean = false,
 )

@@ -6,16 +6,16 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
 import us.mikeandwan.photos.authorization.AuthService
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
-import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
 import us.mikeandwan.photos.domain.services.MediaCommentService
 import us.mikeandwan.photos.domain.services.MediaExifService
-import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
+import us.mikeandwan.photos.domain.services.MediaListService
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -32,8 +32,7 @@ object ViewModelModule {
 
     @Provides
     @ViewModelScoped
-    fun providesMediaExifService(mediaRepository: MediaRepository): MediaExifService =
-        MediaExifService(mediaRepository)
+    fun providesMediaExifService(mediaRepository: MediaRepository): MediaExifService = MediaExifService(mediaRepository)
 
     @Provides
     @ViewModelScoped
@@ -42,29 +41,28 @@ object ViewModelModule {
         fileRepository: FileStorageRepository,
         mediaFavoriteService: MediaFavoriteService,
         mediaCommentService: MediaCommentService,
-        mediaExifService: MediaExifService
+        mediaExifService: MediaExifService,
     ): MediaListService =
         MediaListService(
             categoryRepository,
             fileRepository,
             mediaFavoriteService,
             mediaCommentService,
-            mediaExifService
+            mediaExifService,
         )
 
     @Provides
     @ViewModelScoped
-    fun provideAuthGuard(authService: AuthService): AuthGuard =
-        AuthGuard(authService)
+    fun provideAuthGuard(authService: AuthService): AuthGuard = AuthGuard(authService)
 
     @Provides
     @ViewModelScoped
     fun provideCategoriesLoadedGuard(
         categoryRepository: CategoryRepository,
-        errorRepository: ErrorRepository
+        errorRepository: ErrorRepository,
     ): CategoriesLoadedGuard =
         CategoriesLoadedGuard(
             categoryRepository,
-            errorRepository
+            errorRepository,
         )
 }

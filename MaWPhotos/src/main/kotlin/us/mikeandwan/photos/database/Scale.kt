@@ -8,12 +8,12 @@ import kotlin.uuid.Uuid
 
 @Entity(
     tableName = "scale",
-    indices = [Index(value = ["code"], unique = true)]
+    indices = [Index(value = ["code"], unique = true)],
 )
 data class Scale(
     @PrimaryKey val id: Uuid,
     val code: String,
     val width: Int,
     val height: Int,
-    @ColumnInfo(name = "fills_dimensions") val fillsDimensions: Boolean
+    @ColumnInfo(name = "fills_dimensions") val fillsDimensions: Boolean,
 )

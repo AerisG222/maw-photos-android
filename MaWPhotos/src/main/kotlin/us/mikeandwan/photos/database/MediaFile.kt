@@ -10,25 +10,25 @@ import kotlin.uuid.Uuid
     primaryKeys = [
         "category_id",
         "scale_id",
-        "type"
+        "type",
     ],
     foreignKeys = [
         ForeignKey(
             entity = Category::class,
             parentColumns = ["id"],
             childColumns = ["category_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE,
         ),
         ForeignKey(
             entity = Scale::class,
             parentColumns = ["id"],
-            childColumns = ["scale_id"]
-        )
-    ]
+            childColumns = ["scale_id"],
+        ),
+    ],
 )
 data class MediaFile(
     @ColumnInfo(name = "category_id") val categoryId: Uuid,
     @ColumnInfo(name = "scale_id") val scaleId: Uuid,
     val type: String,
-    val path: String
+    val path: String,
 )

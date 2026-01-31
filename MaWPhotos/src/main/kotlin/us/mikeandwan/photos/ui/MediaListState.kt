@@ -2,17 +2,17 @@ package us.mikeandwan.photos.ui
 
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Composable
-import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.Category
 import java.io.File
 import kotlin.uuid.Uuid
+import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.Media
 
 sealed class MediaListState {
-    data object Loading: MediaListState()
+    data object Loading : MediaListState()
 
     data class CategoryLoaded(
-        val category: Category
-    ): MediaListState()
+        val category: Category,
+    ) : MediaListState()
 
     data class Loaded(
         val category: Category,
@@ -26,8 +26,8 @@ sealed class MediaListState {
         val toggleSlideshow: () -> Unit,
         val toggleFavorite: () -> Unit,
         val toggleDetails: () -> Unit,
-        val saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit
-    ): MediaListState()
+        val saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit,
+    ) : MediaListState()
 }
 
 @Composable
@@ -43,13 +43,13 @@ fun rememberMediaListState(
     toggleSlideshow: () -> Unit,
     toggleFavorite: () -> Unit,
     toggleDetails: () -> Unit,
-    saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit
+    saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit,
 ): MediaListState {
-    if(category == null) {
+    if (category == null) {
         return MediaListState.Loading
     }
 
-    if(media.isEmpty() || activeIndex < 0) {
+    if (media.isEmpty() || activeIndex < 0) {
         return MediaListState.CategoryLoaded(category)
     }
 
@@ -65,6 +65,6 @@ fun rememberMediaListState(
         toggleSlideshow,
         toggleFavorite,
         toggleDetails,
-        saveMediaToShare
+        saveMediaToShare,
     )
 }

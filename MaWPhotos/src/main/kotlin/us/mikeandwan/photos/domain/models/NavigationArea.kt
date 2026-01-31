@@ -7,5 +7,5 @@ enum class NavigationArea {
     Random,
     Search,
     Settings,
-    Upload
+    Upload,
 }

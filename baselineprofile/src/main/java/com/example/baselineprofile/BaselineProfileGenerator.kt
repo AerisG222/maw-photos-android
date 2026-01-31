@@ -5,10 +5,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import java.lang.Thread.sleep
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.Thread.sleep
 
 /**
  * This test class generates a basic startup baseline profile for the target package.
@@ -36,7 +36,6 @@ import java.lang.Thread.sleep
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class BaselineProfileGenerator {
-
     @get:Rule
     val rule = BaselineProfileRule()
 
@@ -46,9 +45,8 @@ class BaselineProfileGenerator {
         rule.collect(
             packageName = InstrumentationRegistry.getArguments().getString("targetAppId")
                 ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
-
             // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
-            includeInStartupProfile = true
+            includeInStartupProfile = true,
         ) {
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll through your most important UI.
@@ -60,7 +58,7 @@ class BaselineProfileGenerator {
 
             // when running this, first establish a logged in session so the tests will work
             val loginButton = device.findObject(By.text("Login"))
-            if(loginButton != null) {
+            if (loginButton != null) {
                 // If the app has a login screen, we can log in to ensure the app is ready for the user.
                 loginButton.click()
                 device.waitForIdle()

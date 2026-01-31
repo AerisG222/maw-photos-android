@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.domain
 
 import androidx.room.withTransaction
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emitAll
@@ -11,88 +12,91 @@ import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.ScaleDao
 import us.mikeandwan.photos.domain.models.UserStatus
-import javax.inject.Inject
 
-class ConfigRepository @Inject constructor(
-    private val api: ConfigApiClient,
-    private val db: MawDatabase,
-    private val scaleDao: ScaleDao,
-    private val apiErrorHandler: ApiErrorHandler
-) {
-    companion object {
-        private const val ERR_MSG_LOAD_SCALES =
-            "Unable to load configuration data at this time.  Please try again later."
+class ConfigRepository
+    @Inject
+    constructor(
+        private val api: ConfigApiClient,
+        private val db: MawDatabase,
+        private val scaleDao: ScaleDao,
+        private val apiErrorHandler: ApiErrorHandler,
+    ) {
+        companion object {
+            private const val ERR_MSG_LOAD_SCALES =
+                "Unable to load configuration data at this time.  Please try again later."
 
-        private const val ERR_MSG_ACCOUNT_STATUS =
-            "Unable to verify account status at this time.  Please try again later."
-    }
-
-    private val _userStatus = MutableStateFlow<UserStatus>(UserStatus.Unknown)
-    val userStatus = _userStatus.asStateFlow()
-
-    fun clearUserStatus() {
-        _userStatus.value = UserStatus.Unknown
-    }
-
-    suspend fun getUserStatus() {
-        loadUserStatus().collect { }
-    }
-
-    private fun loadUserStatus() = api.loadData(
-        apiCall = { api.getAccountStatus() },
-        onSuccess = { status ->
-            val userStatus = if (status.status == "active") {
-                UserStatus.Active(status.isAdmin)
-            } else {
-                UserStatus.Inactive
-            }
-
-            _userStatus.value = userStatus
-
-            userStatus
-        },
-        errorMessage = ERR_MSG_ACCOUNT_STATUS,
-        apiErrorHandler
-    )
-
-    fun getScales() = flow {
-        val scales = scaleDao
-            .getScales()
-            .map { dbScales ->
-                dbScales.map { it.toDomainScale() }
-            }
-
-        if(scales.first().isEmpty()) {
-            emit(emptyList())
-            loadScales()
-                .collect { }
+            private const val ERR_MSG_ACCOUNT_STATUS =
+                "Unable to verify account status at this time.  Please try again later."
         }
 
-        emitAll(scales)
-    }
+        private val _userStatus = MutableStateFlow<UserStatus>(UserStatus.Unknown)
+        val userStatus = _userStatus.asStateFlow()
 
-    private fun loadScales() = api.loadData(
-        apiCall = { api.getScales() },
-        onSuccess = { scales ->
-            val dbScales = scales.map { s -> s.toDatabaseScale() }
+        fun clearUserStatus() {
+            _userStatus.value = UserStatus.Unknown
+        }
 
-            db.withTransaction {
-                scaleDao.upsert(*dbScales.toTypedArray())
+        suspend fun getUserStatus() {
+            loadUserStatus().collect { }
+        }
+
+        private fun loadUserStatus() =
+            api.loadData(
+                apiCall = { api.getAccountStatus() },
+                onSuccess = { status ->
+                    val userStatus = if (status.status == "active") {
+                        UserStatus.Active(status.isAdmin)
+                    } else {
+                        UserStatus.Inactive
+                    }
+
+                    _userStatus.value = userStatus
+
+                    userStatus
+                },
+                errorMessage = ERR_MSG_ACCOUNT_STATUS,
+                apiErrorHandler,
+            )
+
+        fun getScales() =
+            flow {
+                val scales = scaleDao
+                    .getScales()
+                    .map { dbScales ->
+                        dbScales.map { it.toDomainScale() }
+                    }
+
+                if (scales.first().isEmpty()) {
+                    emit(emptyList())
+                    loadScales()
+                        .collect { }
+                }
+
+                emitAll(scales)
             }
 
-            scales
-        },
-        errorMessage = ERR_MSG_LOAD_SCALES,
-        apiErrorHandler
-    )
+        private fun loadScales() =
+            api.loadData(
+                apiCall = { api.getScales() },
+                onSuccess = { scales ->
+                    val dbScales = scales.map { s -> s.toDatabaseScale() }
 
-    fun us.mikeandwan.photos.api.Scale.toDatabaseScale(): us.mikeandwan.photos.database.Scale {
-        return us.mikeandwan.photos.database.Scale(
-            this.id,
-            this.code,
-            this.width,
-            this.height,
-            this.fillsDimensions
-        )
+                    db.withTransaction {
+                        scaleDao.upsert(*dbScales.toTypedArray())
+                    }
+
+                    scales
+                },
+                errorMessage = ERR_MSG_LOAD_SCALES,
+                apiErrorHandler,
+            )
+
+        fun us.mikeandwan.photos.api.Scale.toDatabaseScale(): us.mikeandwan.photos.database.Scale =
+            us.mikeandwan.photos.database.Scale(
+                this.id,
+                this.code,
+                this.width,
+                this.height,
+                this.fillsDimensions,
+            )
     }
-}

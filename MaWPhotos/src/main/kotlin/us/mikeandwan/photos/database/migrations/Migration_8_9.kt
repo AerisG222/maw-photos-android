@@ -9,7 +9,7 @@ val MIGRATION_8_9 = object: Migration(8, 9) {
         db.execSQL("DROP TABLE category")
 
         db.execSQL("""
-            CREATE TABLE IF NOT EXISTS category 
+            CREATE TABLE IF NOT EXISTS category
             (
                 id TEXT NOT NULL,
                 year INTEGER NOT NULL,
@@ -22,22 +22,22 @@ val MIGRATION_8_9 = object: Migration(8, 9) {
         """)
 
         db.execSQL("""
-            CREATE INDEX IF NOT EXISTS index_category_year 
+            CREATE INDEX IF NOT EXISTS index_category_year
                 ON category (year)
         """)
 
         db.execSQL("""
-            CREATE INDEX IF NOT EXISTS index_category_effective_date 
+            CREATE INDEX IF NOT EXISTS index_category_effective_date
                 ON category (effective_date)
         """)
 
         db.execSQL("""
-            CREATE INDEX IF NOT EXISTS index_category_modified 
+            CREATE INDEX IF NOT EXISTS index_category_modified
                 ON category (modified)
         """)
 
         db.execSQL("""
-            CREATE TABLE IF NOT EXISTS media_file 
+            CREATE TABLE IF NOT EXISTS media_file
             (
                 category_id TEXT NOT NULL,
                 scale_id TEXT NOT NULL,

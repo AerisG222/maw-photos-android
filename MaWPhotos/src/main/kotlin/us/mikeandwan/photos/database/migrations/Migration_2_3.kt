@@ -18,7 +18,7 @@ val MIGRATION_2_3 = object: Migration(2, 3) {
         """)
 
         db.execSQL("""
-           CREATE INDEX IF NOT EXISTS index_video_category_year 
+           CREATE INDEX IF NOT EXISTS index_video_category_year
                ON video_category (year)
         """)
     }

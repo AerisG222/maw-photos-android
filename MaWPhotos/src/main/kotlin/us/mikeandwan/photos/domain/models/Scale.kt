@@ -4,5 +4,5 @@ data class Scale(
     val code: String,
     val width: Int,
     val height: Int,
-    val fillsDimensions: Boolean
+    val fillsDimensions: Boolean,
 )

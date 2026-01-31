@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.RandomMediaRepository
 
-abstract class BaseRandomViewModel (
-    private val randomMediaRepository: RandomMediaRepository
-): ViewModel() {
+abstract class BaseRandomViewModel(
+    private val randomMediaRepository: RandomMediaRepository,
+) : ViewModel() {
     // todo: allow videos in random area?
     val media = randomMediaRepository.media
 
@@ -30,10 +30,10 @@ abstract class BaseRandomViewModel (
         // this also exposed an issue where the item view would restart at where the user first
         // came into the item view, despite new items being loaded.  for now, lets just stop
         // fetching once a user is in the item view (and no longer need the delay).
-        //viewModelScope.launch {
-            //delay(1000)
-            randomMediaRepository.setDoFetch(true)
-        //}
+        // viewModelScope.launch {
+        // delay(1000)
+        randomMediaRepository.setDoFetch(true)
+        // }
     }
 
     fun onPause() {

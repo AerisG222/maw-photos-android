@@ -5,5 +5,5 @@ enum class GridThumbnailSize {
     ExtraSmall,
     Small,
     Medium,
-    Large
+    Large,
 }

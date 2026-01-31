@@ -9,5 +9,5 @@ import us.mikeandwan.photos.domain.models.GridThumbnailSize
 data class MediaPreference(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "slideshow_interval_seconds") val slideshowIntervalSeconds: Int,
-    @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize
+    @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize,
 )

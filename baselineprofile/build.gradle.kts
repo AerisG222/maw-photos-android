@@ -35,7 +35,6 @@ android {
         create("development") { dimension = "dev_or_prod" }
         create("production") { dimension = "dev_or_prod" }
     }
-
 }
 
 // This is the configuration block for the Baseline Profile plugin.
@@ -56,7 +55,7 @@ androidComponents {
         val artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
         v.instrumentationRunnerArguments.put(
             "targetAppId",
-            v.testedApks.map { artifactsLoader.load(it)!!.applicationId }
+            v.testedApks.map { artifactsLoader.load(it)!!.applicationId },
         )
     }
 }

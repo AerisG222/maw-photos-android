@@ -6,18 +6,17 @@ import us.mikeandwan.photos.domain.models.Comment
 class CommentState(
     val comments: List<Comment>,
     val fetchComments: () -> Unit,
-    val addComment: (String) -> Unit
+    val addComment: (String) -> Unit,
 )
 
 @Composable
 fun rememberCommentState(
     comments: List<Comment> = emptyList(),
     fetchComments: () -> Unit = {},
-    addComment: (String) -> Unit = {}
-): CommentState {
-    return CommentState(
+    addComment: (String) -> Unit = {},
+): CommentState =
+    CommentState(
         comments = comments,
         fetchComments = fetchComments,
-        addComment = addComment
+        addComment = addComment,
     )
-}

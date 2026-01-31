@@ -6,10 +6,9 @@ import androidx.room.Relation
 data class MediaFileAndScale(
     @Embedded
     val mediaFile: MediaFile,
-
     @Relation(
         parentColumn = "scale_id",
-        entityColumn = "id"
+        entityColumn = "id",
     )
-    val scale: Scale
+    val scale: Scale,
 )

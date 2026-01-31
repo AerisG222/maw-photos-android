@@ -303,10 +303,10 @@ class CategoryRepository @Inject constructor(
             val adaptedFiles = buildMediaFiles(category, scales)
             result.addAll(adaptedFiles)
         }
-        
+
         return result
     }
-    
+
     fun buildMediaFiles(category: us.mikeandwan.photos.api.Category, scales: List<us.mikeandwan.photos.database.Scale>): List<us.mikeandwan.photos.database.MediaFile> {
         val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
 

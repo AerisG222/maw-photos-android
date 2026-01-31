@@ -8,30 +8,31 @@ val UuidNavType = object : NavType<Uuid?>(isNullableAllowed = true) {
     override val name: String
         get() = "Uuid"
 
-    override fun put(bundle: Bundle, key: String, value: Uuid?) {
+    override fun put(
+        bundle: Bundle,
+        key: String,
+        value: Uuid?,
+    ) {
         bundle.putString(key, value?.toString())
     }
 
     @Suppress("DEPRECATION") // For older Android versions if not using Android Tiramisu APIs
-    override fun get(bundle: Bundle, key: String): Uuid? {
-        return bundle.getString(key)?.let {
-            try {
-                Uuid.parse(it)
-            } catch (e: IllegalArgumentException) {
-                // Handle malformed Uuid string if necessary, or let it crash
-                // to indicate a programming error during navigation.
-                null
-            }
+    override fun get(bundle: Bundle, key: String): Uuid? = bundle.getString(key)?.let {
+        try {
+            Uuid.parse(it)
+        } catch (e: IllegalArgumentException) {
+            // Handle malformed Uuid string if necessary, or let it crash
+            // to indicate a programming error during navigation.
+            null
         }
     }
 
-    override fun parseValue(value: String): Uuid? {
-        return try {
+    override fun parseValue(value: String): Uuid? =
+        try {
             Uuid.parse(value)
         } catch (e: IllegalArgumentException) {
             null
         }
-    }
 
     // Only needed if supporting default values directly in the navArgument block
     // and your default value is a Uuid instance. Not strictly necessary if you

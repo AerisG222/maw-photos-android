@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui.screens.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,12 +11,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.Category
-import kotlin.uuid.Uuid
 
-abstract class BaseCategoryViewModel (
+abstract class BaseCategoryViewModel(
     private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
     private val _category = MutableStateFlow<Category?>(null)
@@ -25,7 +25,7 @@ abstract class BaseCategoryViewModel (
     val media = _media.asStateFlow()
 
     fun loadCategory(categoryId: Uuid) {
-        if(category.value?.id == categoryId) {
+        if (category.value?.id == categoryId) {
             return
         }
 
@@ -33,7 +33,7 @@ abstract class BaseCategoryViewModel (
         _media.value = emptyList()
 
         viewModelScope.launch {
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
                 delay(500)
             }
 
@@ -44,7 +44,7 @@ abstract class BaseCategoryViewModel (
     }
 
     fun loadMedia(categoryId: Uuid) {
-        if(
+        if (
             category.value?.id == categoryId &&
             media.value.isNotEmpty()
         ) {
@@ -52,7 +52,7 @@ abstract class BaseCategoryViewModel (
         }
 
         viewModelScope.launch {
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
                 delay(1000)
             }
 

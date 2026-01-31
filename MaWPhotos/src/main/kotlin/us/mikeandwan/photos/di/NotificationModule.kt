@@ -10,10 +10,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.utils.NOTIFICATION_CHANNEL_ID_NEW_CATEGORIES
 import us.mikeandwan.photos.utils.NOTIFICATION_CHANNEL_ID_UPLOAD_FILES
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,7 +31,7 @@ object NotificationModule {
 
     private fun addNewCategoriesNotificationChannel(
         app: Application,
-        notificationManager: NotificationManager
+        notificationManager: NotificationManager,
     ) {
         val name = app.getString(R.string.channel_name_new_categories)
         val description = app.getString(R.string.channel_description_new_categories)
@@ -41,7 +41,7 @@ object NotificationModule {
 
     private fun addUploadNotificationChannel(
         app: Application,
-        notificationManager: NotificationManager
+        notificationManager: NotificationManager,
     ) {
         val name = app.getString(R.string.channel_name_upload)
         val description = app.getString(R.string.channel_description_upload)
@@ -53,16 +53,17 @@ object NotificationModule {
         notificationManager: NotificationManager,
         channelName: String,
         channelDescription: String,
-        channelId: String
+        channelId: String,
     ) {
-        val audioAttributes = AudioAttributes.Builder()
+        val audioAttributes = AudioAttributes
+            .Builder()
             .setUsage(AudioAttributes.USAGE_NOTIFICATION)
             .build()
 
         val channel = NotificationChannel(
             channelId,
             channelName,
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
             description = channelDescription
             enableLights(true)
@@ -71,7 +72,7 @@ object NotificationModule {
             lightColor = Color.argb(255, 75, 0, 130)
             setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
-                audioAttributes
+                audioAttributes,
             )
         }
 

@@ -2,23 +2,26 @@ package us.mikeandwan.photos.authorization
 
 import android.app.Application
 import android.content.Context
-import timber.log.Timber
-import us.mikeandwan.photos.R
 import com.auth0.android.Auth0
 import com.auth0.android.authentication.AuthenticationException
 import com.auth0.android.authentication.storage.CredentialsManager
 import com.auth0.android.provider.WebAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
+import us.mikeandwan.photos.R
 
 class AuthService(
     private val application: Application,
     private val auth0: Auth0,
-    private val credMgr: CredentialsManager
+    private val credMgr: CredentialsManager,
 ) {
     private val _authStatus = MutableStateFlow(
-        if(credMgr.hasValidCredentials())
-            AuthStatus.Authorized else AuthStatus.RequiresAuthorization
+        if (credMgr.hasValidCredentials()) {
+            AuthStatus.Authorized
+        } else {
+            AuthStatus.RequiresAuthorization
+        },
     )
     val authStatus = _authStatus.asStateFlow()
 
@@ -54,7 +57,7 @@ class AuthService(
                 .await(activity)
             credMgr.clearCredentials()
             _authStatus.value = AuthStatus.RequiresAuthorization
-        } catch(e: AuthenticationException) {
+        } catch (e: AuthenticationException) {
             Timber.e(e, "Error trying to logout from Auth0")
         }
     }
@@ -64,8 +67,8 @@ class AuthService(
         _authStatus.value = newStatus
     }
 
-    fun getScopes(): String {
-        return arrayOf(
+    fun getScopes(): String =
+        arrayOf(
             "openid",
             "email",
             "profile",
@@ -73,7 +76,6 @@ class AuthService(
             "${application.getString(R.string.auth0_audience_api)}/media:read",
             "${application.getString(R.string.auth0_audience_api)}/media:write",
             "${application.getString(R.string.auth0_audience_api)}/comments:read",
-            "${application.getString(R.string.auth0_audience_api)}/comments:write"
+            "${application.getString(R.string.auth0_audience_api)}/comments:write",
         ).joinToString(" ")
-    }
 }

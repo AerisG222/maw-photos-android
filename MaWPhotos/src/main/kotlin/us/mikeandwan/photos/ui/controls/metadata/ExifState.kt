@@ -12,9 +12,8 @@ class ExifState(
 fun rememberExifState(
     exif: JsonElement? = null,
     fetchExif: () -> Unit = {},
-): ExifState {
-    return ExifState(
+): ExifState =
+    ExifState(
         exifDisplay = exif,
-        fetchExif = fetchExif
+        fetchExif = fetchExif,
     )
-}

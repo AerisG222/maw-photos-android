@@ -7,22 +7,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 
 class RotationState(
     val activeRotation: Float,
-    val setActiveRotation: (Float) -> Unit
+    val setActiveRotation: (Float) -> Unit,
 )
 
 @Composable
-fun rememberRotation(
-    activeIndex: Int
-): RotationState {
-    val rotationDictionary = rememberSaveable { HashMap<Int,Float>() }
+fun rememberRotation(activeIndex: Int): RotationState {
+    val rotationDictionary = rememberSaveable { HashMap<Int, Float>() }
     val (activeRotation, setActiveRotation) = rememberSaveable { mutableFloatStateOf(0f) }
 
-    fun getRotationForIndex(index: Int): Float {
-        return when(rotationDictionary.containsKey(index)) {
+    fun getRotationForIndex(index: Int): Float =
+        when (rotationDictionary.containsKey(index)) {
             true -> rotationDictionary[index]!!
             false -> 0f
         }
-    }
 
     fun updateRotation(deg: Float) {
         val currRotation = getRotationForIndex(activeIndex)
@@ -38,6 +35,6 @@ fun rememberRotation(
 
     return RotationState(
         activeRotation,
-        setActiveRotation = ::updateRotation
+        setActiveRotation = ::updateRotation,
     )
 }

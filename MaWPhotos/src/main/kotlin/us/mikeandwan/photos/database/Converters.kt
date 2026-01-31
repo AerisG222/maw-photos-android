@@ -1,11 +1,11 @@
 package us.mikeandwan.photos.database
 
 import androidx.room.TypeConverter
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.format
 import java.util.*
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
 
 class Converters {
     @TypeConverter
@@ -18,9 +18,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromCalendar(cal: Calendar?): Long? {
-        return cal?.timeInMillis
-    }
+    fun fromCalendar(cal: Calendar?): Long? = cal?.timeInMillis
 
     @TypeConverter
     fun toInstant(l: Long?): Instant? {
@@ -50,9 +48,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromUuid(v: Uuid?): String? {
-        return v?.toHexDashString()
-    }
+    fun fromUuid(v: Uuid?): String? = v?.toHexDashString()
 
     @TypeConverter
     fun toLocalDate(v: String?): LocalDate? {
@@ -64,7 +60,5 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromLocalDate(v: LocalDate?): String? {
-        return v?.format(LocalDate.Formats.ISO)
-    }
+    fun fromLocalDate(v: LocalDate?): String? = v?.format(LocalDate.Formats.ISO)
 }

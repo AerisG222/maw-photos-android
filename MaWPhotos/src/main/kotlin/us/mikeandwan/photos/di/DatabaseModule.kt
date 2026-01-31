@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import us.mikeandwan.photos.database.*
 import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
 import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
@@ -17,7 +18,6 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_7_8
 import us.mikeandwan.photos.database.migrations.MIGRATION_8_9
 import us.mikeandwan.photos.database.migrations.MIGRATION_9_10
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -25,22 +25,22 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideMawDatabase(application: Application): MawDatabase =
-        Room.databaseBuilder(
-            application,
-            MawDatabase::class.java,
-            "us.mikeandwan.photos"
-        )
-        .addCallback(MawDatabaseCreateCallback())
-        .addMigrations(MIGRATION_1_2)
-        .addMigrations(MIGRATION_2_3)
-        .addMigrations(MIGRATION_3_4)
-        .addMigrations(MIGRATION_4_5)
-        .addMigrations(MIGRATION_5_6)
-        .addMigrations(MIGRATION_6_7)
-        .addMigrations(MIGRATION_7_8)
-        .addMigrations(MIGRATION_8_9)
-        .addMigrations(MIGRATION_9_10)
-        .build()
+        Room
+            .databaseBuilder(
+                application,
+                MawDatabase::class.java,
+                "us.mikeandwan.photos",
+            ).addCallback(MawDatabaseCreateCallback())
+            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_3_4)
+            .addMigrations(MIGRATION_4_5)
+            .addMigrations(MIGRATION_5_6)
+            .addMigrations(MIGRATION_6_7)
+            .addMigrations(MIGRATION_7_8)
+            .addMigrations(MIGRATION_8_9)
+            .addMigrations(MIGRATION_9_10)
+            .build()
 
     @Provides
     @Singleton
@@ -49,8 +49,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideCategoryDao(mawDatabase: MawDatabase): CategoryDao =
-        mawDatabase.categoryDao()
+    fun provideCategoryDao(mawDatabase: MawDatabase): CategoryDao = mawDatabase.categoryDao()
 
     @Provides
     @Singleton
@@ -59,31 +58,25 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun providePhotoPreferenceDao(mawDatabase: MawDatabase): MediaPreferenceDao =
-        mawDatabase.mediaPreferenceDao()
+    fun providePhotoPreferenceDao(mawDatabase: MawDatabase): MediaPreferenceDao = mawDatabase.mediaPreferenceDao()
 
     @Provides
     @Singleton
-    fun provideRandomPreferenceDao(mawDatabase: MawDatabase): RandomPreferenceDao =
-        mawDatabase.randomPreferenceDao()
+    fun provideRandomPreferenceDao(mawDatabase: MawDatabase): RandomPreferenceDao = mawDatabase.randomPreferenceDao()
 
     @Provides
     @Singleton
-    fun provideSearchHistoryDao(mawDatabase: MawDatabase): SearchHistoryDao =
-        mawDatabase.searchHistoryDao()
+    fun provideSearchHistoryDao(mawDatabase: MawDatabase): SearchHistoryDao = mawDatabase.searchHistoryDao()
 
     @Provides
     @Singleton
-    fun provideSearchPreferenceDao(mawDatabase: MawDatabase): SearchPreferenceDao =
-        mawDatabase.searchPreferenceDao()
+    fun provideSearchPreferenceDao(mawDatabase: MawDatabase): SearchPreferenceDao = mawDatabase.searchPreferenceDao()
 
     @Provides
     @Singleton
-    fun provideScaleDao(mawDatabase: MawDatabase): ScaleDao =
-        mawDatabase.scaleDao()
+    fun provideScaleDao(mawDatabase: MawDatabase): ScaleDao = mawDatabase.scaleDao()
 
     @Provides
     @Singleton
-    fun provideYearDao(mawDatabase: MawDatabase): YearDao =
-        mawDatabase.yearDao()
+    fun provideYearDao(mawDatabase: MawDatabase): YearDao = mawDatabase.yearDao()
 }

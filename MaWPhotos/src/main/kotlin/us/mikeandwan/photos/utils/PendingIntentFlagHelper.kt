@@ -4,8 +4,6 @@ import android.app.PendingIntent
 
 class PendingIntentFlagHelper {
     companion object {
-        fun getMutableFlag(baseFlags: Int): Int {
-            return baseFlags or PendingIntent.FLAG_MUTABLE
-        }
+        fun getMutableFlag(baseFlags: Int): Int = baseFlags or PendingIntent.FLAG_MUTABLE
     }
 }

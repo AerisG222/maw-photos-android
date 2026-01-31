@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class SearchResults<T>(
     var results: List<T> = ArrayList(),
     var hasMoreResults: Boolean,
-    var nextOffset: Int
+    var nextOffset: Int,
 )

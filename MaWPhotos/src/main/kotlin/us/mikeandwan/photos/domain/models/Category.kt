@@ -1,8 +1,8 @@
 package us.mikeandwan.photos.domain.models
 
-import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
+import kotlinx.datetime.LocalDate
 
 data class Category(
     val id: Uuid,
@@ -11,5 +11,5 @@ data class Category(
     val effectiveDate: LocalDate,
     val modified: Instant,
     val isFavorite: Boolean,
-    val teaser: List<MediaFile>
+    val teaser: List<MediaFile>,
 )

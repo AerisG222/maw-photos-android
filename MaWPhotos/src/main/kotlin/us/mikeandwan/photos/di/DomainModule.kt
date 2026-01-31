@@ -5,27 +5,23 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.database.*
 import us.mikeandwan.photos.domain.*
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DomainModule {
     @Provides
     @Singleton
-    fun provideErrorRepository(): ErrorRepository =
-        ErrorRepository()
+    fun provideErrorRepository(): ErrorRepository = ErrorRepository()
 
     @Provides
     @Singleton
-    fun provideApiErrorHandler(
-        errorRepository: ErrorRepository
-    ): ApiErrorHandler =
-        ApiErrorHandler(errorRepository)
+    fun provideApiErrorHandler(errorRepository: ErrorRepository): ApiErrorHandler = ApiErrorHandler(errorRepository)
 
     @Provides
     @Singleton
@@ -35,9 +31,8 @@ object DomainModule {
         yearDao: YearDao,
         categoryDao: CategoryDao,
         scaleDao: ScaleDao,
-        apiErrorHandler: ApiErrorHandler
-    ): CategoryRepository =
-        CategoryRepository(api, db, yearDao, categoryDao, scaleDao, apiErrorHandler)
+        apiErrorHandler: ApiErrorHandler,
+    ): CategoryRepository = CategoryRepository(api, db, yearDao, categoryDao, scaleDao, apiErrorHandler)
 
     @Provides
     @Singleton
@@ -45,24 +40,20 @@ object DomainModule {
         api: ConfigApiClient,
         db: MawDatabase,
         scaleDao: ScaleDao,
-        apiErrorHandler: ApiErrorHandler
-    ): ConfigRepository =
-        ConfigRepository(api, db, scaleDao, apiErrorHandler)
+        apiErrorHandler: ApiErrorHandler,
+    ): ConfigRepository = ConfigRepository(api, db, scaleDao, apiErrorHandler)
 
     @Provides
     @Singleton
     fun provideRandomPhotoRepository(
         api: MediaApiClient,
         randomPreferenceRepository: RandomPreferenceRepository,
-        apiErrorHandler: ApiErrorHandler
-    ): RandomMediaRepository =
-        RandomMediaRepository(api, randomPreferenceRepository, apiErrorHandler)
+        apiErrorHandler: ApiErrorHandler,
+    ): RandomMediaRepository = RandomMediaRepository(api, randomPreferenceRepository, apiErrorHandler)
 
     @Provides
     @Singleton
-    fun provideFileStorageRepository(
-        application: Application
-    ): FileStorageRepository =
+    fun provideFileStorageRepository(application: Application): FileStorageRepository =
         FileStorageRepository(application)
 
     @Provides
@@ -71,29 +62,30 @@ object DomainModule {
         api: CategoryApiClient,
         searchPreferenceRepository: SearchPreferenceRepository,
         searchHistoryDao: SearchHistoryDao,
-        apiErrorHandler: ApiErrorHandler
+        apiErrorHandler: ApiErrorHandler,
     ): SearchRepository =
         SearchRepository(
             api,
             searchHistoryDao,
             searchPreferenceRepository,
-            apiErrorHandler
+            apiErrorHandler,
         )
 
     @Provides
     @Singleton
-    fun providesNotificationIdRepository(): NotificationIdRepository =
-        NotificationIdRepository()
+    fun providesNotificationIdRepository(): NotificationIdRepository = NotificationIdRepository()
 
     @Provides
     @Singleton
-    fun provideCategoryPreferenceRepository(categoryPreferenceDao: CategoryPreferenceDao): CategoryPreferenceRepository =
-        CategoryPreferenceRepository(categoryPreferenceDao)
+    fun provideCategoryPreferenceRepository(
+        categoryPreferenceDao: CategoryPreferenceDao,
+    ): CategoryPreferenceRepository = CategoryPreferenceRepository(categoryPreferenceDao)
 
     @Provides
     @Singleton
-    fun provideNotificationPreferenceRepository(notificationPreferenceDao: NotificationPreferenceDao): NotificationPreferenceRepository =
-        NotificationPreferenceRepository(notificationPreferenceDao)
+    fun provideNotificationPreferenceRepository(
+        notificationPreferenceDao: NotificationPreferenceDao,
+    ): NotificationPreferenceRepository = NotificationPreferenceRepository(notificationPreferenceDao)
 
     @Provides
     @Singleton

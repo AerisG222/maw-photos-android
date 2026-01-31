@@ -11,5 +11,5 @@ data class SearchPreference(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "recent_query_count") val recentQueryCount: Int,
     @ColumnInfo(name = "display_type") val displayType: CategoryDisplayType,
-    @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize
+    @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize,
 )
