@@ -63,7 +63,9 @@ fun ButtonBar(
             IconButton(onClick = onRotateRight) {
                 AsyncImage(
                     model = R.drawable.ic_rotate_right,
-                    contentDescription = stringResource(id = R.string.rotate_right_icon_description),
+                    contentDescription = stringResource(
+                        id = R.string.rotate_right_icon_description,
+                    ),
                     modifier = Modifier.size(48.dp),
                     colorFilter = ColorFilter.tint(color),
                 )
@@ -72,7 +74,9 @@ fun ButtonBar(
             IconButton(onClick = onToggleFavorite) {
                 AsyncImage(
                     model = favoriteIcon,
-                    contentDescription = stringResource(id = R.string.toggle_favorite_icon_description),
+                    contentDescription = stringResource(
+                        id = R.string.toggle_favorite_icon_description,
+                    ),
                     modifier = Modifier.size(48.dp),
                     colorFilter = ColorFilter.tint(color),
                 )
@@ -81,7 +85,9 @@ fun ButtonBar(
             IconButton(onClick = onToggleSlideshow) {
                 AsyncImage(
                     model = slideshowIcon,
-                    contentDescription = stringResource(id = R.string.toggle_slideshow_icon_description),
+                    contentDescription = stringResource(
+                        id = R.string.toggle_slideshow_icon_description,
+                    ),
                     modifier = Modifier.size(48.dp),
                     colorFilter = ColorFilter.tint(color),
                 )
@@ -90,7 +96,9 @@ fun ButtonBar(
             IconButton(onClick = onShare) {
                 AsyncImage(
                     model = R.drawable.ic_share,
-                    contentDescription = stringResource(id = R.string.toggle_slideshow_icon_description),
+                    contentDescription = stringResource(
+                        id = R.string.toggle_slideshow_icon_description,
+                    ),
                     modifier = Modifier.size(48.dp),
                     colorFilter = ColorFilter.tint(color),
                 )
@@ -100,7 +108,9 @@ fun ButtonBar(
         IconButton(onClick = onViewDetails) {
             AsyncImage(
                 model = R.drawable.ic_keyboard_double_arrow_up,
-                contentDescription = stringResource(id = R.string.view_media_details_icon_description),
+                contentDescription = stringResource(
+                    id = R.string.view_media_details_icon_description,
+                ),
                 modifier = Modifier.size(48.dp),
                 colorFilter = ColorFilter.tint(color),
             )

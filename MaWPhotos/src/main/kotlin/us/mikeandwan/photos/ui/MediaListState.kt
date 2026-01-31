@@ -26,7 +26,11 @@ sealed class MediaListState {
         val toggleSlideshow: () -> Unit,
         val toggleFavorite: () -> Unit,
         val toggleDetails: () -> Unit,
-        val saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit,
+        val saveMediaToShare: (
+            drawable: Drawable,
+            filename: String,
+            onComplete: (file: File) -> Unit,
+        ) -> Unit,
     ) : MediaListState()
 }
 
@@ -43,7 +47,11 @@ fun rememberMediaListState(
     toggleSlideshow: () -> Unit,
     toggleFavorite: () -> Unit,
     toggleDetails: () -> Unit,
-    saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (file: File) -> Unit) -> Unit,
+    saveMediaToShare: (
+        drawable: Drawable,
+        filename: String,
+        onComplete: (file: File) -> Unit,
+    ) -> Unit,
 ): MediaListState {
     if (category == null) {
         return MediaListState.Loading

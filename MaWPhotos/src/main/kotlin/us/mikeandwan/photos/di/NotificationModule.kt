@@ -21,7 +21,9 @@ object NotificationModule {
     @Provides
     @Singleton
     fun provideNotificationManager(app: Application): NotificationManager {
-        val notificationManager = app.getSystemService(Application.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = app.getSystemService(
+            Application.NOTIFICATION_SERVICE,
+        ) as NotificationManager
 
         addNewCategoriesNotificationChannel(app, notificationManager)
         addUploadNotificationChannel(app, notificationManager)
@@ -36,7 +38,12 @@ object NotificationModule {
         val name = app.getString(R.string.channel_name_new_categories)
         val description = app.getString(R.string.channel_description_new_categories)
 
-        createChannel(notificationManager, name, description, NOTIFICATION_CHANNEL_ID_NEW_CATEGORIES)
+        createChannel(
+            notificationManager,
+            name,
+            description,
+            NOTIFICATION_CHANNEL_ID_NEW_CATEGORIES,
+        )
     }
 
     private fun addUploadNotificationChannel(

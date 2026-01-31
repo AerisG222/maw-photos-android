@@ -11,10 +11,10 @@ charset = utf-8                # Use UTF-8 encoding for all files
 [*.{kt,kts}]
 indent_size = 4               # Standard Kotlin indentation is 4 spaces
 indent_style = space          # Use spaces for indentation
+#ktlint_code_style = android_studio
 
 # Max Line Length: Adhering to Android Kotlin Style Guide (often 100 or 120) ✍️
 max_line_length = 120         # The hard limit for line length
-ktlint_standard_max_line_length = 120 # KtLint-specific rule for line length
 
 # Trailing Commas: Highly Recommended for Clean Diffs and Reordering! 👍
 # Set to 'true' to allow/encourage trailing commas in declarations and call sites.
@@ -36,14 +36,13 @@ ij_kotlin_blank_lines_after_imports = 1                  # One blank line after 
 # KtLint Rules Configuration: Fine-tuning behavior for the linter ⚙️
 # These directly map to KtLint's standard rules. Consult KtLint docs for full list.
 
-# Allow wildcard imports (common in Android, e.g., 'import android.view.*')
+ktlint_function_naming_ignore_when_annotated_with=Composable
 ktlint_standard_no-wildcard-imports = disabled
-
-# Ensure a final newline at the end of the file
+ktlint_standard_backing-property-naming = disabled
+ktlint_standard_filename = disabled
 ktlint_standard_final-newline = enabled
-
-# Enforce filename matches top-level class/object/interface name
-ktlint_standard_filename = enabled
+ktlint_standard_parameter-list-wrapping = enabled # prefer one-argument-per-line for call sites
+ktlint_standard_argument-list-wrapping = enabled  # prefer one-argument-per-line for call sites
 
 # --- One-Line Preference Configuration! ⭐ ---
 # This is where we tell KtLint to be less aggressive with line breaks and

@@ -72,7 +72,13 @@ fun NavGraphBuilder.categoryItemScreen(
             toggleSlideshow = { vm.toggleSlideshow() },
             toggleFavorite = { vm.toggleFavorite() },
             toggleDetails = { vm.toggleShowDetails() },
-            saveMediaToShare = { drawable, filename, onComplete -> vm.saveFileToShare(drawable, filename, onComplete) },
+            saveMediaToShare = {
+                drawable,
+                filename,
+                onComplete,
+                ->
+                vm.saveFileToShare(drawable, filename, onComplete)
+            },
         )
 
         LaunchedEffect(isAuthorized) {
@@ -177,7 +183,11 @@ fun CategoryItemScreen(
                 onToggleSlideshow = mediaListState.toggleSlideshow,
                 onShare = {
                     coroutineScope.launch {
-                        shareMedia(context, mediaListState.saveMediaToShare, mediaListState.activeMedia)
+                        shareMedia(
+                            context,
+                            mediaListState.saveMediaToShare,
+                            mediaListState.activeMedia,
+                        )
                     }
                 },
                 onViewDetails = mediaListState.toggleDetails,

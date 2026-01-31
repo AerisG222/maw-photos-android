@@ -141,7 +141,11 @@ fun SearchScreen(
             when (displayType) {
                 CategoryDisplayType.Grid -> {
                     val gridState = rememberMediaGridState(
-                        gridItems = results.map { it.toMediaGridItem(thumbSize == GridThumbnailSize.Large) },
+                        gridItems = results.map {
+                            it.toMediaGridItem(
+                                thumbSize == GridThumbnailSize.Large,
+                            )
+                        },
                         thumbnailSize = thumbSize,
                         onSelectGridItem = { onNavigateToCategory(it.data) },
                     )

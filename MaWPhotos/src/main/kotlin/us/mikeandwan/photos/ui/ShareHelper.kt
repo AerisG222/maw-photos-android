@@ -27,7 +27,11 @@ suspend fun shareMedia(
         drawable,
         getFilenameFromUrl(media.getMediaUrl()),
     ) { fileToShare ->
-        val contentUri = FileProvider.getUriForFile(ctx, "${BuildConfig.APPLICATION_ID}.fileprovider", fileToShare)
+        val contentUri = FileProvider.getUriForFile(
+            ctx,
+            "${BuildConfig.APPLICATION_ID}.fileprovider",
+            fileToShare,
+        )
         val sendIntent = Intent(Intent.ACTION_SEND)
 
         sendIntent.setDataAndType(contentUri, "image/*")

@@ -80,7 +80,9 @@ class MainActivity : ComponentActivity() {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
 
             val years by vm.years.collectAsStateWithLifecycle(initialValue = emptyList())
-            val recentSearchTerms by vm.recentSearchTerms.collectAsStateWithLifecycle(initialValue = emptyList())
+            val recentSearchTerms by vm.recentSearchTerms.collectAsStateWithLifecycle(
+                initialValue = emptyList(),
+            )
             val navArea by vm.navArea.collectAsStateWithLifecycle()
             val topBarState by vm.topBarState.collectAsStateWithLifecycle()
             val enableDrawerGestures by vm.enableDrawerGestures.collectAsStateWithLifecycle()
@@ -166,11 +168,23 @@ class MainActivity : ComponentActivity() {
                                 fetchRandomPhotos = vm::fetchRandomPhotos,
                                 clearRandomPhotos = vm::clearRandomPhotos,
                                 clearSearchHistory = vm::clearSearchHistory,
-                                navigateToCategories = { vm.navigateAndCloseDrawer(CategoriesRoute(null)) },
-                                navigateToCategoriesByYear = { vm.navigateAndCloseDrawer(CategoriesRoute(it)) },
+                                navigateToCategories = {
+                                    vm.navigateAndCloseDrawer(
+                                        CategoriesRoute(null),
+                                    )
+                                },
+                                navigateToCategoriesByYear = {
+                                    vm.navigateAndCloseDrawer(
+                                        CategoriesRoute(it),
+                                    )
+                                },
                                 navigateToRandom = { vm.navigateAndCloseDrawer(RandomRoute) },
                                 navigateToSearch = { vm.navigateAndCloseDrawer(SearchRoute()) },
-                                navigateToSearchWithTerm = { vm.navigateAndCloseDrawer(SearchRoute(it)) },
+                                navigateToSearchWithTerm = {
+                                    vm.navigateAndCloseDrawer(
+                                        SearchRoute(it),
+                                    )
+                                },
                                 navigateToSettings = { vm.navigateAndCloseDrawer(SettingsRoute) },
                                 navigateToUpload = { vm.navigateAndCloseDrawer(UploadRoute) },
                                 navigateToAbout = { vm.navigateAndCloseDrawer(AboutRoute) },
@@ -220,7 +234,9 @@ class MainActivity : ComponentActivity() {
                                 loginScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateAfterLogin = { /* this is now handled by monitoring user status */ },
+                                    navigateAfterLogin = {
+                                        // this is now handled by monitoring user status
+                                    },
                                 )
                                 inactiveUserScreen(
                                     updateTopBar = vm::updateTopBar,
@@ -243,7 +259,11 @@ class MainActivity : ComponentActivity() {
                                 categoryScreen(
                                     updateTopBar = vm::updateTopBar,
                                     setNavArea = vm::setNavArea,
-                                    navigateToMedia = { vm.navigate(CategoryItemRoute(it.categoryId, it.id)) },
+                                    navigateToMedia = {
+                                        vm.navigate(
+                                            CategoryItemRoute(it.categoryId, it.id),
+                                        )
+                                    },
                                     navigateToLogin = { vm.navigate(LoginRoute) },
                                 )
                                 categoryItemScreen(

@@ -61,8 +61,9 @@ object NetworkModule {
         return Retrofit
             .Builder()
             .baseUrl(Constants.API_BASE_URL)
-            .addConverterFactory(json.asConverterFactory("application/json; charset=utf-8".toMediaType()))
-            .client(httpClient)
+            .addConverterFactory(
+                json.asConverterFactory("application/json; charset=utf-8".toMediaType()),
+            ).client(httpClient)
             .build()
     }
 

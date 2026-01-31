@@ -39,8 +39,10 @@ class CategoryRepository
         private val apiErrorHandler: ApiErrorHandler,
     ) : ICategoryRepository {
         companion object {
-            private const val ERR_MSG_LOAD_YEARS = "Unable to load years at this time.  Please try again later."
-            private const val ERR_MSG_LOAD_CATEGORIES = "Unable to load categories at this time.  Please try again later."
+            private const val ERR_MSG_LOAD_YEARS =
+                "Unable to load years at this time.  Please try again later."
+            private const val ERR_MSG_LOAD_CATEGORIES =
+                "Unable to load categories at this time.  Please try again later."
             private const val ERR_MSG_LOAD_MEDIA =
                 "Unable to load media for the category at this time.  Please try again later."
         }
@@ -216,7 +218,9 @@ class CategoryRepository
                         if (categories.isEmpty()) {
                             emit(ExternalCallStatus.Success(emptyList()))
                         } else {
-                            val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
+                            val dbCategories = categories.map { apiCat ->
+                                apiCat.toDatabaseCategory()
+                            }
                             val dbMediaFiles = prepareMediaFilesForDatabase(categories)
 
                             db.withTransaction {
@@ -250,7 +254,9 @@ class CategoryRepository
                         if (categories.isEmpty()) {
                             emit(ExternalCallStatus.Success(emptyList()))
                         } else {
-                            val dbCategories = categories.map { apiCat -> apiCat.toDatabaseCategory() }
+                            val dbCategories = categories.map { apiCat ->
+                                apiCat.toDatabaseCategory()
+                            }
                             val dbMediaFiles = prepareMediaFilesForDatabase(categories)
                             val allYears = yearDao
                                 .getYears()
@@ -268,7 +274,11 @@ class CategoryRepository
                                 yearDao.upsert(*newYears.toTypedArray())
                             }
 
-                            emit(ExternalCallStatus.Success(categories.map { it.toDomainCategory() }))
+                            emit(
+                                ExternalCallStatus.Success(
+                                    categories.map { it.toDomainCategory() },
+                                ),
+                            )
                         }
                     }
                 }

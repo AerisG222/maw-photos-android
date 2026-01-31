@@ -12,7 +12,13 @@ class CategoryApiClient
     ) : BaseApiClient() {
         private val _categoryApi: CategoryApi by lazy { retrofit.create(CategoryApi::class.java) }
 
-        suspend fun getYears(): ApiResult<List<Int>> = makeApiCall(::getYears.name, suspend { _categoryApi.getYears() })
+        suspend fun getYears(): ApiResult<List<Int>> =
+            makeApiCall(
+                ::getYears.name,
+                suspend {
+                    _categoryApi.getYears()
+                },
+            )
 
         suspend fun getCategoriesForYear(year: Int): ApiResult<List<Category>> =
             makeApiCall(

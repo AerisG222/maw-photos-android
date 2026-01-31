@@ -73,7 +73,12 @@ fun UploadScreen(
     }
 
     val gridState = rememberMediaGridState(
-        gridItems = files.mapIndexed { id, file -> MediaGridItem(Uuid.random(), file.path, false, file) },
+        gridItems = files.mapIndexed {
+            id,
+            file,
+            ->
+            MediaGridItem(Uuid.random(), file.path, false, file)
+        },
         thumbnailSize = GridThumbnailSize.Medium,
         onSelectGridItem = { },
     )

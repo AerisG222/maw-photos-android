@@ -19,5 +19,10 @@ class ConfigApiClient
             )
 
         suspend fun getScales(): ApiResult<List<Scale>> =
-            makeApiCall(::getScales.name, suspend { _configApi.getScales() })
+            makeApiCall(
+                ::getScales.name,
+                suspend {
+                    _configApi.getScales()
+                },
+            )
     }

@@ -87,7 +87,11 @@ class UploadWorker
 
             val title = if (wasSuccessful) "Media Uploaded!" else "Upload Failed"
             val msg =
-                if (wasSuccessful) "File uploaded." else "File failed to upload after multiple attempts.  Please try again later."
+                if (wasSuccessful) {
+                    "File uploaded."
+                } else {
+                    "File failed to upload after multiple attempts.  Please try again later."
+                }
 
             val builder =
                 NotificationCompat

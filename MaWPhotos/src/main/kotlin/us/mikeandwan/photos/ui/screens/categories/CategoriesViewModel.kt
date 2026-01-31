@@ -217,7 +217,9 @@ class CategoriesViewModel
                                 Timber.e(it.message)
                                 Timber.e(it.cause)
 
-                                errorRepository.showThenClearError("There was an error loading categories")
+                                errorRepository.showThenClearError(
+                                    "There was an error loading categories",
+                                )
                             }
                         }
                     }.catch { e -> Timber.e(e) }

@@ -17,7 +17,8 @@ subprojects {
         kotlin {
             target("**/*.kt")
             targetExclude("${layout.buildDirectory}/**/*.kt")
-            ktlint()
+            // Use ktlint version from the version catalog (gradle/libs.versions.toml)
+            ktlint(libs.versions.ktlint.get())
             trimTrailingWhitespace()
             leadingTabsToSpaces(4)
             endWithNewline()
@@ -26,7 +27,8 @@ subprojects {
         kotlinGradle {
             target("**/*.gradle.kts")
             targetExclude("${layout.buildDirectory}/**/*.kt")
-            ktlint()
+            // Use ktlint for Kotlin Gradle files with the catalog version as well
+            ktlint(libs.versions.ktlint.get())
             trimTrailingWhitespace()
             endWithNewline()
         }

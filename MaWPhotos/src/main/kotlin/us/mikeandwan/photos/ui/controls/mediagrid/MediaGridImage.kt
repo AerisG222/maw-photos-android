@@ -42,7 +42,9 @@ fun <T> MediaGridImage(
         if (item.showVideoBadge) {
             AsyncImage(
                 model = R.drawable.mdi_video,
-                contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
+                contentDescription = stringResource(
+                    id = R.string.li_category_thumbnail_description,
+                ),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                 modifier = modifier
                     .align(Alignment.TopStart)
