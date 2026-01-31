@@ -1,17 +1,12 @@
 package us.mikeandwan.photos.domain
 
 import androidx.room.withTransaction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import timber.log.Timber
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.ScaleDao

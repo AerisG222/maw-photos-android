@@ -40,20 +40,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        jvmToolchain(17)
-
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
-            freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
-        }
-    }
-
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
-
     // https://developer.android.com/training/data-storage/room/migrating-db-versions#kotlin_2
     sourceSets {
         // Adds exported schema location as test app assets.
@@ -110,6 +96,20 @@ android {
             excludes += listOf("META-INF/LICENSE", "META-INF/NOTICE")
         }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
+
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
+        freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
+    }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
