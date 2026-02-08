@@ -10,17 +10,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.datasource.HttpDataSource
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
-import kotlin.reflect.typeOf
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.MediaListState
-import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
 import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
@@ -40,20 +37,17 @@ import us.mikeandwan.photos.ui.shareMedia
 @Serializable
 data class RandomItemRoute(
     val mediaId: Uuid,
-)
+) : NavKey
 
-fun NavGraphBuilder.randomItemScreen(
+fun EntryProviderScope<NavKey>.randomItemScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToYear: (Int) -> Unit,
     navigateToCategory: (Category) -> Unit,
     navigateToLogin: () -> Unit,
 ) {
-    composable<RandomItemRoute>(
-        typeMap = mapOf(typeOf<Uuid>() to UuidNavType),
-    ) { backStackEntry ->
+    entry<RandomItemRoute> { args ->
         val vm: RandomItemViewModel = hiltViewModel()
-        val args = backStackEntry.toRoute<RandomItemRoute>()
 
         val isAuthorized by vm.isAuthorized.collectAsStateWithLifecycle()
         val category by vm.category.collectAsStateWithLifecycle()

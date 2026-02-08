@@ -5,15 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
-import kotlin.reflect.typeOf
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
@@ -22,19 +19,16 @@ import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 @Serializable
 data class CategoryRoute(
     val categoryId: Uuid,
-)
+) : NavKey
 
-fun NavGraphBuilder.categoryScreen(
+fun EntryProviderScope<NavKey>.categoryScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToMedia: (Media) -> Unit,
     navigateToLogin: () -> Unit,
 ) {
-    composable<CategoryRoute>(
-        typeMap = mapOf(typeOf<Uuid>() to UuidNavType),
-    ) { backStackEntry ->
+    entry<CategoryRoute> { args ->
         val vm: CategoryViewModel = hiltViewModel()
-        val args = backStackEntry.toRoute<CategoryRoute>()
         val state by vm.state.collectAsStateWithLifecycle()
 
         LaunchedEffect(args.categoryId) {

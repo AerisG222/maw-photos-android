@@ -7,6 +7,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation3.runtime.NavKey
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
@@ -73,7 +74,7 @@ class MainViewModel
         private val _drawerState = MutableStateFlow(DrawerValue.Closed)
         val drawerState = _drawerState.asStateFlow()
 
-        private val _signalNavigate = MutableStateFlow<Any?>(null)
+        private val _signalNavigate = MutableStateFlow<NavKey?>(null)
         val signalNavigate = _signalNavigate.asStateFlow()
 
         val errorsToDisplay = errorRepository.error
@@ -96,11 +97,11 @@ class MainViewModel
             _drawerState.value = DrawerValue.Closed
         }
 
-        fun navigate(destination: Any) {
+        fun navigate(destination: NavKey?) {
             _signalNavigate.value = destination
         }
 
-        fun navigateAndCloseDrawer(destination: Any) {
+        fun navigateAndCloseDrawer(destination: NavKey?) {
             closeDrawer()
             navigate(destination)
         }

@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
@@ -36,14 +36,14 @@ import us.mikeandwan.photos.ui.controls.logo.Logo
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 
 @Serializable
-object LoginRoute
+object LoginRoute : NavKey
 
-fun NavGraphBuilder.loginScreen(
+fun EntryProviderScope<NavKey>.loginScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateAfterLogin: () -> Unit,
 ) {
-    composable<LoginRoute> {
+    entry<LoginRoute> {
         val vm: LoginViewModel = hiltViewModel()
         val state by vm.state.collectAsStateWithLifecycle()
         val context = LocalContext.current

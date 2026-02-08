@@ -27,9 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.scene.DialogSceneStrategy
+import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
@@ -39,6 +39,9 @@ import us.mikeandwan.photos.authorization.AuthStatus
 import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.controls.navigation.NavigationRail
 import us.mikeandwan.photos.ui.controls.topbar.TopBar
+import us.mikeandwan.photos.ui.navigation.Navigator
+import us.mikeandwan.photos.ui.navigation.rememberNavigationState
+import us.mikeandwan.photos.ui.navigation.toEntries
 import us.mikeandwan.photos.ui.screens.about.AboutRoute
 import us.mikeandwan.photos.ui.screens.about.aboutScreen
 import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
@@ -73,7 +76,25 @@ class MainActivity : ComponentActivity() {
         setContent {
             val vm: MainViewModel = hiltViewModel()
 
-            val navController = rememberNavController()
+            val topLevelRoutes = remember {
+                setOf(
+                    CategoriesRoute(null),
+                    RandomRoute,
+                    SearchRoute(),
+                    SettingsRoute,
+                    UploadRoute,
+                    AboutRoute,
+                    LoginRoute,
+                    InactiveUserRoute,
+                )
+            }
+
+            val navigationState = rememberNavigationState(
+                startRoute = CategoriesRoute(null),
+                topLevelRoutes = topLevelRoutes,
+            )
+            val navigator = remember { Navigator(navigationState) }
+
             val coroutineScope = rememberCoroutineScope()
             val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
             val snackbarHostState = remember { SnackbarHostState() }
@@ -89,7 +110,7 @@ class MainActivity : ComponentActivity() {
             val activeYear by vm.activeYear.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
-                handleIntent(activity.intent ?: Intent(), vm, navController)
+                handleIntent(activity.intent ?: Intent(), vm, navigator)
             }
 
             LaunchedEffect(Unit) {
@@ -106,7 +127,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 vm.signalNavigate.collect { route ->
                     if (route != null) {
-                        navController.navigate(route)
+                        navigator.navigate(route)
                     }
                 }
             }
@@ -150,6 +171,78 @@ class MainActivity : ComponentActivity() {
                         vm.navigate(CategoriesRoute(null))
                     }
                 }.collect { }
+            }
+
+            val entryProvider = entryProvider {
+                loginScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateAfterLogin = {
+                        // this is now handled by monitoring user status
+                    },
+                )
+                inactiveUserScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                    navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) },
+                )
+                aboutScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                )
+                categoriesScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    setActiveYear = vm::setActiveYear,
+                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                    navigateToCategories = { vm.navigate(CategoriesRoute(it)) },
+                )
+                categoryScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToMedia = {
+                        vm.navigate(
+                            CategoryItemRoute(it.categoryId, it.id),
+                        )
+                    },
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
+                categoryItemScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
+                randomScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToMedia = { vm.navigate(RandomItemRoute(it)) },
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
+                randomItemScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToYear = { vm.navigate(CategoriesRoute(it)) },
+                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
+                searchScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
+                settingsScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
+                uploadScreen(
+                    updateTopBar = vm::updateTopBar,
+                    setNavArea = vm::setNavArea,
+                    navigateToLogin = { vm.navigate(LoginRoute) },
+                )
             }
 
             AppTheme {
@@ -201,10 +294,11 @@ class MainActivity : ComponentActivity() {
                                     state = topBarState,
                                     onExpandNavMenu = { vm.openDrawer() },
                                     onBackClicked = {
-                                        if (navController.visibleEntries.value.size > 1) {
-                                            navController.navigateUp()
+                                        val currentStack = navigationState.backStacks[navigationState.topLevelRoute]
+                                        if (currentStack != null && currentStack.size > 1) {
+                                            navigator.goBack()
                                         } else {
-                                            navController.navigate(CategoriesRoute(null))
+                                            navigator.navigate(CategoriesRoute(null))
                                         }
                                     },
                                     onSearch = { vm.navigate(SearchRoute(it)) },
@@ -227,80 +321,11 @@ class MainActivity : ComponentActivity() {
                                 .padding(innerPadding)
                                 .fillMaxSize(),
                         ) {
-                            NavHost(
-                                navController = navController,
-                                startDestination = CategoriesRoute(null),
-                            ) {
-                                loginScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateAfterLogin = {
-                                        // this is now handled by monitoring user status
-                                    },
-                                )
-                                inactiveUserScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                    navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) },
-                                )
-                                aboutScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                )
-                                categoriesScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    setActiveYear = vm::setActiveYear,
-                                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                    navigateToCategories = { vm.navigate(CategoriesRoute(it)) },
-                                )
-                                categoryScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToMedia = {
-                                        vm.navigate(
-                                            CategoryItemRoute(it.categoryId, it.id),
-                                        )
-                                    },
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                                categoryItemScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                                randomScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToMedia = { vm.navigate(RandomItemRoute(it)) },
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                                randomItemScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToYear = { vm.navigate(CategoriesRoute(it)) },
-                                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                                searchScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                                settingsScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                                uploadScreen(
-                                    updateTopBar = vm::updateTopBar,
-                                    setNavArea = vm::setNavArea,
-                                    navigateToLogin = { vm.navigate(LoginRoute) },
-                                )
-                            }
+                            NavDisplay(
+                                entries = navigationState.toEntries(entryProvider),
+                                onBack = { navigator.goBack() },
+                                sceneStrategy = remember { DialogSceneStrategy() },
+                            )
                         }
                     }
                 }
@@ -311,17 +336,17 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(
         intent: Intent,
         vm: MainViewModel,
-        navController: NavController,
+        navigator: Navigator,
     ) {
         when (intent.action) {
             Intent.ACTION_SEND -> {
                 vm.handleSendSingle(intent)
-                navController.navigate(UploadRoute)
+                navigator.navigate(UploadRoute)
             }
 
             Intent.ACTION_SEND_MULTIPLE -> {
                 vm.handleSendMultiple(intent)
-                navController.navigate(UploadRoute)
+                navigator.navigate(UploadRoute)
             }
         }
     }

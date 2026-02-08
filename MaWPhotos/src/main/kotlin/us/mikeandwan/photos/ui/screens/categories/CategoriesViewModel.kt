@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -58,18 +61,26 @@ class CategoriesViewModel
         private val configRepository: ConfigRepository,
     ) : ViewModel() {
         private val _year = MutableStateFlow<Int?>(null)
-        private val _categories = MutableStateFlow<List<Category>>(emptyList())
         private val _isRefreshing = MutableStateFlow(false)
         private val _preferences = categoryPreferenceRepository
             .getCategoryPreference()
             .stateIn(viewModelScope, WhileSubscribed(5000), CategoryPreference())
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private val categories = _year.flatMapLatest { year ->
+            if (year != null) {
+                categoryRepository.getCategories(year)
+            } else {
+                flowOf(emptyList())
+            }
+        }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
         init {
             viewModelScope.launch {
                 categoryRepository
                     .getYears()
                     .onEach { years ->
-                        if (_year.value == null && !years.isEmpty()) {
+                        if (_year.value == null && years.isNotEmpty()) {
                             setYear(years.max())
                         }
                     }.collect { }
@@ -79,17 +90,6 @@ class CategoriesViewModel
                 configRepository
                     .getScales()
                     .collect { }
-            }
-
-            viewModelScope.launch {
-                _year
-                    .onEach {
-                        if (it != null) {
-                            categoryRepository
-                                .loadCategories(it)
-                                .collect { }
-                        }
-                    }.collect { }
             }
         }
 
@@ -101,13 +101,11 @@ class CategoriesViewModel
             _isRefreshing.value = false
         }
 
-        private var isFetchingCategories = false
-
         val state = combine(
             authGuard.status,
             categoriesLoadedGuard.status,
             categoryRepository.getYears(),
-            _categories,
+            categories,
             _year,
             _isRefreshing,
             _preferences,
@@ -124,6 +122,7 @@ class CategoriesViewModel
             when (authStatus) {
                 is GuardStatus.NotInitialized -> {
                     authGuard.initializeGuard()
+                    CategoriesState.Unknown
                 }
 
                 is GuardStatus.Failed -> {
@@ -132,7 +131,7 @@ class CategoriesViewModel
 
                 is GuardStatus.Passed -> {
                     if (year == null) {
-                        if (!years.isEmpty()) {
+                        if (years.isNotEmpty()) {
                             // this happens when trying to navigate back via swipe
                             setYear(years.max())
                         }
@@ -142,6 +141,7 @@ class CategoriesViewModel
                         when (categoriesStatus) {
                             is GuardStatus.NotInitialized -> {
                                 categoriesLoadedGuard.initializeGuard()
+                                CategoriesState.Unknown
                             }
 
                             is GuardStatus.Failed -> {
@@ -159,10 +159,6 @@ class CategoriesViewModel
                                     }
 
                                     categories.isEmpty() -> {
-                                        if (!isFetchingCategories) {
-                                            isFetchingCategories = true
-                                            loadCategories(year)
-                                        }
                                         CategoriesState.Unknown
                                     }
 
@@ -224,14 +220,6 @@ class CategoriesViewModel
                         }
                     }.catch { e -> Timber.e(e) }
                     .launchIn(this)
-            }
-        }
-
-        private fun loadCategories(year: Int) {
-            viewModelScope.launch {
-                categoryRepository
-                    .getCategories(year)
-                    .collect { cats -> _categories.value = cats }
             }
         }
     }

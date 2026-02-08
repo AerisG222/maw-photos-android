@@ -14,8 +14,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import java.io.File
 import kotlin.uuid.Uuid
@@ -29,14 +29,14 @@ import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 
 @Serializable
-object UploadRoute
+object UploadRoute : NavKey
 
-fun NavGraphBuilder.uploadScreen(
+fun EntryProviderScope<NavKey>.uploadScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
 ) {
-    composable<UploadRoute> {
+    entry<UploadRoute> {
         val vm: UploadViewModel = hiltViewModel()
         val files by vm.filesToUpload.collectAsStateWithLifecycle()
         val isAuthorized by vm.isAuthorized.collectAsStateWithLifecycle()

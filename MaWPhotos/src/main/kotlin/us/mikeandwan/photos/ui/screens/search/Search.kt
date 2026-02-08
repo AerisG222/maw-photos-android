@@ -21,9 +21,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
@@ -40,17 +39,16 @@ import us.mikeandwan.photos.ui.toMediaGridItem
 @Serializable
 data class SearchRoute(
     val searchTerm: String? = null,
-)
+) : NavKey
 
-fun NavGraphBuilder.searchScreen(
+fun EntryProviderScope<NavKey>.searchScreen(
     navigateToCategory: (Category) -> Unit,
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
 ) {
-    composable<SearchRoute> { backStackEntry ->
+    entry<SearchRoute> { args ->
         val vm: SearchViewModel = hiltViewModel()
-        val args = backStackEntry.toRoute<SearchRoute>()
 
         val isAuthorized by vm.isAuthorized.collectAsStateWithLifecycle()
         val activeTerm by vm.activeTerm.collectAsStateWithLifecycle()

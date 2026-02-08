@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
@@ -43,14 +43,14 @@ import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 
 @Serializable
-object SettingsRoute
+object SettingsRoute : NavKey
 
-fun NavGraphBuilder.settingsScreen(
+fun EntryProviderScope<NavKey>.settingsScreen(
     navigateToLogin: () -> Unit,
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
 ) {
-    composable<SettingsRoute> {
+    entry<SettingsRoute> {
         val context = LocalContext.current
 
         val viewModel: SettingsViewModel = hiltViewModel()

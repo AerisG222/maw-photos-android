@@ -30,8 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import kotlinx.serialization.Serializable
 import timber.log.Timber
@@ -41,15 +41,15 @@ import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 
 @Serializable
-object InactiveUserRoute
+object InactiveUserRoute : NavKey
 
-fun NavGraphBuilder.inactiveUserScreen(
+fun EntryProviderScope<NavKey>.inactiveUserScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
     navigateAfterActivated: () -> Unit,
 ) {
-    composable<InactiveUserRoute> {
+    entry<InactiveUserRoute> {
         val vm: InactiveUserViewModel = hiltViewModel()
         val userStatus by vm.userStatus.collectAsStateWithLifecycle()
         val context = LocalContext.current

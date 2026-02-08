@@ -9,9 +9,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
@@ -27,9 +26,9 @@ import us.mikeandwan.photos.ui.toMediaGridItem
 @Serializable
 data class CategoriesRoute(
     val year: Int?,
-)
+) : NavKey
 
-fun NavGraphBuilder.categoriesScreen(
+fun EntryProviderScope<NavKey>.categoriesScreen(
     navigateToCategory: (Category) -> Unit,
     updateTopBar: (TopBarState) -> Unit,
     setActiveYear: (Int) -> Unit,
@@ -37,9 +36,8 @@ fun NavGraphBuilder.categoriesScreen(
     navigateToLogin: () -> Unit,
     navigateToCategories: (Int) -> Unit,
 ) {
-    composable<CategoriesRoute> { backStackEntry ->
+    entry<CategoriesRoute> { args ->
         val vm: CategoriesViewModel = hiltViewModel()
-        val args = backStackEntry.toRoute<CategoriesRoute>()
         val state by vm.state.collectAsStateWithLifecycle()
 
         LaunchedEffect(args.year) {

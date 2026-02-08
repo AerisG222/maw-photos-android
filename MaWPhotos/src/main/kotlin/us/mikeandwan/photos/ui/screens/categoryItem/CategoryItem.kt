@@ -10,16 +10,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.datasource.HttpDataSource
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
-import kotlin.reflect.typeOf
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.MediaListState
-import us.mikeandwan.photos.ui.UuidNavType
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
 import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
@@ -39,18 +36,15 @@ import us.mikeandwan.photos.ui.shareMedia
 data class CategoryItemRoute(
     val categoryId: Uuid,
     val mediaId: Uuid,
-)
+) : NavKey
 
-fun NavGraphBuilder.categoryItemScreen(
+fun EntryProviderScope<NavKey>.categoryItemScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
 ) {
-    composable<CategoryItemRoute>(
-        typeMap = mapOf(typeOf<Uuid>() to UuidNavType),
-    ) { backStackEntry ->
+    entry<CategoryItemRoute> { args ->
         val vm: CategoryItemViewModel = hiltViewModel()
-        val args = backStackEntry.toRoute<CategoryItemRoute>()
 
         val isAuthorized by vm.isAuthorized.collectAsStateWithLifecycle()
         val category by vm.category.collectAsStateWithLifecycle()

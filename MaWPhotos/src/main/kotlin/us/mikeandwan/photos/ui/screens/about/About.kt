@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
 import kotlinx.serialization.Serializable
@@ -34,13 +34,13 @@ import us.mikeandwan.photos.ui.controls.logo.Logo
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 
 @Serializable
-object AboutRoute
+object AboutRoute : NavKey
 
-fun NavGraphBuilder.aboutScreen(
+fun EntryProviderScope<NavKey>.aboutScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
 ) {
-    composable<AboutRoute> {
+    entry<AboutRoute> {
         val vm: AboutViewModel = hiltViewModel()
         val state by vm.state.collectAsStateWithLifecycle()
 

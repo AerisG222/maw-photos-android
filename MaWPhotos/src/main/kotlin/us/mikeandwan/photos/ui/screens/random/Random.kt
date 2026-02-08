@@ -6,8 +6,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
@@ -20,15 +20,15 @@ import us.mikeandwan.photos.ui.controls.topbar.TopBarState
 import us.mikeandwan.photos.ui.toMediaGridItem
 
 @Serializable
-object RandomRoute
+object RandomRoute : NavKey
 
-fun NavGraphBuilder.randomScreen(
+fun EntryProviderScope<NavKey>.randomScreen(
     navigateToMedia: (Uuid) -> Unit,
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToLogin: () -> Unit,
 ) {
-    composable<RandomRoute> {
+    entry<RandomRoute> {
         val vm: RandomViewModel = hiltViewModel()
 
         val isAuthorized by vm.isAuthorized.collectAsStateWithLifecycle()
