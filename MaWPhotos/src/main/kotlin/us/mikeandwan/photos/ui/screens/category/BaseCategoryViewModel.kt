@@ -3,10 +3,11 @@ package us.mikeandwan.photos.ui.screens.category
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.BuildConfig
@@ -24,6 +25,9 @@ abstract class BaseCategoryViewModel(
     private val _media = MutableStateFlow<List<Media>>(emptyList())
     val media = _media.asStateFlow()
 
+    private var categoryJob: Job? = null
+    private var mediaJob: Job? = null
+
     fun loadCategory(categoryId: Uuid) {
         if (category.value?.id == categoryId) {
             return
@@ -32,7 +36,8 @@ abstract class BaseCategoryViewModel(
         _category.value = null
         _media.value = emptyList()
 
-        viewModelScope.launch {
+        categoryJob?.cancel()
+        categoryJob = viewModelScope.launch {
             if (BuildConfig.DEBUG) {
                 delay(500)
             }
@@ -44,22 +49,19 @@ abstract class BaseCategoryViewModel(
     }
 
     fun loadMedia(categoryId: Uuid) {
-        if (
-            category.value?.id == categoryId &&
-            media.value.isNotEmpty()
-        ) {
+        if (category.value?.id == categoryId && media.value.isNotEmpty()) {
             return
         }
 
-        viewModelScope.launch {
+        mediaJob?.cancel()
+        mediaJob = viewModelScope.launch {
             if (BuildConfig.DEBUG) {
                 delay(1000)
             }
 
             categoryRepository
                 .getMedia(categoryId)
-                .filter { it is ExternalCallStatus.Success }
-                .map { it as ExternalCallStatus.Success }
+                .filterIsInstance<ExternalCallStatus.Success<List<Media>>>()
                 .map { it.result }
                 .collect { _media.value = it }
         }

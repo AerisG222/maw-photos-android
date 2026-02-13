@@ -1,13 +1,20 @@
 package us.mikeandwan.photos.ui.controls.mediagrid
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.Dp
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 
+@Immutable
 data class MediaGridState<T>(
     val gridItems: List<MediaGridItem<T>>,
     val thumbnailSize: GridThumbnailSize,
     val onSelectGridItem: (MediaGridItem<T>) -> Unit,
-)
+) {
+    val size: Dp
+        get() = getSize(thumbnailSize)
+}
 
 @Composable
 fun <T> rememberMediaGridState(
@@ -15,8 +22,10 @@ fun <T> rememberMediaGridState(
     thumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
     onSelectGridItem: (MediaGridItem<T>) -> Unit = {},
 ): MediaGridState<T> =
-    MediaGridState(
-        gridItems,
-        thumbnailSize,
-        onSelectGridItem,
-    )
+    remember(gridItems, thumbnailSize, onSelectGridItem) {
+        MediaGridState(
+            gridItems,
+            thumbnailSize,
+            onSelectGridItem,
+        )
+    }

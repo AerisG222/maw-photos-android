@@ -5,18 +5,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 
 @Composable
 fun <T> MediaGrid(state: MediaGridState<T>) {
-    val size = remember(state.thumbnailSize) { getSize(state.thumbnailSize) }
-
-    if (size > 0.dp) {
+    if (state.size > 0.dp) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = size),
+            columns = GridCells.Adaptive(minSize = state.size),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
@@ -26,7 +23,7 @@ fun <T> MediaGrid(state: MediaGridState<T>) {
             ) {
                 MediaGridImage(
                     item = it,
-                    size = size,
+                    size = state.size,
                     onSelectImage = { item -> state.onSelectGridItem(item) },
                 )
             }
@@ -34,7 +31,7 @@ fun <T> MediaGrid(state: MediaGridState<T>) {
     }
 }
 
-fun getSize(size: GridThumbnailSize): Dp =
+internal fun getSize(size: GridThumbnailSize): Dp =
     when (size) {
         GridThumbnailSize.ExtraSmall -> 60.dp
         GridThumbnailSize.Small -> 90.dp

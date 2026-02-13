@@ -43,6 +43,13 @@ fun EntryProviderScope<NavKey>.categoryScreen(
             }
 
             is CategoryState.Loading -> {
+                LaunchedEffect(Unit) {
+                    updateTopBar(
+                        TopBarState().copy(
+                            title = "",
+                        ),
+                    )
+                }
                 Loading()
             }
 
