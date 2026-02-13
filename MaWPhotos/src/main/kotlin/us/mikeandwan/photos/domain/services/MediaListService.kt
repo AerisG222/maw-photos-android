@@ -38,7 +38,7 @@ class MediaListService
         private val _slideshowJob = PeriodicJob { moveNext() }
 
         private val _resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
-        val isSlideshowPlaying = _slideshowJob.doJob
+        val isSlideshowPlaying = _slideshowJob.isRunning
 
         private val _showDetailSheet = MutableStateFlow(false)
         val showDetailSheet = _showDetailSheet.asStateFlow()
@@ -66,7 +66,7 @@ class MediaListService
         }
 
         fun toggleSlideshow() {
-            if (_slideshowJob.doJob.value) {
+            if (_slideshowJob.isRunning.value) {
                 stopSlideshow()
             } else {
                 startSlideshow()

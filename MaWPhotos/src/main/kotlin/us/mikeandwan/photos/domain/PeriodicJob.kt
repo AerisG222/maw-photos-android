@@ -9,8 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -19,12 +18,12 @@ class PeriodicJob<T>(
     intervalMillis: Long = 3000,
     private val func: () -> Flow<T>,
 ) {
-    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private var nextJob: Job? = null
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var job: Job? = null
     private val _doJob = MutableStateFlow(doJob)
     private val _intervalMillis = MutableStateFlow(intervalMillis)
 
-    val doJob = _doJob.asStateFlow()
+    val isRunning = _doJob.asStateFlow()
 
     fun start() {
         _doJob.value = true
@@ -38,40 +37,21 @@ class PeriodicJob<T>(
         _intervalMillis.value = millis
     }
 
-    private fun cancelNextJob() {
-        nextJob?.cancel()
-        nextJob = null
-    }
-
-    private fun scheduleNextJob(
-        scope: CoroutineScope,
-        interval: Long,
-    ) {
-        nextJob = scope.launch {
-            while (isActive) {
-                delay(interval)
-                func().collect { }
-            }
-        }
-    }
-
     init {
         scope.launch {
-            combine(
-                _doJob,
-                _intervalMillis,
-            ) { doJob, interval -> Pair(doJob, interval) }
-                .onEach { (doJob, interval) ->
-                    if (doJob) {
-                        if (nextJob != null) {
-                            cancelNextJob()
+            combine(_doJob, _intervalMillis) { run, interval -> run to interval }
+                .distinctUntilChanged()
+                .collect { (run, interval) ->
+                    job?.cancel()
+                    if (run) {
+                        job = launch {
+                            while (isActive) {
+                                delay(interval)
+                                func().collect { }
+                            }
                         }
-
-                        scheduleNextJob(this, interval)
-                    } else {
-                        cancelNextJob()
                     }
-                }.launchIn(this)
+                }
         }
     }
 }

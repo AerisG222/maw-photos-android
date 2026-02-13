@@ -5,16 +5,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.RandomPreference
 
 class RandomMediaRepository
     @Inject
@@ -29,11 +26,6 @@ class RandomMediaRepository
 
         private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         private var periodicJob: PeriodicJob<ExternalCallStatus<List<Media>>>
-
-        private val slideshowDurationInMillis = randomPreferenceRepository
-            .getSlideshowIntervalSeconds()
-            .map { it * 1000L }
-            .stateIn(scope, WhileSubscribed(5000), RandomPreference().slideshowIntervalSeconds * 1000L)
 
         private val _media = MutableStateFlow(emptyList<Media>())
         val media = _media.asStateFlow()
@@ -76,7 +68,13 @@ class RandomMediaRepository
         init {
             periodicJob = PeriodicJob(
                 false,
-                slideshowDurationInMillis.value,
+                3000L, // Initial default
             ) { fetch(1) }
+
+            scope.launch {
+                randomPreferenceRepository.getSlideshowIntervalSeconds().collect {
+                    periodicJob.setIntervalMillis(it * 1000L)
+                }
+            }
         }
     }
