@@ -1,7 +1,6 @@
 package us.mikeandwan.photos.api
 
 import java.io.IOException
-import java.util.Locale
 import retrofit2.Response
 
 sealed class ApiResult<out T> {
@@ -29,7 +28,7 @@ sealed class ApiResult<out T> {
                 return if (result == null) {
                     Empty
                 } else {
-                    Success<T>(result)
+                    Success(result)
                 }
             } else {
                 val body = response.errorBody()
@@ -43,12 +42,7 @@ sealed class ApiResult<out T> {
                     }
                 }
 
-                val error = String.format(
-                    Locale.ENGLISH,
-                    "api error response: %d | %s",
-                    response.code(),
-                    message,
-                )
+                val error = "api error response: ${response.code()} | $message"
 
                 return Error(error, response.code())
             }

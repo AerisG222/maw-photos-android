@@ -1,7 +1,7 @@
 package us.mikeandwan.photos.api
 
 import kotlin.uuid.Uuid
-import okhttp3.ResponseBody
+import kotlinx.serialization.json.JsonElement
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -12,7 +12,7 @@ internal interface MediaApi {
     @GET("media/{mediaId}/metadata")
     suspend fun getExifData(
         @Path("mediaId") mediaId: Uuid,
-    ): ResponseBody
+    ): Response<JsonElement>
 
     @GET("media/random/{count}")
     suspend fun getRandomMedia(

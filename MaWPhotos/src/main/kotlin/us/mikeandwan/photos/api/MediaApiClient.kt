@@ -2,7 +2,6 @@ package us.mikeandwan.photos.api
 
 import javax.inject.Inject
 import kotlin.uuid.Uuid
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import retrofit2.Retrofit
 
@@ -12,22 +11,14 @@ class MediaApiClient
         retrofit: Retrofit,
     ) : BaseApiClient() {
         private val _mediaApi: MediaApi by lazy { retrofit.create(MediaApi::class.java) }
-        private val _json: Json by lazy { Json { ignoreUnknownKeys = true } }
 
-        suspend fun getExifData(mediaId: Uuid): ApiResult<JsonElement> {
-            try {
-                val response = _mediaApi.getExifData(mediaId)
-                var body = response.string()
-
-                if (body.isEmpty()) {
-                    body = "{}"
-                }
-
-                return ApiResult.Success(_json.parseToJsonElement(body))
-            } catch (e: Exception) {
-                return ApiResult.Error("Exif unavailable.")
-            }
-        }
+        suspend fun getExifData(mediaId: Uuid): ApiResult<JsonElement> =
+            makeApiCall(
+                ::getExifData.name,
+                suspend {
+                    _mediaApi.getExifData(mediaId)
+                },
+            )
 
         suspend fun getRandomMedia(count: Int): ApiResult<List<Media>> =
             makeApiCall(
