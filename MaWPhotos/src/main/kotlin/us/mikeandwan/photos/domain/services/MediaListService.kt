@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
@@ -83,7 +85,6 @@ class MediaListService
 
         fun toggleShowDetails() {
             if (_showDetailSheet.value) {
-                // detail sheet to be hidden
                 if (_resumeSlideshowAfterShowingDetails.value) {
                     _slideshowJob.start()
                 }
@@ -102,25 +103,27 @@ class MediaListService
         ) {
             scope.launch {
                 val file = fileRepository.savePhotoToShare(drawable, filename)
-
                 onComplete(file)
             }
         }
-
-        // TODO: pass in media rather than relying on activeMedia?
 
         // FAVORITES
         val isFavorite = mediaFavoriteService.isFavorite
 
         fun setIsFavorite(isFavorite: Boolean) {
-            activeMedia.value?.let {
-                scope.launch {
-                    val resultIsFav = mediaFavoriteService.setIsFavorite(activeMedia.value!!, isFavorite)
-                    val updatedMedia = _media.value.toMutableList()
-                    updatedMedia[activeIndex.value] = activeMedia.value!!.copy(isFavorite = resultIsFav)
-                    _media.value = updatedMedia
+            val currentMedia = activeMedia.value ?: return
+            val currentIndex = activeIndex.value
 
-                    categoryRepository.tryUpdateCache(updatedMedia[activeIndex.value])
+            scope.launch {
+                val resultIsFav = mediaFavoriteService.setIsFavorite(currentMedia, isFavorite)
+
+                // Update the media list safely
+                val updatedMedia = _media.value.toMutableList()
+                if (currentIndex >= 0 && currentIndex < updatedMedia.size && updatedMedia[currentIndex].id == currentMedia.id) {
+                    val updatedItem = currentMedia.copy(isFavorite = resultIsFav)
+                    updatedMedia[currentIndex] = updatedItem
+                    _media.value = updatedMedia
+                    categoryRepository.tryUpdateCache(updatedItem)
                 }
             }
         }
@@ -142,7 +145,7 @@ class MediaListService
         fun fetchComments() {
             activeMedia.value?.let {
                 scope.launch {
-                    mediaCommentService.fetchCommentDetails(activeMedia.value!!)
+                    mediaCommentService.fetchCommentDetails(it)
                 }
             }
         }
@@ -150,7 +153,7 @@ class MediaListService
         fun addComment(comment: String) {
             activeMedia.value?.let {
                 scope.launch {
-                    mediaCommentService.addComment(activeMedia.value!!, comment)
+                    mediaCommentService.addComment(it, comment)
                 }
             }
         }
@@ -159,30 +162,24 @@ class MediaListService
             media: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
         ) {
-            scope.launch {
-                media
-                    .collect { _media.value = it }
-            }
+            media
+                .onEach { _media.value = it }
+                .launchIn(scope)
 
-            scope.launch {
-                activeMedia
-                    .filterNotNull()
-                    .collect { loadCategory(it.categoryId) }
-            }
+            activeMedia
+                .filterNotNull()
+                .onEach { loadCategory(it.categoryId) }
+                .launchIn(scope)
 
-            scope.launch {
-                slideshowDurationInMillis
-                    .collect { _slideshowJob.setIntervalMillis(it) }
-            }
+            slideshowDurationInMillis
+                .onEach { _slideshowJob.setIntervalMillis(it) }
+                .launchIn(scope)
         }
 
         private fun loadCategory(categoryId: Uuid) {
-            if (category.value?.id == categoryId) {
-                return
-            }
+            if (category.value?.id == categoryId) return
 
             _category.value = null
-
             scope.launch {
                 categoryRepository
                     .getCategory(categoryId)
@@ -190,14 +187,12 @@ class MediaListService
             }
         }
 
-        private fun moveNext() =
-            flow<Unit> {
-                val nextIndex = activeIndex.value + 1
-
-                if (nextIndex < _media.value.size) {
-                    setActiveIndex(nextIndex)
-                } else {
-                    stopSlideshow()
-                }
+        private fun moveNext() = flow<Unit> {
+            val nextIndex = activeIndex.value + 1
+            if (nextIndex < _media.value.size) {
+                setActiveIndex(nextIndex)
+            } else {
+                stopSlideshow()
             }
+        }
     }
