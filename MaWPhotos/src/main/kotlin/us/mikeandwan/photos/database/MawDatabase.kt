@@ -23,6 +23,10 @@ import androidx.room.TypeConverters
     Converters::class,
 )
 abstract class MawDatabase : RoomDatabase() {
+    companion object {
+        const val DATABASE_NAME = "us.mikeandwan.photos"
+    }
+
     abstract fun categoryDao(): CategoryDao
 
     abstract fun categoryPreferenceDao(): CategoryPreferenceDao

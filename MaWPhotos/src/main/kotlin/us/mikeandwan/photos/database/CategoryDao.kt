@@ -1,10 +1,9 @@
 package us.mikeandwan.photos.database
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Upsert
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
@@ -42,9 +41,9 @@ abstract class CategoryDao {
     )
     abstract fun getMostRecentModifiedDate(): Flow<Instant?>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     abstract suspend fun upsertCategories(vararg categories: Category)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     abstract suspend fun upsertMediaFiles(vararg mediaFiles: MediaFile)
 }
