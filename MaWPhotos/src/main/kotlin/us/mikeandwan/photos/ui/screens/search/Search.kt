@@ -105,20 +105,21 @@ fun SearchScreen(
     thumbSize: GridThumbnailSize,
     onNavigateToCategory: (Category) -> Unit,
     continueSearch: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     if (results.isEmpty()) {
         AsyncImage(
             model = R.drawable.ic_search,
             contentDescription = stringResource(id = R.string.search_icon_description),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-            modifier = Modifier
+            modifier = modifier
                 .padding(40.dp)
                 .fillMaxSize(),
         )
 
         Row(
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
+            modifier = modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
         ) {
@@ -130,7 +131,7 @@ fun SearchScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,7 +149,7 @@ fun SearchScreen(
                         onSelectGridItem = { onNavigateToCategory(it.data) },
                     )
 
-                    MediaGrid(gridState)
+                    MediaGrid(gridState, modifier = modifier)
                 }
 
                 CategoryDisplayType.List -> {
@@ -156,6 +157,7 @@ fun SearchScreen(
                         categories = results,
                         showYear = true,
                         onSelectCategory = onNavigateToCategory,
+                        modifier = modifier,
                     )
                 }
 
@@ -166,13 +168,13 @@ fun SearchScreen(
         if (results.isNotEmpty()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
+                modifier = modifier
                     .padding(8.dp)
                     .fillMaxWidth(),
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = modifier.fillMaxWidth(),
                 ) {
                     if (hasMore) {
                         Button(onClick = { continueSearch() }) {

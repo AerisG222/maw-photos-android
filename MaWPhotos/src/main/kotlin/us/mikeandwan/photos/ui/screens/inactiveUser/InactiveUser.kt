@@ -86,6 +86,7 @@ fun InactiveUserScreen(
     setNavArea: (NavigationArea) -> Unit,
     requeryStatus: () -> Unit,
     logout: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     BackHandler(enabled = true) {
         // Do nothing on back press
@@ -103,7 +104,7 @@ fun InactiveUserScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         item {

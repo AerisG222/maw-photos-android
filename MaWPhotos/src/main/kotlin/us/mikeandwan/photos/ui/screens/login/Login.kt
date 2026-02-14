@@ -73,6 +73,7 @@ fun LoginScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     login: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val tangerine = FontFamily(Font(R.font.tangerine))
 
@@ -87,7 +88,7 @@ fun LoginScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         item {

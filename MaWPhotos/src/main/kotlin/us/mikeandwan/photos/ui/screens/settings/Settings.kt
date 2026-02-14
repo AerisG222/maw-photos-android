@@ -180,6 +180,7 @@ fun SettingsScreen(
     setSearchDisplayType: (CategoryDisplayType) -> Unit,
     setSearchThumbnailSize: (GridThumbnailSize) -> Unit,
     logout: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val displayTypeList = listOf("Grid", "List")
     val thumbnailSizeList = listOf("ExtraSmall", "Small", "Medium", "Large")
@@ -188,7 +189,7 @@ fun SettingsScreen(
     val dividerModifier = Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {

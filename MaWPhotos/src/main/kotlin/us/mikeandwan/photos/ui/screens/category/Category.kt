@@ -15,6 +15,7 @@ import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
+import androidx.compose.ui.Modifier
 
 @Serializable
 data class CategoryRoute(
@@ -81,6 +82,7 @@ fun CategoryScreen(
     state: CategoryState.Loaded,
     setNavArea: (NavigationArea) -> Unit,
     navigateToMedia: (Media) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
         setNavArea(NavigationArea.Category)
@@ -92,5 +94,5 @@ fun CategoryScreen(
         onSelectGridItem = { navigateToMedia(it.data) },
     )
 
-    MediaGrid(gridState)
+    MediaGrid(gridState, modifier = modifier)
 }

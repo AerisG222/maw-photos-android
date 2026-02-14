@@ -18,11 +18,12 @@ fun SwitchPreference(
     labelStringId: Int,
     isChecked: Boolean,
     onChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp, 0.dp, 16.dp, 8.dp),
     ) {

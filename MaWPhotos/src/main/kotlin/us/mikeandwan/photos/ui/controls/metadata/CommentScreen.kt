@@ -25,7 +25,10 @@ import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.R
 
 @Composable
-fun CommentScreen(commentState: CommentState) {
+fun CommentScreen(
+    commentState: CommentState,
+    modifier: Modifier = Modifier,
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val interactionSource = remember { MutableInteractionSource() }
     val (newComment, setNewComment) = remember { mutableStateOf("") }
@@ -36,48 +39,52 @@ fun CommentScreen(commentState: CommentState) {
         setNewComment("")
     }
 
-    Column(modifier = Modifier.fillMaxHeight()) {
-        CommentTable(comments = commentState.comments) {
-            Row(
-                modifier = Modifier
-                    .padding(8.dp, 8.dp)
-                    .fillMaxWidth(),
-            ) {
-                TextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = newComment,
-                    singleLine = false,
-                    minLines = 3,
-                    maxLines = 3,
-                    interactionSource = interactionSource,
-                    onValueChange = { setNewComment(it) },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { addComment() },
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    ),
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .padding(0.dp, 0.dp, 0.dp, 8.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Button(
-                    onClick = { addComment() },
+    Column(modifier = modifier.fillMaxHeight()) {
+        CommentTable(
+            comments = commentState.comments,
+            modifier = Modifier,
+            footer = {
+                Row(
+                    modifier = Modifier
+                        .padding(8.dp, 8.dp)
+                        .fillMaxWidth(),
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.frg_comment_add_comment),
+                    TextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = newComment,
+                        singleLine = false,
+                        minLines = 3,
+                        maxLines = 3,
+                        interactionSource = interactionSource,
+                        onValueChange = { setNewComment(it) },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { addComment() },
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
                     )
                 }
-            }
-        }
+
+                Row(
+                    modifier = Modifier
+                        .padding(0.dp, 0.dp, 0.dp, 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Button(
+                        onClick = { addComment() },
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.frg_comment_add_comment),
+                        )
+                    }
+                }
+            },
+        )
     }
 }

@@ -28,6 +28,7 @@ fun ButtonBar(
     onToggleSlideshow: () -> Unit,
     onShare: () -> Unit,
     onViewDetails: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val color = MaterialTheme.colorScheme.onSurface
     val slideshowIcon = remember(isSlideshowPlaying) {
@@ -46,7 +47,7 @@ fun ButtonBar(
 
     Row(
         horizontalArrangement = Arrangement.Absolute.SpaceAround,
-        modifier = Modifier
+        modifier = modifier
             .padding(2.dp, 8.dp, 2.dp, 8.dp)
             .fillMaxWidth(),
     ) {

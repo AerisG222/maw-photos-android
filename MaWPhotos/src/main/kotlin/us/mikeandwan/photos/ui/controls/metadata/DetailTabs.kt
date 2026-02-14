@@ -31,6 +31,7 @@ fun DetailTabs(
     activeMedia: Media,
     exifState: ExifState,
     commentState: CommentState,
+    modifier: Modifier = Modifier,
 ) {
     val tabs = listOf(TabIndex.COMMENT, TabIndex.EXIF)
 
@@ -43,7 +44,7 @@ fun DetailTabs(
     val bgActive = ColorFilter.tint(MaterialTheme.colorScheme.primary)
     val bgInactive = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         SecondaryTabRow(
             selectedTabIndex = pagerState.currentPage,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -104,7 +105,7 @@ fun DetailTabs(
                             commentState.fetchComments()
                         }
 
-                        CommentScreen(commentState)
+                        CommentScreen(commentState, modifier = Modifier.fillMaxSize())
                     }
 
                     TabIndex.EXIF -> {
@@ -113,7 +114,7 @@ fun DetailTabs(
                             exifState.fetchExif()
                         }
 
-                        ExifScreen(exifState)
+                        ExifScreen(exifState, modifier = Modifier.fillMaxSize())
                     }
                 }
             },

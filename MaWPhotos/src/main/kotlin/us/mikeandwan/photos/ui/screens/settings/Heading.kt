@@ -13,9 +13,12 @@ import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.R
 
 @Composable
-fun Heading(stringId: Int) {
+fun Heading(
+    stringId: Int,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp),
     ) {

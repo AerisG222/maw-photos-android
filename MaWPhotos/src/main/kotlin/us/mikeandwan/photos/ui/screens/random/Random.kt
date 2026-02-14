@@ -3,6 +3,7 @@ package us.mikeandwan.photos.ui.screens.random
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -71,6 +72,7 @@ fun RandomScreen(
     onMediaClicked: (MediaGridItem<Media>) -> Unit,
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
         setNavArea(NavigationArea.Random)
@@ -88,5 +90,5 @@ fun RandomScreen(
         onMediaClicked,
     )
 
-    MediaGrid(gridState)
+    MediaGrid(gridState, modifier = modifier)
 }

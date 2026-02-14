@@ -67,10 +67,10 @@ fun EntryProviderScope<NavKey>.aboutScreen(
 }
 
 @Composable
-fun AboutScreen(state: AboutState.Loaded) {
+fun AboutScreen(state: AboutState.Loaded, modifier: Modifier = Modifier) {
     val tangerine = remember { FontFamily(Font(R.font.tangerine)) }
 
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .padding(16.dp)

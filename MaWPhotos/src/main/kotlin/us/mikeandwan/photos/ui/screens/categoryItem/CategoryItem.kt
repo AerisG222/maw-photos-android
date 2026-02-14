@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -140,6 +141,7 @@ fun CategoryItemScreen(
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -196,6 +198,7 @@ fun CategoryItemScreen(
                 onDismissRequest = mediaListState.toggleDetails,
             )
         },
+        modifier = modifier,
     ) {
         MediaPager(
             mediaListState.media,

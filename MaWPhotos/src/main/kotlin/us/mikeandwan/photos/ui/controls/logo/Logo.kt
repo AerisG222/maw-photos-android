@@ -9,10 +9,10 @@ import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
 
 @Composable
-fun Logo() {
+fun Logo(modifier: Modifier = Modifier) {
     AsyncImage(
         model = R.drawable.ic_launch,
         contentDescription = stringResource(id = R.string.logo_description),
-        modifier = Modifier.size(96.dp),
+        modifier = modifier.size(96.dp),
     )
 }

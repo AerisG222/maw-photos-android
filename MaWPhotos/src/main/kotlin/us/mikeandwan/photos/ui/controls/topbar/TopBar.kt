@@ -37,8 +37,10 @@ fun TopBar(
     onExpandNavMenu: () -> Unit,
     onBackClicked: () -> Unit,
     onSearch: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     TopAppBar(
+        modifier = modifier,
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -52,8 +54,8 @@ fun TopBar(
                     modifier = Modifier.padding(0.dp),
                 ) {
                     TopSearchBar(
-                        state.initialSearchTerm,
-                        onSearch,
+                        initialSearchTerm = state.initialSearchTerm,
+                        onSearch = onSearch,
                     )
                 }
             } else {

@@ -26,13 +26,14 @@ fun NavigationRail(
     activeYear: Int,
     navigateToCategories: () -> Unit,
     navigateToCategoriesByYear: (Int) -> Unit,
-    navigateToSearch: () -> Unit,
     navigateToRandom: () -> Unit,
+    navigateToSearch: () -> Unit,
     navigateToUpload: () -> Unit,
     navigateToAbout: () -> Unit,
     navigateToSettings: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Row(modifier = Modifier.fillMaxSize()) {
+    Row(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()

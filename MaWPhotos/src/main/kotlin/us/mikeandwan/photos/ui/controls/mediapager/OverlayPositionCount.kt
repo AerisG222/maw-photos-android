@@ -11,8 +11,9 @@ import androidx.compose.ui.unit.dp
 fun OverlayPositionCount(
     position: Int,
     count: Int,
+    modifier: Modifier = Modifier,
 ) {
-    Row(modifier = Modifier.padding(4.dp, 2.dp)) {
+    Row(modifier = modifier.padding(4.dp, 2.dp)) {
         Text(text = position.toString())
         Text(text = " / ")
         Text(text = count.toString())

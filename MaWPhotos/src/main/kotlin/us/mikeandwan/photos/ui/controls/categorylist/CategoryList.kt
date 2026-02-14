@@ -14,9 +14,10 @@ fun CategoryList(
     categories: List<Category>,
     showYear: Boolean,
     onSelectCategory: (Category) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) {
         itemsIndexed(
             categories,

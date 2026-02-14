@@ -15,8 +15,9 @@ fun OverlayYearName(
     category: Category,
     onClickYear: (Int) -> Unit,
     onClickCategory: (Category) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Row(modifier = Modifier.padding(4.dp, 2.dp)) {
+    Row(modifier = modifier.padding(4.dp, 2.dp)) {
         Text(
             text = category.year.toString(),
             color = MaterialTheme.colorScheme.primary,

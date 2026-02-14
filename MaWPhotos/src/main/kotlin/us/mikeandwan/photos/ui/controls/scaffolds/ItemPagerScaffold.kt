@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ItemPagerScaffold(
+    modifier: Modifier = Modifier,
     showDetails: Boolean = false,
     topLeftContent: @Composable () -> Unit = {},
     topRightContent: @Composable () -> Unit = {},
@@ -28,7 +29,7 @@ fun ItemPagerScaffold(
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,

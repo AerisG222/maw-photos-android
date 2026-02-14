@@ -24,9 +24,10 @@ import us.mikeandwan.photos.R
 fun RandomMenu(
     fetchRandomPhotos: (Int) -> Unit,
     clearRandomPhotos: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.secondaryContainer),
     ) {

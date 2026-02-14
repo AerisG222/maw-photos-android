@@ -13,8 +13,9 @@ import androidx.compose.ui.res.stringResource
 fun MenuPreferenceSummary(
     labelStringId: Int,
     selectedValue: String,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
+    Column(modifier = modifier) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = stringResource(id = labelStringId),

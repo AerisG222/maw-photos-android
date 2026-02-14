@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
@@ -90,6 +91,7 @@ fun CategoriesScreen(
     setActiveYear: (Int) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     navigateToCategory: (Category) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -122,6 +124,7 @@ fun CategoriesScreen(
         isRefreshing = state.isRefreshing,
         state = pullToRefreshState,
         onRefresh = { state.refreshCategories() },
+        modifier = modifier,
     ) {
         when (state.preferences.displayType) {
             CategoryDisplayType.Grid -> {

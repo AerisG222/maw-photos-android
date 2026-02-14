@@ -30,6 +30,7 @@ fun MediaPager(
     activeRotation: Float = 0f,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
     setActiveIndex: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(
         pageCount = { media.size },
@@ -53,7 +54,7 @@ fun MediaPager(
         state = pagerState,
         contentPadding = PaddingValues(0.dp),
         userScrollEnabled = true,
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) { index ->
         val activeMedia = media[index]
 

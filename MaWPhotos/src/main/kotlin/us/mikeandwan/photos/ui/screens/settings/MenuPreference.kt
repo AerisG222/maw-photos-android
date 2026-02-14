@@ -18,12 +18,13 @@ fun MenuPreference(
     options: List<String>,
     selectedValue: String,
     onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val (display, setDisplay) = remember { mutableStateOf(false) }
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable { setDisplay(!display) },

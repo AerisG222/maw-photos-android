@@ -27,6 +27,7 @@ import us.mikeandwan.photos.R
 fun TopSearchBar(
     initialSearchTerm: String,
     onSearch: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val (searchTerm, setSearchTerm) = remember { mutableStateOf(initialSearchTerm) }
@@ -64,7 +65,7 @@ fun TopSearchBar(
             )
         },
         content = { },
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
             .padding(0.dp, 0.dp, 0.dp, 8.dp),

@@ -28,11 +28,12 @@ fun SearchListMenu(
     recentSearchTerms: List<SearchHistory>,
     onTermSelected: (String) -> Unit,
     onClearSearchHistory: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val termDividerModifier = Modifier.padding(16.dp, 0.dp)
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.secondaryContainer),
     ) {

@@ -17,9 +17,10 @@ fun ExifDetail(
     bgColor: androidx.compose.ui.graphics.Color,
     txtColor: androidx.compose.ui.graphics.Color,
     detail: JsonObject,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(bgColor),
     ) {

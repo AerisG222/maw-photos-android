@@ -30,9 +30,10 @@ fun MenuPreferenceCard(
     selectedValue: String,
     onSelect: (String) -> Unit,
     onCancel: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
-        modifier = Modifier
+        modifier = modifier
             .height(400.dp)
             .width(300.dp),
         colors = CardDefaults.elevatedCardColors().copy(

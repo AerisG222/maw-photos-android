@@ -60,6 +60,7 @@ fun UploadScreen(
     updateTopBar: (TopBarState) -> Unit,
     setNavArea: (NavigationArea) -> Unit,
     files: List<File>,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
         setNavArea(NavigationArea.Upload)
@@ -85,7 +86,7 @@ fun UploadScreen(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) {
         AsyncImage(
             model = R.drawable.ic_share,
@@ -97,7 +98,7 @@ fun UploadScreen(
         )
     }
 
-    Box {
-        MediaGrid(gridState)
+    Box(modifier = modifier) {
+        MediaGrid(gridState, modifier = modifier)
     }
 }

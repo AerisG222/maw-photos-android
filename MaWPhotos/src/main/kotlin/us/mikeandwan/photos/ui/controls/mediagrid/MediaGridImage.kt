@@ -25,18 +25,18 @@ fun <T> MediaGridImage(
     onSelectImage: (MediaGridItem<T>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box {
+    Box(
+        modifier = modifier
+            .height(size)
+            .clickable { onSelectImage(item) },
+    ) {
         AsyncImage(
             model = item.url,
             contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
             placeholder = painterResource(id = R.drawable.ic_placeholder),
             error = painterResource(id = R.drawable.ic_broken_image),
             contentScale = ContentScale.Crop,
-            modifier = modifier
-                .height(size)
-                .clickable {
-                    onSelectImage(item)
-                },
+            modifier = Modifier.matchParentSize(),
         )
 
         if (item.showVideoBadge) {
@@ -46,7 +46,7 @@ fun <T> MediaGridImage(
                     id = R.string.li_category_thumbnail_description,
                 ),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                modifier = modifier
+                modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(2.dp)
                     .size(16.dp),

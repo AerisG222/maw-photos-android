@@ -13,8 +13,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.jsonObject
 
 @Composable
-fun ExifScreen(exifState: ExifState) {
-    LazyColumn(Modifier.fillMaxSize()) {
+fun ExifScreen(
+    exifState: ExifState,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(modifier.then(Modifier.fillMaxSize())) {
         if (exifState.exifDisplay == null) {
             item {
                 Row(Modifier.fillMaxWidth()) {

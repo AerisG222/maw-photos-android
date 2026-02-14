@@ -26,6 +26,7 @@ import us.mikeandwan.photos.domain.models.Comment
 @Composable
 fun CommentTable(
     comments: List<Comment>,
+    modifier: Modifier = Modifier,
     footer: @Composable () -> Unit,
 ) {
     val fmt = remember { LocalDateTime.Format { date(LocalDate.Formats.ISO) } }
@@ -34,7 +35,19 @@ fun CommentTable(
     val bgRow = MaterialTheme.colorScheme.surface
     val txtRow = MaterialTheme.colorScheme.onSurface
 
-    LazyColumn {
+    LazyColumn(modifier = modifier) {
+        if (comments.isEmpty()) {
+            item {
+                Row(Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "No comments",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+            }
+        }
+
         itemsIndexed(comments) { index, comment ->
             Row(
                 modifier = Modifier

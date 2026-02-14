@@ -5,17 +5,22 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 
 @Composable
-fun <T> MediaGrid(state: MediaGridState<T>) {
+fun <T> MediaGrid(
+    state: MediaGridState<T>,
+    modifier: Modifier = Modifier,
+) {
     if (state.size > 0.dp) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = state.size),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = modifier,
         ) {
             items(
                 state.gridItems,
