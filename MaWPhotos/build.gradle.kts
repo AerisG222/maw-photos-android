@@ -128,6 +128,8 @@ dependencies {
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.hilt.navigation)
     implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.lifecycle.viewmodel)

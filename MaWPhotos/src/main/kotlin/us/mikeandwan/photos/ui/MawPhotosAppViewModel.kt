@@ -45,6 +45,7 @@ import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
 import us.mikeandwan.photos.ui.screens.upload.UploadRoute
+import us.mikeandwan.photos.workers.RandomPhotoWorker
 import us.mikeandwan.photos.workers.UploadWorker
 
 @HiltViewModel
@@ -172,12 +173,30 @@ class MawPhotosAppViewModel
                             }
 
                             if (userStatus is UserStatus.Active && authStatus is AuthStatus.Authorized) {
+                                triggerImmediateWidgetUpdate()
                                 navigate(CategoriesRoute(null))
                             }
                         }.collect { }
                     }
                 }
             }
+        }
+
+        private fun triggerImmediateWidgetUpdate() {
+            val constraints = Constraints
+                .Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val work = OneTimeWorkRequestBuilder<RandomPhotoWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(application).enqueueUniqueWork(
+                "ImmediateRandomPhotoWidgetUpdate",
+                ExistingWorkPolicy.KEEP,
+                work,
+            )
         }
 
         private fun handleSendSingle(intent: Intent) {

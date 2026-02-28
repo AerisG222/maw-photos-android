@@ -15,6 +15,7 @@ import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import timber.log.Timber
+import us.mikeandwan.photos.workers.RandomPhotoWorker
 import us.mikeandwan.photos.workers.UpdateCategoriesWorker
 
 @HiltAndroidApp
@@ -51,6 +52,7 @@ class MawApplication :
         }
 
         schedulePeriodicRefresh()
+        scheduleWidgetUpdate()
     }
 
     override val workManagerConfiguration: Configuration
@@ -71,6 +73,23 @@ class MawApplication :
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             UpdateCategoriesWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            work,
+        )
+    }
+
+    private fun scheduleWidgetUpdate() {
+        val constraints = Constraints
+            .Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val work = PeriodicWorkRequestBuilder<RandomPhotoWorker>(1, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            RandomPhotoWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
             work,
         )
