@@ -18,7 +18,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
-import us.mikeandwan.photos.ui.getMediaUrl
+import us.mikeandwan.photos.ui.shared.getMediaUrl
 
 @OptIn(UnstableApi::class)
 @Composable

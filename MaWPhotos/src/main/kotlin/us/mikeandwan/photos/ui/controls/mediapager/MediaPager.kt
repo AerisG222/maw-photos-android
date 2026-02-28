@@ -21,7 +21,7 @@ import net.engawapg.lib.zoomable.zoomable
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.ui.controls.videoplayer.VideoPlayer
-import us.mikeandwan.photos.ui.getMediaUrl
+import us.mikeandwan.photos.ui.shared.getMediaUrl
 
 @Composable
 fun MediaPager(

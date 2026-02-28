@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui
+package us.mikeandwan.photos.ui.shared
 
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Composable

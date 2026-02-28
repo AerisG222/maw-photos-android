@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui
+package us.mikeandwan.photos.ui.shared
 
 import android.content.Context
 import android.content.Intent

@@ -17,7 +17,6 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
-import us.mikeandwan.photos.ui.MediaListState
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediapager.ButtonBar
 import us.mikeandwan.photos.ui.controls.mediapager.MediaPager
@@ -30,8 +29,9 @@ import us.mikeandwan.photos.ui.controls.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.controls.metadata.rememberExifState
 import us.mikeandwan.photos.ui.controls.scaffolds.ItemPagerScaffold
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.rememberMediaListState
-import us.mikeandwan.photos.ui.shareMedia
+import us.mikeandwan.photos.ui.shared.MediaListState
+import us.mikeandwan.photos.ui.shared.rememberMediaListState
+import us.mikeandwan.photos.ui.shared.shareMedia
 
 @Serializable
 data class CategoryItemRoute(

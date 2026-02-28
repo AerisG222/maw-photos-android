@@ -5,7 +5,7 @@ import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.ui.toExternalCallStatus
+import us.mikeandwan.photos.ui.shared.toExternalCallStatus
 
 class ApiErrorHandler
     @Inject

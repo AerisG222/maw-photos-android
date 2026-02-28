@@ -18,12 +18,15 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
-import us.mikeandwan.photos.ui.toMediaGridItem
+import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
 sealed class CategoryState {
     data object Loading : CategoryState()
+
     data object NotAuthorized : CategoryState()
+
     data object Error : CategoryState()
+
     data class Loaded(
         val category: Category,
         val gridItems: List<MediaGridItem<Media>>,
@@ -40,7 +43,6 @@ class CategoryViewModel
         categoryRepository: CategoryRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
     ) : BaseCategoryViewModel(categoryRepository) {
-
         private val gridItemThumbnailSize = mediaPreferenceRepository
             .getPhotoGridItemSize()
             .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Unspecified)
@@ -76,8 +78,14 @@ class CategoryViewModel
             gridItemThumbnailSize,
         ) { authStatus, categoriesStatus, category, gridItems, gridItemThumbnailSize ->
             when {
-                authStatus is GuardStatus.Failed -> CategoryState.NotAuthorized
-                categoriesStatus is GuardStatus.Failed -> CategoryState.Error
+                authStatus is GuardStatus.Failed -> {
+                    CategoryState.NotAuthorized
+                }
+
+                categoriesStatus is GuardStatus.Failed -> {
+                    CategoryState.Error
+                }
+
                 authStatus is GuardStatus.Passed && categoriesStatus is GuardStatus.Passed -> {
                     if (category == null) {
                         CategoryState.Loading
@@ -89,7 +97,10 @@ class CategoryViewModel
                         )
                     }
                 }
-                else -> CategoryState.Loading
+
+                else -> {
+                    CategoryState.Loading
+                }
             }
         }.stateIn(viewModelScope, WhileSubscribed(5000), CategoryState.Loading)
     }

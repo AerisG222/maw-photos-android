@@ -22,7 +22,7 @@ import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.controls.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-import us.mikeandwan.photos.ui.toMediaGridItem
+import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
 @Serializable
 data class CategoriesRoute(

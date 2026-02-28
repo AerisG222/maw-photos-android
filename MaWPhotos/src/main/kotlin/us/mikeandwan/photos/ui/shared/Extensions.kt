@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui
+package us.mikeandwan.photos.ui.shared
 
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.findTeaserImage
