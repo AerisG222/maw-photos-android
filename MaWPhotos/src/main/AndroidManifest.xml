@@ -22,7 +22,7 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <activity
-            android:name="us.mikeandwan.photos.ui.main.MainActivity"
+            android:name="us.mikeandwan.photos.ui.MainActivity"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>

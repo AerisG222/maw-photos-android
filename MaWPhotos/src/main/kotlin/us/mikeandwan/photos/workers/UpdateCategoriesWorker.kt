@@ -17,7 +17,7 @@ import us.mikeandwan.photos.domain.NotificationIdRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.ui.main.MainActivity
+import us.mikeandwan.photos.ui.MainActivity
 import us.mikeandwan.photos.utils.NOTIFICATION_CHANNEL_ID_NEW_CATEGORIES
 import us.mikeandwan.photos.utils.PendingIntentFlagHelper
 

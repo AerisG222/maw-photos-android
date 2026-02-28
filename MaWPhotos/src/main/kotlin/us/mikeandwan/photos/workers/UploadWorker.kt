@@ -20,7 +20,7 @@ import us.mikeandwan.photos.api.UploadApiClient
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.NotificationIdRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
-import us.mikeandwan.photos.ui.main.MainActivity
+import us.mikeandwan.photos.ui.MainActivity
 import us.mikeandwan.photos.utils.NOTIFICATION_CHANNEL_ID_UPLOAD_FILES
 import us.mikeandwan.photos.utils.PendingIntentFlagHelper
 

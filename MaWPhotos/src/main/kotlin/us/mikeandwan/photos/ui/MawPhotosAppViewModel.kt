@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.main
+package us.mikeandwan.photos.ui
 
 import android.app.Application
 import android.content.Intent
@@ -24,11 +24,14 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import us.mikeandwan.photos.authorization.AuthService
+import us.mikeandwan.photos.authorization.AuthStatus
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.ErrorRepository
@@ -37,11 +40,15 @@ import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
 import us.mikeandwan.photos.domain.models.NavigationArea
+import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.controls.topbar.TopBarState
+import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
+import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
+import us.mikeandwan.photos.ui.screens.upload.UploadRoute
 import us.mikeandwan.photos.workers.UploadWorker
 
 @HiltViewModel
-class MainViewModel
+class MawPhotosAppViewModel
     @Inject
     constructor(
         errorRepository: ErrorRepository,
@@ -135,7 +142,45 @@ class MainViewModel
             closeDrawer()
         }
 
-        fun handleSendSingle(intent: Intent) {
+        fun handleIntent(intent: Intent?) {
+            if (intent == null) return
+
+            when (intent.action) {
+                Intent.ACTION_SEND -> {
+                    handleSendSingle(intent)
+                    navigate(UploadRoute)
+                }
+
+                Intent.ACTION_SEND_MULTIPLE -> {
+                    handleSendMultiple(intent)
+                    navigate(UploadRoute)
+                }
+
+                else -> {
+                    viewModelScope.launch {
+                        combine(
+                            userStatus,
+                            authenticationStatus,
+                        ) { userStatus, authStatus ->
+                            if (userStatus is UserStatus.Unknown && authStatus is AuthStatus.Authorized) {
+                                queryUserStatus()
+                            }
+
+                            if (userStatus is UserStatus.Inactive) {
+                                Timber.w("YO INACTIVE!")
+                                navigate(InactiveUserRoute)
+                            }
+
+                            if (userStatus is UserStatus.Active && authStatus is AuthStatus.Authorized) {
+                                navigate(CategoriesRoute(null))
+                            }
+                        }.collect { }
+                    }
+                }
+            }
+        }
+
+        private fun handleSendSingle(intent: Intent) {
             val mediaUri = IntentCompat.getParcelableExtra(
                 intent,
                 Intent.EXTRA_STREAM,
@@ -147,7 +192,7 @@ class MainViewModel
             }
         }
 
-        fun handleSendMultiple(intent: Intent) {
+        private fun handleSendMultiple(intent: Intent) {
             val mediaUris = IntentCompat.getParcelableArrayListExtra(
                 intent,
                 Intent.EXTRA_STREAM,
