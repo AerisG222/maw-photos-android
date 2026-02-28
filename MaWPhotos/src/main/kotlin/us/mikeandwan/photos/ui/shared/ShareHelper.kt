@@ -56,9 +56,7 @@ private suspend fun getMediaToShare(
             .allowHardware(false) // Disable hardware bitmaps.
             .build()
 
-        val result = loader.execute(request)
-
-        when (result) {
+        when (val result = loader.execute(request)) {
             is SuccessResult -> result.image.asDrawable(ctx.resources)
             else -> throw IllegalStateException("Failed to load media drawable: $result")
         }

@@ -6,12 +6,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
@@ -65,7 +63,7 @@ class SettingsViewModel
                 randomPreferenceRepository.getPhotoGridItemSize(),
                 searchPreferenceRepository.getSearchesToSaveCount(),
                 searchPreferenceRepository.getSearchDisplayType(),
-                searchPreferenceRepository.getSearchGridItemSize()
+                searchPreferenceRepository.getSearchGridItemSize(),
             ) { args: Array<Any?> ->
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
@@ -78,7 +76,7 @@ class SettingsViewModel
                     randomThumbnailSize = args[7] as GridThumbnailSize,
                     searchQueryCount = args[8] as Int,
                     searchDisplayType = args[9] as CategoryDisplayType,
-                    searchThumbnailSize = args[10] as GridThumbnailSize
+                    searchThumbnailSize = args[10] as GridThumbnailSize,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }

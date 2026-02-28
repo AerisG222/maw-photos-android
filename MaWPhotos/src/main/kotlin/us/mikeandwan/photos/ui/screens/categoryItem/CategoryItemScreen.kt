@@ -8,6 +8,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.datasource.HttpDataSource
+import java.io.File
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.mediapager.ButtonBar
@@ -19,7 +20,6 @@ import us.mikeandwan.photos.ui.components.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.components.metadata.rememberExifState
 import us.mikeandwan.photos.ui.components.scaffolds.ItemPagerScaffold
 import us.mikeandwan.photos.ui.shared.shareMedia
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,13 +48,13 @@ fun CategoryItemScreen(
 
     val exifState = rememberExifState(
         exif = uiState.exif,
-        fetchExif = onFetchExif
+        fetchExif = onFetchExif,
     )
 
     val commentState = rememberCommentState(
         comments = uiState.comments,
         fetchComments = onFetchComments,
-        addComment = onAddComment
+        addComment = onAddComment,
     )
 
     ItemPagerScaffold(

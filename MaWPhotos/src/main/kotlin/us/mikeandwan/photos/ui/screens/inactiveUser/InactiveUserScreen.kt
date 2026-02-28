@@ -27,7 +27,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.ui.components.logo.Logo
 
 @Composable
 fun InactiveUserScreen(
@@ -101,7 +100,7 @@ fun InactiveUserScreen(
             ) {
                 Button(
                     onClick = onRequeryStatus,
-                    enabled = !uiState.isLoading
+                    enabled = !uiState.isLoading,
                 ) {
                     Text(
                         text = stringResource(id = R.string.activity_inactive_user_recheck_status),
