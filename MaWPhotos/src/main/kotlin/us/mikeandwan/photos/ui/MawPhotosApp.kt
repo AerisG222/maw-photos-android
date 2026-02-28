@@ -61,7 +61,7 @@ import us.mikeandwan.photos.ui.screens.settings.SettingsRoute
 import us.mikeandwan.photos.ui.screens.settings.settingsScreen
 import us.mikeandwan.photos.ui.screens.upload.UploadRoute
 import us.mikeandwan.photos.ui.screens.upload.uploadScreen
-import us.mikeandwan.photos.ui.theme.AppTheme
+import us.mikeandwan.photos.ui.theme.MawPhotosTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -218,7 +218,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
         )
     }
 
-    AppTheme {
+    MawPhotosTheme {
         ModalNavigationDrawer(
             gesturesEnabled = enableDrawerGestures,
             drawerState = drawerState,
