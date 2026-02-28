@@ -5,6 +5,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
@@ -61,4 +62,24 @@ fun CategoriesScreen(
             else -> {}
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoriesScreenPreview() {
+    CategoriesScreen(
+        uiState = CategoriesUiState(isLoading = false),
+        onRefresh = {},
+        onNavigateToCategory = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoriesScreenLoadingPreview() {
+    CategoriesScreen(
+        uiState = CategoriesUiState(isLoading = true),
+        onRefresh = {},
+        onNavigateToCategory = {}
+    )
 }

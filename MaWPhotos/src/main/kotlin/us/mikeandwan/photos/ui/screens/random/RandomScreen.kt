@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui.screens.random
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
@@ -22,4 +23,13 @@ fun RandomScreen(
     )
 
     MediaGrid(gridState, modifier = modifier)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RandomScreenPreview() {
+    RandomScreen(
+        uiState = RandomUiState(isAuthorized = true),
+        onMediaClicked = {}
+    )
 }

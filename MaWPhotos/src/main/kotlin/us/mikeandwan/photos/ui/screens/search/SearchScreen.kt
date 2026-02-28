@@ -16,8 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlin.time.Clock
+import kotlin.uuid.Uuid
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
@@ -112,4 +117,40 @@ fun SearchScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchScreenNoResultsPreview() {
+    SearchScreen(
+        uiState = SearchUiState(results = emptyList()),
+        onNavigateToCategory = {},
+        onContinueSearch = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchScreenResultsPreview() {
+    val now = Clock.System.now()
+    val today = now.toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+    SearchScreen(
+        uiState = SearchUiState(
+            results = listOf(
+                Category(
+                    id = Uuid.random(),
+                    year = 2024,
+                    name = "Test Category",
+                    effectiveDate = today,
+                    modified = now,
+                    isFavorite = false,
+                    teaser = emptyList(),
+                ),
+            ),
+            displayType = CategoryDisplayType.Grid,
+        ),
+        onNavigateToCategory = {},
+        onContinueSearch = {},
+    )
 }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
@@ -207,4 +208,25 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    SettingsScreen(
+        uiState = SettingsUiState(),
+        permissionPostNotificationAllowed = true,
+        onNotificationDoNotifyChange = {},
+        onNotificationDoVibrateChange = {},
+        onCategoryDisplayTypeChange = {},
+        onCategoryThumbnailSizeChange = {},
+        onPhotoSlideshowIntervalChange = {},
+        onPhotoThumbnailSizeChange = {},
+        onRandomSlideshowIntervalChange = {},
+        onRandomThumbnailSizeChange = {},
+        onSearchQueryCountChange = {},
+        onSearchDisplayTypeChange = {},
+        onSearchThumbnailSizeChange = {},
+        onLogout = {}
+    )
 }

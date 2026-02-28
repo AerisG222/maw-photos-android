@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui.screens.category
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
@@ -25,4 +26,22 @@ fun CategoryScreen(
     )
 
     MediaGrid(gridState, modifier = modifier)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryScreenPreview() {
+    CategoryScreen(
+        uiState = CategoryUiState(isLoading = false),
+        onMediaClicked = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryScreenLoadingPreview() {
+    CategoryScreen(
+        uiState = CategoryUiState(isLoading = true),
+        onMediaClicked = {}
+    )
 }
