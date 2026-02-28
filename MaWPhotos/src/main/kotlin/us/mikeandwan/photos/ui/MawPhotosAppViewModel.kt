@@ -41,7 +41,7 @@ import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.UserStatus
-import us.mikeandwan.photos.ui.controls.topbar.TopBarState
+import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
 import us.mikeandwan.photos.ui.screens.upload.UploadRoute

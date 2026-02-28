@@ -17,6 +17,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,33 +35,35 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthStatus
-import us.mikeandwan.photos.ui.controls.navigation.NavigationRail
-import us.mikeandwan.photos.ui.controls.topbar.TopBar
+import us.mikeandwan.photos.domain.models.NavigationArea
+import us.mikeandwan.photos.ui.components.navigation.NavigationRail
+import us.mikeandwan.photos.ui.components.topbar.TopBar
+import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.navigation.Navigator
 import us.mikeandwan.photos.ui.navigation.rememberNavigationState
 import us.mikeandwan.photos.ui.navigation.toEntries
 import us.mikeandwan.photos.ui.screens.about.AboutRoute
 import us.mikeandwan.photos.ui.screens.about.about
 import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
-import us.mikeandwan.photos.ui.screens.categories.categoriesScreen
+import us.mikeandwan.photos.ui.screens.categories.categories
 import us.mikeandwan.photos.ui.screens.category.CategoryRoute
-import us.mikeandwan.photos.ui.screens.category.categoryScreen
+import us.mikeandwan.photos.ui.screens.category.category
 import us.mikeandwan.photos.ui.screens.categoryItem.CategoryItemRoute
-import us.mikeandwan.photos.ui.screens.categoryItem.categoryItemScreen
+import us.mikeandwan.photos.ui.screens.categoryItem.categoryItem
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
-import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUserScreen
+import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUser
 import us.mikeandwan.photos.ui.screens.login.LoginRoute
-import us.mikeandwan.photos.ui.screens.login.loginScreen
+import us.mikeandwan.photos.ui.screens.login.login
 import us.mikeandwan.photos.ui.screens.random.RandomRoute
-import us.mikeandwan.photos.ui.screens.random.randomScreen
+import us.mikeandwan.photos.ui.screens.random.random
 import us.mikeandwan.photos.ui.screens.randomItem.RandomItemRoute
-import us.mikeandwan.photos.ui.screens.randomItem.randomItemScreen
+import us.mikeandwan.photos.ui.screens.randomItem.randomItem
 import us.mikeandwan.photos.ui.screens.search.SearchRoute
-import us.mikeandwan.photos.ui.screens.search.searchScreen
+import us.mikeandwan.photos.ui.screens.search.search
 import us.mikeandwan.photos.ui.screens.settings.SettingsRoute
-import us.mikeandwan.photos.ui.screens.settings.settingsScreen
+import us.mikeandwan.photos.ui.screens.settings.settings
 import us.mikeandwan.photos.ui.screens.upload.UploadRoute
-import us.mikeandwan.photos.ui.screens.upload.uploadScreen
+import us.mikeandwan.photos.ui.screens.upload.upload
 import us.mikeandwan.photos.ui.theme.MawPhotosTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,6 +103,13 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val topBarState by vm.topBarState.collectAsStateWithLifecycle()
     val enableDrawerGestures by vm.enableDrawerGestures.collectAsStateWithLifecycle()
     val activeYear by vm.activeYear.collectAsStateWithLifecycle()
+
+    val appActions = remember(vm) {
+        object : MawAppActions {
+            override fun updateTopBar(state: TopBarState) = vm.updateTopBar(state)
+            override fun setNavArea(area: NavigationArea) = vm.setNavArea(area)
+        }
+    }
 
     LaunchedEffect(Unit) {
         val activity = context as? Activity
@@ -147,34 +157,23 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     }
 
     val entryProvider = entryProvider {
-        loginScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        login(
             navigateAfterLogin = {
                 // this is now handled by monitoring user status
             },
         )
-        inactiveUserScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        inactiveUser(
             navigateToLogin = { vm.navigate(LoginRoute) },
             navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) },
         )
-        about(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
-        )
-        categoriesScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        about()
+        categories(
             setActiveYear = vm::setActiveYear,
             navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
             navigateToLogin = { vm.navigate(LoginRoute) },
             navigateToCategories = { vm.navigate(CategoriesRoute(it)) },
         )
-        categoryScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        category(
             navigateToMedia = {
                 vm.navigate(
                     CategoryItemRoute(it.categoryId, it.id),
@@ -182,122 +181,113 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
             },
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
-        categoryItemScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        categoryItem(
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
-        randomScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        random(
             navigateToMedia = { vm.navigate(RandomItemRoute(it)) },
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
-        randomItemScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        randomItem(
             navigateToYear = { vm.navigate(CategoriesRoute(it)) },
             navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
-        searchScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        search(
             navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
-        settingsScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        settings(
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
-        uploadScreen(
-            updateTopBar = vm::updateTopBar,
-            setNavArea = vm::setNavArea,
+        upload(
             navigateToLogin = { vm.navigate(LoginRoute) },
         )
     }
 
     MawPhotosTheme {
-        ModalNavigationDrawer(
-            gesturesEnabled = enableDrawerGestures,
-            drawerState = drawerState,
-            drawerContent = {
-                ModalDrawerSheet(
-                    drawerContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                ) {
-                    NavigationRail(
-                        activeArea = navArea,
-                        years = years,
-                        activeYear = activeYear,
-                        recentSearchTerms = recentSearchTerms,
-                        fetchRandomPhotos = vm::fetchRandomPhotos,
-                        clearRandomPhotos = vm::clearRandomPhotos,
-                        clearSearchHistory = vm::clearSearchHistory,
-                        navigateToCategories = {
-                            vm.navigateAndCloseDrawer(
-                                CategoriesRoute(null),
-                            )
-                        },
-                        navigateToCategoriesByYear = {
-                            vm.navigateAndCloseDrawer(
-                                CategoriesRoute(it),
-                            )
-                        },
-                        navigateToRandom = { vm.navigateAndCloseDrawer(RandomRoute) },
-                        navigateToSearch = { vm.navigateAndCloseDrawer(SearchRoute()) },
-                        navigateToSearchWithTerm = {
-                            vm.navigateAndCloseDrawer(
-                                SearchRoute(it),
-                            )
-                        },
-                        navigateToSettings = { vm.navigateAndCloseDrawer(SettingsRoute) },
-                        navigateToUpload = { vm.navigateAndCloseDrawer(UploadRoute) },
-                        navigateToAbout = { vm.navigateAndCloseDrawer(AboutRoute) },
-                    )
-                }
-            },
-        ) {
-            Scaffold(
-                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = {
-                    if (topBarState.show) {
-                        TopBar(
-                            scrollBehavior,
-                            state = topBarState,
-                            onExpandNavMenu = { vm.openDrawer() },
-                            onBackClicked = {
-                                val currentStack = navigationState.backStacks[navigationState.topLevelRoute]
-                                if (currentStack != null && currentStack.size > 1) {
-                                    navigator.goBack()
-                                } else {
-                                    navigator.navigate(CategoriesRoute(null))
-                                }
+        CompositionLocalProvider(LocalMawAppActions provides appActions) {
+            ModalNavigationDrawer(
+                gesturesEnabled = enableDrawerGestures,
+                drawerState = drawerState,
+                drawerContent = {
+                    ModalDrawerSheet(
+                        drawerContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        NavigationRail(
+                            activeArea = navArea,
+                            years = years,
+                            activeYear = activeYear,
+                            recentSearchTerms = recentSearchTerms,
+                            fetchRandomPhotos = vm::fetchRandomPhotos,
+                            clearRandomPhotos = vm::clearRandomPhotos,
+                            clearSearchHistory = vm::clearSearchHistory,
+                            navigateToCategories = {
+                                vm.navigateAndCloseDrawer(
+                                    CategoriesRoute(null),
+                                )
                             },
-                            onSearch = { vm.navigate(SearchRoute(it)) },
+                            navigateToCategoriesByYear = {
+                                vm.navigateAndCloseDrawer(
+                                    CategoriesRoute(it),
+                                )
+                            },
+                            navigateToRandom = { vm.navigateAndCloseDrawer(RandomRoute) },
+                            navigateToSearch = { vm.navigateAndCloseDrawer(SearchRoute()) },
+                            navigateToSearchWithTerm = {
+                                vm.navigateAndCloseDrawer(
+                                    SearchRoute(it),
+                                )
+                            },
+                            navigateToSettings = { vm.navigateAndCloseDrawer(SettingsRoute) },
+                            navigateToUpload = { vm.navigateAndCloseDrawer(UploadRoute) },
+                            navigateToAbout = { vm.navigateAndCloseDrawer(AboutRoute) },
                         )
                     }
                 },
-                snackbarHost = {
-                    SnackbarHost(hostState = snackbarHostState) { data ->
-                        Snackbar(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            snackbarData = data,
+            ) {
+                Scaffold(
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        if (topBarState.show) {
+                            TopBar(
+                                scrollBehavior,
+                                state = topBarState,
+                                onExpandNavMenu = { vm.openDrawer() },
+                                onBackClicked = {
+                                    val currentStack =
+                                        navigationState.backStacks[navigationState.topLevelRoute]
+                                    if (currentStack != null && currentStack.size > 1) {
+                                        navigator.goBack()
+                                    } else {
+                                        navigator.navigate(CategoriesRoute(null))
+                                    }
+                                },
+                                onSearch = { vm.navigate(SearchRoute(it)) },
+                            )
+                        }
+                    },
+                    snackbarHost = {
+                        SnackbarHost(hostState = snackbarHostState) { data ->
+                            Snackbar(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                snackbarData = data,
+                            )
+                        }
+                    },
+                ) { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
+                    ) {
+                        NavDisplay(
+                            entries = navigationState.toEntries(entryProvider),
+                            onBack = { navigator.goBack() },
+                            sceneStrategy = remember { DialogSceneStrategy() },
                         )
                     }
-                },
-            ) { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize(),
-                ) {
-                    NavDisplay(
-                        entries = navigationState.toEntries(entryProvider),
-                        onBack = { navigator.goBack() },
-                        sceneStrategy = remember { DialogSceneStrategy() },
-                    )
                 }
             }
         }

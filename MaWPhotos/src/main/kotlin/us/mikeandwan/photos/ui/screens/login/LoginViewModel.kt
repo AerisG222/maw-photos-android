@@ -5,20 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.AuthStatus
 
-sealed class LoginState {
-    data object Unknown : LoginState()
-
-    data object Authorized : LoginState()
-
-    data object NotAuthorized : LoginState()
-}
+data class LoginUiState(
+    val isAuthorized: Boolean = false,
+)
 
 @HiltViewModel
 class LoginViewModel
@@ -26,18 +26,17 @@ class LoginViewModel
     constructor(
         private val authService: AuthService,
     ) : ViewModel() {
-        val state = authService.authStatus
-            .map {
-                when (it) {
-                    is AuthStatus.Authorized -> LoginState.Authorized
+        private val _uiState = MutableStateFlow(LoginUiState())
+        val uiState = _uiState.asStateFlow()
 
-                    is AuthStatus.RequiresAuthorization -> LoginState.NotAuthorized
-
-                    // when in process, return the notauthorized state, as this will catch the case where the user
-                    // starts authentication but does not complete that action (closing browser tab / going back / etc)
-                    is AuthStatus.LoginInProcess -> LoginState.NotAuthorized
-                }
-            }.stateIn(viewModelScope, WhileSubscribed(5000), LoginState.Unknown)
+        init {
+            authService.authStatus
+                .onEach { status ->
+                    _uiState.update {
+                        it.copy(isAuthorized = status is AuthStatus.Authorized)
+                    }
+                }.launchIn(viewModelScope)
+        }
 
         fun login(activity: Context) {
             viewModelScope.launch {

@@ -9,17 +9,39 @@ import javax.inject.Inject
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.GuardStatus
+import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.Comment
+import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.random.BaseRandomViewModel
+
+data class RandomItemUiState(
+    val category: Category? = null,
+    val media: List<Media> = emptyList(),
+    val activeId: Uuid = Uuid.NIL,
+    val activeIndex: Int = -1,
+    val activeMedia: Media? = null,
+    val isSlideshowPlaying: Boolean = false,
+    val showDetailSheet: Boolean = false,
+    val isAuthorized: Boolean = true,
+    val exif: JsonElement? = null,
+    val comments: List<Comment> = emptyList(),
+    val isLoading: Boolean = true,
+)
 
 @HiltViewModel
 class RandomItemViewModel
@@ -33,15 +55,73 @@ class RandomItemViewModel
     ) : BaseRandomViewModel(
             randomMediaRepository,
         ) {
-        val category = mediaListService.category
-        val activePhoto = mediaListService.activeMedia
-        val activeId = mediaListService.activeId
-        val activeIndex = mediaListService.activeIndex
-        val isSlideshowPlaying = mediaListService.isSlideshowPlaying
-        val showDetailSheet = mediaListService.showDetailSheet
+        private val _uiState = MutableStateFlow(RandomItemUiState())
+        val uiState = _uiState.asStateFlow()
 
         private val initialMediaId = MutableStateFlow(Uuid.NIL)
         private val initialMediaIdWasSet = MutableStateFlow(false)
+
+        init {
+            val slideshowDurationInMillisFlow = randomPreferenceRepository
+                .getSlideshowIntervalSeconds()
+                .map { seconds -> (seconds * 1000).toLong() }
+                .stateIn(
+                    viewModelScope,
+                    WhileSubscribed(5000),
+                    (RandomPreference().slideshowIntervalSeconds * 1000).toLong(),
+                )
+
+            mediaListService.initialize(
+                media,
+                slideshowDurationInMillisFlow,
+            )
+
+            viewModelScope.launch {
+                combine(
+                    media,
+                    initialMediaId,
+                    initialMediaIdWasSet,
+                ) { media, id, wasSet ->
+                    if (wasSet || media.isEmpty() || id == Uuid.NIL) return@combine
+
+                    mediaListService.setActiveId(id)
+                    initialMediaIdWasSet.value = true
+                }.collect { }
+            }
+
+            combine(
+                mediaListService.category,
+                mediaListService.activeMedia,
+                mediaListService.activeId,
+                mediaListService.activeIndex,
+                mediaListService.isSlideshowPlaying,
+                mediaListService.showDetailSheet,
+                authGuard.status,
+                mediaListService.exif,
+                mediaListService.comments,
+                media
+            ) { args: Array<Any?> ->
+                RandomItemUiState(
+                    category = args[0] as? Category,
+                    activeMedia = args[1] as? Media,
+                    activeId = args[2] as Uuid,
+                    activeIndex = args[3] as Int,
+                    isSlideshowPlaying = args[4] as Boolean,
+                    showDetailSheet = args[5] as Boolean,
+                    isAuthorized = args[6] !is GuardStatus.Failed,
+                    exif = args[7] as? JsonElement,
+                    comments = @Suppress("UNCHECKED_CAST") (args[8] as List<Comment>),
+                    media = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>),
+                    isLoading = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>).isEmpty() || (args[2] as Uuid) == Uuid.NIL
+                )
+            }.onEach { newState ->
+                _uiState.update { newState }
+            }.launchIn(viewModelScope)
+        }
+
+        fun initState(id: Uuid) {
+            initialMediaId.value = id
+        }
 
         fun setActiveIndex(index: Int) {
             mediaListService.setActiveIndex(index)
@@ -55,34 +135,15 @@ class RandomItemViewModel
             mediaListService.toggleShowDetails()
         }
 
-        fun initState(id: Uuid) {
-            initialMediaId.value = id
-        }
-
-        fun saveFileToShare(
-            drawable: Drawable,
-            filename: String,
-            onComplete: (File) -> Unit,
-        ) {
-            mediaListService.saveFileToShare(drawable, filename, onComplete)
-        }
-
-        // ratings
-        val isFavorite = mediaListService.isFavorite
-
         fun toggleFavorite() {
-            mediaListService.setIsFavorite(!isFavorite.value)
+            _uiState.value.activeMedia?.let {
+                mediaListService.setIsFavorite(!it.isFavorite)
+            }
         }
-
-        // exif
-        val exif = mediaListService.exif
 
         fun fetchExif() {
             mediaListService.fetchExif()
         }
-
-        // comments
-        val comments = mediaListService.comments
 
         fun fetchCommentDetails() {
             mediaListService.fetchComments()
@@ -92,47 +153,11 @@ class RandomItemViewModel
             mediaListService.addComment(comment)
         }
 
-        private val slideshowDurationInMillis = randomPreferenceRepository
-            .getSlideshowIntervalSeconds()
-            .map { seconds -> (seconds * 1000).toLong() }
-            .stateIn(
-                viewModelScope,
-                WhileSubscribed(5000),
-                (RandomPreference().slideshowIntervalSeconds * 1000).toLong(),
-            )
-
-        val isAuthorized = authGuard.status
-            .map {
-                when (it) {
-                    is GuardStatus.Failed -> false
-                    else -> true
-                }
-            }.stateIn(viewModelScope, WhileSubscribed(5000), true)
-
-        init {
-            mediaListService.initialize(
-                media,
-                slideshowDurationInMillis,
-            )
-
-            viewModelScope.launch {
-                combine(
-                    media,
-                    initialMediaId,
-                    initialMediaIdWasSet,
-                ) {
-                    media,
-                    id,
-                    wasSet,
-                    ->
-
-                    if (wasSet || media.isEmpty() || id == Uuid.NIL) {
-                        return@combine
-                    }
-
-                    mediaListService.setActiveId(id)
-                    initialMediaIdWasSet.value = true
-                }.collect { }
-            }
+        fun saveFileToShare(
+            drawable: Drawable,
+            filename: String,
+            onComplete: (File) -> Unit,
+        ) {
+            mediaListService.saveFileToShare(drawable, filename, onComplete)
         }
     }

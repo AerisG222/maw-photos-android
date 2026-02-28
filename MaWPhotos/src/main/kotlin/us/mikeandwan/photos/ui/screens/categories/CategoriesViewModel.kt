@@ -9,12 +9,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
@@ -28,43 +30,30 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 
-sealed class CategoriesState {
-    data object Unknown : CategoriesState()
-
-    data object NotAuthorized : CategoriesState()
-
-    data class InvalidYear(
-        val mostRecentYear: Int,
-    ) : CategoriesState()
-
-    data object Error : CategoriesState()
-
-    data class Valid(
-        val year: Int,
-        val categories: List<Category>,
-        val isRefreshing: Boolean,
-        val preferences: CategoryPreference,
-        val refreshCategories: () -> Unit,
-        val clearRefreshStatus: () -> Unit,
-    ) : CategoriesState()
-}
+data class CategoriesUiState(
+    val year: Int? = null,
+    val categories: List<Category> = emptyList(),
+    val isRefreshing: Boolean = false,
+    val preferences: CategoryPreference = CategoryPreference(),
+    val isLoading: Boolean = true,
+    val isAuthorized: Boolean = true,
+    val error: String? = null,
+    val invalidYearMostRecent: Int? = null,
+)
 
 @HiltViewModel
 class CategoriesViewModel
     @Inject
     constructor(
         private val categoryRepository: CategoryRepository,
-        authGuard: AuthGuard,
-        categoriesLoadedGuard: CategoriesLoadedGuard,
+        private val authGuard: AuthGuard,
+        private val categoriesLoadedGuard: CategoriesLoadedGuard,
         categoryPreferenceRepository: CategoryPreferenceRepository,
         private val errorRepository: ErrorRepository,
         private val configRepository: ConfigRepository,
     ) : ViewModel() {
         private val _year = MutableStateFlow<Int?>(null)
         private val _isRefreshing = MutableStateFlow(false)
-        private val _preferences = categoryPreferenceRepository
-            .getCategoryPreference()
-            .stateIn(viewModelScope, WhileSubscribed(5000), CategoryPreference())
 
         @OptIn(ExperimentalCoroutinesApi::class)
         private val categories = _year.flatMapLatest { year ->
@@ -74,6 +63,9 @@ class CategoriesViewModel
                 flowOf(emptyList())
             }
         }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+
+        private val _uiState = MutableStateFlow(CategoriesUiState())
+        val uiState = _uiState.asStateFlow()
 
         init {
             viewModelScope.launch {
@@ -91,98 +83,62 @@ class CategoriesViewModel
                     .getScales()
                     .collect { }
             }
-        }
 
-        fun setYear(year: Int?) {
-            _year.value = year
-        }
+            combine(
+                authGuard.status,
+                categoriesLoadedGuard.status,
+                categoryRepository.getYears(),
+                categories,
+                _year,
+                _isRefreshing,
+                categoryPreferenceRepository.getCategoryPreference()
+            ) { authStatus, categoriesStatus, years, categories, year, isRefreshing, preferences ->
+                var isAuthorized = true
+                var isLoading = true
+                var error: String? = null
+                var invalidYearMostRecent: Int? = null
 
-        fun clearRefreshStatus() {
-            _isRefreshing.value = false
-        }
-
-        val state = combine(
-            authGuard.status,
-            categoriesLoadedGuard.status,
-            categoryRepository.getYears(),
-            categories,
-            _year,
-            _isRefreshing,
-            _preferences,
-        ) {
-            authStatus,
-            categoriesStatus,
-            years,
-            categories,
-            year,
-            isRefreshing,
-            preferences,
-            ->
-
-            when (authStatus) {
-                is GuardStatus.NotInitialized -> {
-                    authGuard.initializeGuard()
-                    CategoriesState.Unknown
-                }
-
-                is GuardStatus.Failed -> {
-                    CategoriesState.NotAuthorized
-                }
-
-                is GuardStatus.Passed -> {
-                    if (year == null) {
-                        if (years.isNotEmpty()) {
-                            // this happens when trying to navigate back via swipe
-                            setYear(years.max())
-                        }
-
-                        CategoriesState.Unknown
-                    } else {
-                        when (categoriesStatus) {
-                            is GuardStatus.NotInitialized -> {
-                                categoriesLoadedGuard.initializeGuard()
-                                CategoriesState.Unknown
-                            }
-
-                            is GuardStatus.Failed -> {
-                                CategoriesState.Error
-                            }
-
-                            is GuardStatus.Passed -> {
-                                when {
-                                    years.isEmpty() -> {
-                                        CategoriesState.Unknown
-                                    }
-
-                                    !years.contains(year) -> {
-                                        CategoriesState.InvalidYear(years.max())
-                                    }
-
-                                    categories.isEmpty() -> {
-                                        CategoriesState.Unknown
-                                    }
-
-                                    else -> {
-                                        CategoriesState.Valid(
-                                            year,
-                                            categories,
-                                            isRefreshing,
-                                            preferences,
-                                            refreshCategories = { refreshCategories() },
-                                            clearRefreshStatus = {
-                                                _isRefreshing.value = false
-                                            },
-                                        )
+                when (authStatus) {
+                    is GuardStatus.NotInitialized -> authGuard.initializeGuard()
+                    is GuardStatus.Failed -> isAuthorized = false
+                    is GuardStatus.Passed -> {
+                        if (year == null) {
+                            if (years.isNotEmpty()) setYear(years.max())
+                        } else {
+                            when (categoriesStatus) {
+                                is GuardStatus.NotInitialized -> categoriesLoadedGuard.initializeGuard()
+                                is GuardStatus.Failed -> error = "Failed to load categories"
+                                is GuardStatus.Passed -> {
+                                    isLoading = false
+                                    if (years.isNotEmpty() && !years.contains(year)) {
+                                        invalidYearMostRecent = years.max()
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
-        }.stateIn(viewModelScope, WhileSubscribed(5000), CategoriesState.Unknown)
 
-        private fun refreshCategories() {
+                CategoriesUiState(
+                    year = year,
+                    categories = categories,
+                    isRefreshing = isRefreshing,
+                    preferences = preferences,
+                    isLoading = isLoading,
+                    isAuthorized = isAuthorized,
+                    error = error,
+                    invalidYearMostRecent = invalidYearMostRecent
+                )
+            }.onEach { state ->
+                _uiState.update { state }
+            }.launchIn(viewModelScope)
+        }
+
+        fun setYear(year: Int?) {
+            _year.value = year
+        }
+
+        fun refreshCategories() {
             viewModelScope.launch {
                 categoryRepository
                     .getUpdatedCategories()

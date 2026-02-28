@@ -5,8 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
@@ -17,6 +23,20 @@ import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+
+data class SettingsUiState(
+    val notificationDoNotify: Boolean = false,
+    val notificationDoVibrate: Boolean = true,
+    val categoryDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
+    val categoryThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val photoSlideshowInterval: Int = 3,
+    val photoThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val randomSlideshowInterval: Int = 3,
+    val randomThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val searchQueryCount: Int = 20,
+    val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
+    val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+)
 
 @HiltViewModel
 class SettingsViewModel
@@ -30,49 +50,40 @@ class SettingsViewModel
         private val searchPreferenceRepository: SearchPreferenceRepository,
         private val errorRepository: ErrorRepository,
     ) : ViewModel() {
-        val notificationDoNotify = notificationPreferenceRepository
-            .getDoNotify()
-            .stateIn(viewModelScope, WhileSubscribed(5000), false)
+        private val _uiState = MutableStateFlow(SettingsUiState())
+        val uiState = _uiState.asStateFlow()
 
-        val notificationDoVibrate = notificationPreferenceRepository
-            .getDoVibrate()
-            .stateIn(viewModelScope, WhileSubscribed(5000), true)
-
-        val categoryDisplayType = categoryPreferenceRepository
-            .getCategoryDisplayType()
-            .stateIn(viewModelScope, WhileSubscribed(5000), CategoryDisplayType.Grid)
-
-        val categoryThumbnailSize = categoryPreferenceRepository
-            .getCategoryGridItemSize()
-            .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
-
-        val photoSlideshowInterval = mediaPreferenceRepository
-            .getSlideshowIntervalSeconds()
-            .stateIn(viewModelScope, WhileSubscribed(5000), 3)
-
-        val photoThumbnailSize = mediaPreferenceRepository
-            .getPhotoGridItemSize()
-            .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
-
-        val randomSlideshowInterval = randomPreferenceRepository
-            .getSlideshowIntervalSeconds()
-            .stateIn(viewModelScope, WhileSubscribed(5000), 3)
-
-        val randomThumbnailSize = randomPreferenceRepository
-            .getPhotoGridItemSize()
-            .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
-
-        val searchQueryCount = searchPreferenceRepository
-            .getSearchesToSaveCount()
-            .stateIn(viewModelScope, WhileSubscribed(5000), 20)
-
-        val searchDisplayType = searchPreferenceRepository
-            .getSearchDisplayType()
-            .stateIn(viewModelScope, WhileSubscribed(5000), CategoryDisplayType.Grid)
-
-        val searchThumbnailSize = searchPreferenceRepository
-            .getSearchGridItemSize()
-            .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
+        init {
+            combine(
+                notificationPreferenceRepository.getDoNotify(),
+                notificationPreferenceRepository.getDoVibrate(),
+                categoryPreferenceRepository.getCategoryDisplayType(),
+                categoryPreferenceRepository.getCategoryGridItemSize(),
+                mediaPreferenceRepository.getSlideshowIntervalSeconds(),
+                mediaPreferenceRepository.getPhotoGridItemSize(),
+                randomPreferenceRepository.getSlideshowIntervalSeconds(),
+                randomPreferenceRepository.getPhotoGridItemSize(),
+                searchPreferenceRepository.getSearchesToSaveCount(),
+                searchPreferenceRepository.getSearchDisplayType(),
+                searchPreferenceRepository.getSearchGridItemSize()
+            ) { args: Array<Any?> ->
+                SettingsUiState(
+                    notificationDoNotify = args[0] as Boolean,
+                    notificationDoVibrate = args[1] as Boolean,
+                    categoryDisplayType = args[2] as CategoryDisplayType,
+                    categoryThumbnailSize = args[3] as GridThumbnailSize,
+                    photoSlideshowInterval = args[4] as Int,
+                    photoThumbnailSize = args[5] as GridThumbnailSize,
+                    randomSlideshowInterval = args[6] as Int,
+                    randomThumbnailSize = args[7] as GridThumbnailSize,
+                    searchQueryCount = args[8] as Int,
+                    searchDisplayType = args[9] as CategoryDisplayType,
+                    searchThumbnailSize = args[10] as GridThumbnailSize
+                )
+            }.onEach { newState ->
+                _uiState.update { newState }
+            }.launchIn(viewModelScope)
+        }
 
         fun setNotificationDoNotify(doNotify: Boolean) {
             viewModelScope.launch {

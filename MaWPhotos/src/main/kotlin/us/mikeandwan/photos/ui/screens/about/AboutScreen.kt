@@ -21,11 +21,14 @@ import androidx.compose.ui.unit.sp
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.ui.controls.loading.Loading
-import us.mikeandwan.photos.ui.controls.logo.Logo
+import us.mikeandwan.photos.ui.components.loading.Loading
+import us.mikeandwan.photos.ui.components.logo.Logo
 
 @Composable
-fun AboutScreen(state: AboutUiState, modifier: Modifier = Modifier) {
+fun AboutScreen(
+    state: AboutUiState,
+    modifier: Modifier = Modifier,
+) {
     if (state.isLoading) {
         Loading()
         return

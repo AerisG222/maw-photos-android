@@ -6,7 +6,7 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
-import us.mikeandwan.photos.ui.controls.mediagrid.MediaGridItem
+import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 
 fun Media.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Media> =
     MediaGridItem(

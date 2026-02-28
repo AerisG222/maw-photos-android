@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.screens.about
+package us.mikeandwan.photos.ui.screens.upload
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,28 +13,39 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object AboutRoute : NavKey
+object UploadRoute : NavKey
 
-fun EntryProviderScope<NavKey>.about() {
-    entry<AboutRoute> {
-        AboutRoute()
+fun EntryProviderScope<NavKey>.upload(
+    navigateToLogin: () -> Unit,
+) {
+    entry<UploadRoute> {
+        UploadRoute(navigateToLogin = navigateToLogin)
     }
 }
 
 @Composable
-private fun AboutRoute(vm: AboutViewModel = hiltViewModel()) {
+private fun UploadRoute(
+    navigateToLogin: () -> Unit,
+    vm: UploadViewModel = hiltViewModel(),
+) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
 
+    LaunchedEffect(uiState.isAuthorized) {
+        if (!uiState.isAuthorized) {
+            navigateToLogin()
+        }
+    }
+
     LaunchedEffect(Unit) {
-        appActions.setNavArea(NavigationArea.About)
+        appActions.setNavArea(NavigationArea.Upload)
         appActions.updateTopBar(
-            TopBarState().copy(
+            TopBarState(
                 showAppIcon = false,
-                title = "About",
-            ),
+                title = "Upload Queue",
+            )
         )
     }
 
-    AboutScreen(uiState)
+    UploadScreen(uiState = uiState)
 }
