@@ -26,10 +26,10 @@ import us.mikeandwan.photos.ui.components.logo.Logo
 
 @Composable
 fun AboutScreen(
-    state: AboutUiState,
+    uiState: AboutUiState,
     modifier: Modifier = Modifier,
 ) {
-    if (state.isLoading) {
+    if (uiState.isLoading) {
         Loading()
         return
     }
@@ -75,7 +75,7 @@ fun AboutScreen(
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = state.version,
+                text = uiState.version,
                 color = MaterialTheme.colorScheme.secondary,
                 fontSize = 48.sp,
                 fontFamily = tangerine,
@@ -89,7 +89,7 @@ fun AboutScreen(
                 .verticalScroll(rememberScrollState()),
         ) {
             Markdown(
-                state.history,
+                uiState.history,
                 typography = markdownTypography(
                     h1 = MaterialTheme.typography.headlineMedium.copy(
                         color = MaterialTheme.colorScheme.primary,

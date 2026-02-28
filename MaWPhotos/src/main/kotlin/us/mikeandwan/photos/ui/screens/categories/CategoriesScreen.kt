@@ -9,6 +9,7 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
+import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
@@ -21,6 +22,11 @@ fun CategoriesScreen(
     onNavigateToCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    if (uiState.isLoading) {
+        Loading()
+        return
+    }
+
     val pullToRefreshState = rememberPullToRefreshState()
 
     val gridState = rememberMediaGridState(

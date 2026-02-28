@@ -72,13 +72,9 @@ private fun CategoriesRoute(
         }
     }
 
-    if (uiState.isLoading) {
-        Loading()
-    } else {
-        CategoriesScreen(
-            uiState = uiState,
-            onRefresh = { vm.refreshCategories() },
-            onNavigateToCategory = navigateToCategory,
-        )
-    }
+    CategoriesScreen(
+        uiState = uiState,
+        onRefresh = { vm.refreshCategories() },
+        onNavigateToCategory = navigateToCategory,
+    )
 }
