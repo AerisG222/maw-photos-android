@@ -40,7 +40,7 @@ import us.mikeandwan.photos.ui.navigation.Navigator
 import us.mikeandwan.photos.ui.navigation.rememberNavigationState
 import us.mikeandwan.photos.ui.navigation.toEntries
 import us.mikeandwan.photos.ui.screens.about.AboutRoute
-import us.mikeandwan.photos.ui.screens.about.aboutScreen
+import us.mikeandwan.photos.ui.screens.about.about
 import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
 import us.mikeandwan.photos.ui.screens.categories.categoriesScreen
 import us.mikeandwan.photos.ui.screens.category.CategoryRoute
@@ -160,7 +160,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
             navigateToLogin = { vm.navigate(LoginRoute) },
             navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) },
         )
-        aboutScreen(
+        about(
             updateTopBar = vm::updateTopBar,
             setNavArea = vm::setNavArea,
         )

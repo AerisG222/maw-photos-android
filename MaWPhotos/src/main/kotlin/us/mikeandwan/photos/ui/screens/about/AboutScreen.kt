@@ -10,8 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,54 +18,19 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.EntryProviderScope
-import androidx.navigation3.runtime.NavKey
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
-import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.controls.loading.Loading
 import us.mikeandwan.photos.ui.controls.logo.Logo
-import us.mikeandwan.photos.ui.controls.topbar.TopBarState
-
-@Serializable
-object AboutRoute : NavKey
-
-fun EntryProviderScope<NavKey>.aboutScreen(
-    updateTopBar: (TopBarState) -> Unit,
-    setNavArea: (NavigationArea) -> Unit,
-) {
-    entry<AboutRoute> {
-        val vm: AboutViewModel = hiltViewModel()
-        val state by vm.state.collectAsStateWithLifecycle()
-
-        LaunchedEffect(Unit) {
-            setNavArea(NavigationArea.About)
-            updateTopBar(
-                TopBarState().copy(
-                    showAppIcon = false,
-                    title = "About",
-                ),
-            )
-        }
-
-        when (state) {
-            is AboutState.Loading -> {
-                Loading()
-            }
-
-            is AboutState.Loaded -> {
-                AboutScreen((state as AboutState.Loaded))
-            }
-        }
-    }
-}
 
 @Composable
-fun AboutScreen(state: AboutState.Loaded, modifier: Modifier = Modifier) {
+fun AboutScreen(state: AboutUiState, modifier: Modifier = Modifier) {
+    if (state.isLoading) {
+        Loading()
+        return
+    }
+
     val tangerine = remember { FontFamily(Font(R.font.tangerine)) }
 
     Column(modifier = modifier) {
@@ -139,10 +102,18 @@ fun AboutScreen(state: AboutState.Loaded, modifier: Modifier = Modifier) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun AboutScreenPreview() {
     AboutScreen(
-        AboutState.Loaded("vX.Y.Z", "Release Notes"),
+        AboutUiState(version = "vX.Y.Z", history = "Release Notes", isLoading = false),
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AboutScreenLoadingPreview() {
+    AboutScreen(
+        AboutUiState(isLoading = true),
     )
 }

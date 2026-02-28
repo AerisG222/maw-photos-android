@@ -7,21 +7,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.R
 
-sealed class AboutState {
-    data object Loading : AboutState()
-
-    data class Loaded(
-        val version: String,
-        val history: String,
-    )
-}
+data class AboutUiState(
+    val version: String = "",
+    val history: String = "",
+    val isLoading: Boolean = true,
+)
 
 @HiltViewModel
 class AboutViewModel
@@ -29,24 +25,24 @@ class AboutViewModel
     constructor(
         private val application: Application,
     ) : ViewModel() {
-        private val version = "v${BuildConfig.VERSION_NAME}"
-        private val _history = MutableStateFlow("")
-
-        val state = _history
-            .map { history ->
-                if (history.isEmpty()) {
-                    AboutState.Loading
-                } else {
-                    AboutState.Loaded(version, history)
-                }
-            }.stateIn(viewModelScope, WhileSubscribed(5000), AboutState.Loading)
+        private val _uiState = MutableStateFlow(
+            AboutUiState(version = "v${BuildConfig.VERSION_NAME}")
+        )
+        val uiState = _uiState.asStateFlow()
 
         init {
             viewModelScope.launch(Dispatchers.IO) {
-                _history.value = application.resources
+                val history = application.resources
                     .openRawResource(R.raw.release_notes)
                     .bufferedReader()
                     .use { it.readText() }
+
+                _uiState.update {
+                    it.copy(
+                        history = history,
+                        isLoading = false,
+                    )
+                }
             }
         }
     }
