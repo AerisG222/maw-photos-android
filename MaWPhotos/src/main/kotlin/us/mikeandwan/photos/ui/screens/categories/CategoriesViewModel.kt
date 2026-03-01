@@ -56,13 +56,14 @@ class CategoriesViewModel
         private val _isRefreshing = MutableStateFlow(false)
 
         @OptIn(ExperimentalCoroutinesApi::class)
-        private val categories = _year.flatMapLatest { year ->
-            if (year != null) {
-                categoryRepository.getCategories(year)
-            } else {
-                flowOf(emptyList())
-            }
-        }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+        private val categories = _year
+            .flatMapLatest { year ->
+                if (year != null) {
+                    categoryRepository.getCategories(year)
+                } else {
+                    flowOf(emptyList())
+                }
+            }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
         private val _uiState = MutableStateFlow(CategoriesUiState())
         val uiState = _uiState.asStateFlow()
@@ -91,7 +92,7 @@ class CategoriesViewModel
                 categories,
                 _year,
                 _isRefreshing,
-                categoryPreferenceRepository.getCategoryPreference()
+                categoryPreferenceRepository.getCategoryPreference(),
             ) { authStatus, categoriesStatus, years, categories, year, isRefreshing, preferences ->
                 var isAuthorized = true
                 var isLoading = true
@@ -99,15 +100,27 @@ class CategoriesViewModel
                 var invalidYearMostRecent: Int? = null
 
                 when (authStatus) {
-                    is GuardStatus.NotInitialized -> authGuard.initializeGuard()
-                    is GuardStatus.Failed -> isAuthorized = false
+                    is GuardStatus.NotInitialized -> {
+                        authGuard.initializeGuard()
+                    }
+
+                    is GuardStatus.Failed -> {
+                        isAuthorized = false
+                    }
+
                     is GuardStatus.Passed -> {
                         if (year == null) {
                             if (years.isNotEmpty()) setYear(years.max())
                         } else {
                             when (categoriesStatus) {
-                                is GuardStatus.NotInitialized -> categoriesLoadedGuard.initializeGuard()
-                                is GuardStatus.Failed -> error = "Failed to load categories"
+                                is GuardStatus.NotInitialized -> {
+                                    categoriesLoadedGuard.initializeGuard()
+                                }
+
+                                is GuardStatus.Failed -> {
+                                    error = "Failed to load categories"
+                                }
+
                                 is GuardStatus.Passed -> {
                                     isLoading = false
                                     if (years.isNotEmpty() && !years.contains(year)) {
@@ -127,7 +140,7 @@ class CategoriesViewModel
                     isLoading = isLoading,
                     isAuthorized = isAuthorized,
                     error = error,
-                    invalidYearMostRecent = invalidYearMostRecent
+                    invalidYearMostRecent = invalidYearMostRecent,
                 )
             }.onEach { state ->
                 _uiState.update { state }
@@ -154,9 +167,9 @@ class CategoriesViewModel
                                 _isRefreshing.value = false
 
                                 val msg = when (it.result.count()) {
-                                    0 -> "No new categories available"
-                                    1 -> "One new category loaded"
-                                    else -> "${it.result.count()} categories loaded"
+                                    0 -> "No updates available"
+                                    1 -> "1 category updated"
+                                    else -> "${it.result.count()} categories updated"
                                 }
 
                                 errorRepository.showThenClearError(msg)

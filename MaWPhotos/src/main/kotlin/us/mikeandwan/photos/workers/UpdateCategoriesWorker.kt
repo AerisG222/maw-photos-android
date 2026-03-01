@@ -82,9 +82,9 @@ class UpdateCategoriesWorker
 
         private suspend fun showSuccessNotification(newCategories: List<Category>) {
             val pluralize = if (newCategories.size == 1) "category" else "categories"
-            val contentText = "${newCategories.size} new $pluralize"
+            val contentText = "${newCategories.size} $pluralize updated"
 
-            showNotification("New Items Available", contentText)
+            showNotification("Updates Available", contentText)
         }
 
         private suspend fun showNotification(
