@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
-import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable

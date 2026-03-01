@@ -120,7 +120,6 @@ class RandomPhotoWidget : GlanceAppWidget() {
                 }
             }
 
-            // Shuffle icon in the corner to trigger refresh
             Box(
                 modifier = GlanceModifier.fillMaxSize().padding(8.dp),
                 contentAlignment = Alignment.TopEnd,
