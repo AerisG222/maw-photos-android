@@ -21,7 +21,7 @@ fun CategoryList(
     ) {
         itemsIndexed(
             categories,
-            key = { index, item -> item.id },
+            key = { _, item -> item.id },
         ) { index, category ->
             CategoryListItem(
                 category,

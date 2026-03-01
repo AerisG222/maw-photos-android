@@ -38,7 +38,6 @@ import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.ui.widgets.RefreshWidgetAction
 
 class RandomPhotoWidget : GlanceAppWidget() {
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
