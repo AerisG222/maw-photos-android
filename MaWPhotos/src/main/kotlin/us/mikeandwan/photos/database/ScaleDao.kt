@@ -1,9 +1,8 @@
 package us.mikeandwan.photos.database
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -11,6 +10,6 @@ interface ScaleDao {
     @Query("SELECT * FROM scale ORDER BY width")
     fun getScales(): Flow<List<Scale>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsert(vararg scale: Scale)
 }

@@ -1,9 +1,8 @@
 package us.mikeandwan.photos.database
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,6 +16,6 @@ interface YearDao {
     @Query("SELECT year FROM year WHERE has_initialized_categories = 0")
     fun getYearsNeedingInitialization(): Flow<List<Int>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsert(vararg years: Year)
 }
