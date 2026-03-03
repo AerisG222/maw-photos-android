@@ -15,39 +15,32 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object InactiveUserRoute : NavKey
+object InactiveUserNavKey : NavKey
 
-fun EntryProviderScope<NavKey>.inactiveUser(
-    navigateToLogin: () -> Unit,
-    navigateAfterActivated: () -> Unit,
-) {
-    entry<InactiveUserRoute> {
-        InactiveUserRoute(
-            navigateToLogin = navigateToLogin,
-            navigateAfterActivated = navigateAfterActivated
-        )
+fun EntryProviderScope<NavKey>.inactiveUser() {
+    entry<InactiveUserNavKey> {
+        InactiveUserRoute()
     }
 }
 
 @Composable
-private fun InactiveUserRoute(
-    navigateToLogin: () -> Unit,
-    navigateAfterActivated: () -> Unit,
-    vm: InactiveUserViewModel = hiltViewModel(),
-) {
+private fun InactiveUserRoute(vm: InactiveUserViewModel = hiltViewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
     val context = LocalContext.current
 
     LaunchedEffect(uiState.userStatus) {
         if (uiState.userStatus is UserStatus.Active) {
-            navigateAfterActivated()
+            appActions.navigateToCategories(null)
         }
     }
 
     LaunchedEffect(Unit) {
-        appActions.updateTopBar(TopBarState(show = false))
         appActions.setNavArea(NavigationArea.Login)
+        appActions.updateTopBar(
+            NavigationArea.Login,
+            TopBarState(show = false),
+        )
     }
 
     InactiveUserScreen(
@@ -55,7 +48,7 @@ private fun InactiveUserRoute(
         onRequeryStatus = { vm.queryUserStatus() },
         onLogout = {
             vm.logout(context)
-            navigateToLogin()
-        }
+            appActions.navigateToLogin()
+        },
     )
 }

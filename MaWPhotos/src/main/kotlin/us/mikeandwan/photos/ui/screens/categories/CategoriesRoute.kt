@@ -8,29 +8,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-data class CategoriesRoute(
+data class CategoriesNavKey(
     val year: Int?,
 ) : NavKey
 
-fun EntryProviderScope<NavKey>.categories(
-    navigateToCategory: (Category) -> Unit,
-    setActiveYear: (Int) -> Unit,
-    navigateToLogin: () -> Unit,
-    navigateToCategories: (Int) -> Unit,
-) {
-    entry<CategoriesRoute> { args ->
+fun EntryProviderScope<NavKey>.categories() {
+    entry<CategoriesNavKey> { args ->
         CategoriesRoute(
             initialYear = args.year,
-            navigateToCategory = navigateToCategory,
-            setActiveYear = setActiveYear,
-            navigateToLogin = navigateToLogin,
-            navigateToCategories = navigateToCategories,
         )
     }
 }
@@ -38,14 +28,14 @@ fun EntryProviderScope<NavKey>.categories(
 @Composable
 private fun CategoriesRoute(
     initialYear: Int?,
-    navigateToCategory: (Category) -> Unit,
-    setActiveYear: (Int) -> Unit,
-    navigateToLogin: () -> Unit,
-    navigateToCategories: (Int) -> Unit,
     vm: CategoriesViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
+
+    LaunchedEffect(Unit) {
+        appActions.setNavArea(NavigationArea.Category)
+    }
 
     LaunchedEffect(initialYear) {
         vm.setYear(initialYear)
@@ -53,27 +43,29 @@ private fun CategoriesRoute(
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
     LaunchedEffect(uiState.invalidYearMostRecent) {
         uiState.invalidYearMostRecent?.let {
-            navigateToCategories(it)
+            appActions.navigateToCategories(it)
         }
     }
 
     LaunchedEffect(uiState.year) {
         uiState.year?.let {
-            setActiveYear(it)
-            appActions.setNavArea(NavigationArea.Category)
-            appActions.updateTopBar(TopBarState(title = it.toString()))
+            appActions.setActiveYear(it)
+            appActions.updateTopBar(
+                NavigationArea.Category,
+                TopBarState(title = it.toString()),
+            )
         }
     }
 
     CategoriesScreen(
         uiState = uiState,
         onRefresh = { vm.refreshCategories() },
-        onNavigateToCategory = navigateToCategory,
+        onNavigateToCategory = { appActions.navigateToCategory(it.id) },
     )
 }

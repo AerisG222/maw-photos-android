@@ -8,25 +8,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-data class SearchRoute(
+data class SearchNavKey(
     val searchTerm: String? = null,
 ) : NavKey
 
-fun EntryProviderScope<NavKey>.search(
-    navigateToCategory: (Category) -> Unit,
-    navigateToLogin: () -> Unit,
-) {
-    entry<SearchRoute> { args ->
+fun EntryProviderScope<NavKey>.search() {
+    entry<SearchNavKey> { args ->
         SearchRoute(
             initialSearchTerm = args.searchTerm,
-            navigateToCategory = navigateToCategory,
-            navigateToLogin = navigateToLogin
         )
     }
 }
@@ -34,8 +28,6 @@ fun EntryProviderScope<NavKey>.search(
 @Composable
 private fun SearchRoute(
     initialSearchTerm: String?,
-    navigateToCategory: (Category) -> Unit,
-    navigateToLogin: () -> Unit,
     vm: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
@@ -43,13 +35,15 @@ private fun SearchRoute(
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
-    LaunchedEffect(initialSearchTerm) {
+    LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Search)
+    }
 
+    LaunchedEffect(initialSearchTerm) {
         var term = initialSearchTerm
 
         if (term.isNullOrBlank()) {
@@ -59,7 +53,8 @@ private fun SearchRoute(
         }
 
         appActions.updateTopBar(
-            TopBarState().copy(
+            NavigationArea.Search,
+            TopBarState(
                 showSearch = true,
                 initialSearchTerm = term,
             ),
@@ -68,7 +63,9 @@ private fun SearchRoute(
 
     SearchScreen(
         uiState = uiState,
-        onNavigateToCategory = navigateToCategory,
+        onNavigateToCategory = { category ->
+            appActions.navigateToCategory(category.id)
+        },
         onContinueSearch = { vm.continueSearch() },
     )
 }

@@ -14,19 +14,16 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-data class CategoryItemRoute(
+data class CategoryItemNavKey(
     val categoryId: Uuid,
     val mediaId: Uuid,
 ) : NavKey
 
-fun EntryProviderScope<NavKey>.categoryItem(
-    navigateToLogin: () -> Unit,
-) {
-    entry<CategoryItemRoute> { args ->
+fun EntryProviderScope<NavKey>.categoryItem() {
+    entry<CategoryItemNavKey> { args ->
         CategoryItemRoute(
             categoryId = args.categoryId,
             mediaId = args.mediaId,
-            navigateToLogin = navigateToLogin
         )
     }
 }
@@ -35,11 +32,14 @@ fun EntryProviderScope<NavKey>.categoryItem(
 private fun CategoryItemRoute(
     categoryId: Uuid,
     mediaId: Uuid,
-    navigateToLogin: () -> Unit,
     vm: CategoryItemViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
+
+    LaunchedEffect(Unit) {
+        appActions.setNavArea(NavigationArea.Category)
+    }
 
     LaunchedEffect(categoryId, mediaId) {
         vm.initState(categoryId, mediaId)
@@ -47,14 +47,16 @@ private fun CategoryItemRoute(
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
     LaunchedEffect(uiState.category) {
         uiState.category?.let {
-            appActions.setNavArea(NavigationArea.Category)
-            appActions.updateTopBar(TopBarState(title = it.name))
+            appActions.updateTopBar(
+                NavigationArea.Category,
+                TopBarState(title = it.name),
+            )
         }
     }
 
@@ -70,6 +72,6 @@ private fun CategoryItemRoute(
         onAddComment = { vm.addComment(it) },
         onSaveMediaToShare = { drawable, filename, onComplete ->
             vm.saveFileToShare(drawable, filename, onComplete)
-        }
+        },
     )
 }

@@ -14,32 +14,32 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object LoginRoute : NavKey
+object LoginNavKey : NavKey
 
-fun EntryProviderScope<NavKey>.login(navigateAfterLogin: () -> Unit) {
-    entry<LoginRoute> {
-        LoginRoute(navigateAfterLogin = navigateAfterLogin)
+fun EntryProviderScope<NavKey>.login() {
+    entry<LoginNavKey> {
+        LoginRoute()
     }
 }
 
 @Composable
-private fun LoginRoute(
-    navigateAfterLogin: () -> Unit,
-    vm: LoginViewModel = hiltViewModel(),
-) {
+private fun LoginRoute(vm: LoginViewModel = hiltViewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
     val context = LocalContext.current
 
     LaunchedEffect(uiState.isAuthorized) {
         if (uiState.isAuthorized) {
-            navigateAfterLogin()
+            appActions.navigateToCategories(null)
         }
     }
 
     LaunchedEffect(Unit) {
-        appActions.updateTopBar(TopBarState(show = false))
         appActions.setNavArea(NavigationArea.Login)
+        appActions.updateTopBar(
+            NavigationArea.Login,
+            TopBarState(show = false),
+        )
     }
 
     LoginScreen(

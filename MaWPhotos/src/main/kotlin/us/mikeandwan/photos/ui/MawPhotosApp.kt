@@ -1,7 +1,6 @@
 package us.mikeandwan.photos.ui
 
 import android.app.Activity
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -32,37 +31,33 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthStatus
-import us.mikeandwan.photos.domain.models.NavigationArea
+import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.navigation.NavigationRail
 import us.mikeandwan.photos.ui.components.topbar.TopBar
-import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.navigation.Navigator
 import us.mikeandwan.photos.ui.navigation.rememberNavigationState
 import us.mikeandwan.photos.ui.navigation.toEntries
-import us.mikeandwan.photos.ui.screens.about.AboutRoute
+import us.mikeandwan.photos.ui.screens.about.AboutNavKey
 import us.mikeandwan.photos.ui.screens.about.about
-import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
+import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.categories.categories
-import us.mikeandwan.photos.ui.screens.category.CategoryRoute
 import us.mikeandwan.photos.ui.screens.category.category
-import us.mikeandwan.photos.ui.screens.categoryItem.CategoryItemRoute
 import us.mikeandwan.photos.ui.screens.categoryItem.categoryItem
-import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
+import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUser
-import us.mikeandwan.photos.ui.screens.login.LoginRoute
+import us.mikeandwan.photos.ui.screens.login.LoginNavKey
 import us.mikeandwan.photos.ui.screens.login.login
-import us.mikeandwan.photos.ui.screens.random.RandomRoute
+import us.mikeandwan.photos.ui.screens.random.RandomNavKey
 import us.mikeandwan.photos.ui.screens.random.random
-import us.mikeandwan.photos.ui.screens.randomItem.RandomItemRoute
 import us.mikeandwan.photos.ui.screens.randomItem.randomItem
-import us.mikeandwan.photos.ui.screens.search.SearchRoute
+import us.mikeandwan.photos.ui.screens.search.SearchNavKey
 import us.mikeandwan.photos.ui.screens.search.search
-import us.mikeandwan.photos.ui.screens.settings.SettingsRoute
+import us.mikeandwan.photos.ui.screens.settings.SettingsNavKey
 import us.mikeandwan.photos.ui.screens.settings.settings
-import us.mikeandwan.photos.ui.screens.upload.UploadRoute
+import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
 import us.mikeandwan.photos.ui.screens.upload.upload
 import us.mikeandwan.photos.ui.theme.MawPhotosTheme
 
@@ -73,19 +68,19 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
 
     val topLevelRoutes = remember {
         setOf(
-            CategoriesRoute(null),
-            RandomRoute,
-            SearchRoute(),
-            SettingsRoute,
-            UploadRoute,
-            AboutRoute,
-            LoginRoute,
-            InactiveUserRoute,
+            CategoriesNavKey(null),
+            RandomNavKey,
+            SearchNavKey(),
+            SettingsNavKey,
+            UploadNavKey,
+            AboutNavKey,
+            LoginNavKey,
+            InactiveUserNavKey,
         )
     }
 
     val navigationState = rememberNavigationState(
-        startRoute = CategoriesRoute(null),
+        startRoute = CategoriesNavKey(null),
         topLevelRoutes = topLevelRoutes,
     )
     val navigator = remember { Navigator(navigationState) }
@@ -104,12 +99,13 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val enableDrawerGestures by vm.enableDrawerGestures.collectAsStateWithLifecycle()
     val activeYear by vm.activeYear.collectAsStateWithLifecycle()
 
-    val appActions = remember(vm) {
-        object : MawAppActions {
-            override fun updateTopBar(state: TopBarState) = vm.updateTopBar(state)
-            override fun setNavArea(area: NavigationArea) = vm.setNavArea(area)
-        }
-    }
+    val appActions = rememberMawAppActions(
+        vm = vm,
+        navigator = navigator,
+        drawerState = drawerState,
+        navigationState = navigationState,
+        coroutineScope = coroutineScope,
+    )
 
     LaunchedEffect(Unit) {
         val activity = context as? Activity
@@ -122,87 +118,40 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     }
 
     LaunchedEffect(Unit) {
-        vm.drawerState.collect {
-            coroutineScope.launch {
+        launch {
+            vm.drawerState.collect {
                 when (it) {
-                    DrawerValue.Closed -> drawerState.close()
-                    DrawerValue.Open -> drawerState.open()
+                    DrawerValue.Closed -> appActions.closeDrawer()
+                    DrawerValue.Open -> appActions.openDrawer()
                 }
             }
         }
-    }
 
-    LaunchedEffect(Unit) {
-        vm.signalNavigate.collect { route ->
-            if (route != null) {
-                navigator.navigate(route)
+        launch {
+            vm.navigationEvents.collect { route ->
+                appActions.navigate(route)
             }
         }
-    }
 
-    LaunchedEffect(Unit) {
-        vm.errorsToDisplay.collect {
-            snackbarHostState.showSnackbar(it.message)
+        launch {
+            vm.errorsToDisplay.collect {
+                snackbarHostState.showSnackbar(it.message)
+            }
         }
-    }
-
-    // monitor login status and once logged in, check for active or inactive user
-    LaunchedEffect(Unit) {
-        vm.authenticationStatus
-            .onEach {
-                if (it is AuthStatus.Authorized) {
-                    vm.queryUserStatus()
-                }
-            }.collect { }
     }
 
     val entryProvider = entryProvider {
-        login(
-            navigateAfterLogin = {
-                // this is now handled by monitoring user status
-            },
-        )
-        inactiveUser(
-            navigateToLogin = { vm.navigate(LoginRoute) },
-            navigateAfterActivated = { vm.navigate(CategoriesRoute(null)) },
-        )
+        login()
+        inactiveUser()
         about()
-        categories(
-            setActiveYear = vm::setActiveYear,
-            navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
-            navigateToLogin = { vm.navigate(LoginRoute) },
-            navigateToCategories = { vm.navigate(CategoriesRoute(it)) },
-        )
-        category(
-            navigateToMedia = {
-                vm.navigate(
-                    CategoryItemRoute(it.categoryId, it.id),
-                )
-            },
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
-        categoryItem(
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
-        random(
-            navigateToMedia = { vm.navigate(RandomItemRoute(it)) },
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
-        randomItem(
-            navigateToYear = { vm.navigate(CategoriesRoute(it)) },
-            navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
-        search(
-            navigateToCategory = { vm.navigate(CategoryRoute(it.id)) },
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
-        settings(
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
-        upload(
-            navigateToLogin = { vm.navigate(LoginRoute) },
-        )
+        categories()
+        category()
+        categoryItem()
+        random()
+        randomItem()
+        search()
+        settings()
+        upload()
     }
 
     MawPhotosTheme {
@@ -222,26 +171,14 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             fetchRandomPhotos = vm::fetchRandomPhotos,
                             clearRandomPhotos = vm::clearRandomPhotos,
                             clearSearchHistory = vm::clearSearchHistory,
-                            navigateToCategories = {
-                                vm.navigateAndCloseDrawer(
-                                    CategoriesRoute(null),
-                                )
-                            },
-                            navigateToCategoriesByYear = {
-                                vm.navigateAndCloseDrawer(
-                                    CategoriesRoute(it),
-                                )
-                            },
-                            navigateToRandom = { vm.navigateAndCloseDrawer(RandomRoute) },
-                            navigateToSearch = { vm.navigateAndCloseDrawer(SearchRoute()) },
-                            navigateToSearchWithTerm = {
-                                vm.navigateAndCloseDrawer(
-                                    SearchRoute(it),
-                                )
-                            },
-                            navigateToSettings = { vm.navigateAndCloseDrawer(SettingsRoute) },
-                            navigateToUpload = { vm.navigateAndCloseDrawer(UploadRoute) },
-                            navigateToAbout = { vm.navigateAndCloseDrawer(AboutRoute) },
+                            navigateToCategories = { appActions.navigateToCategories(null) },
+                            navigateToCategoriesByYear = { appActions.navigateToCategories(it) },
+                            navigateToRandom = { appActions.navigateToRandom() },
+                            navigateToSearch = { appActions.navigateToSearch() },
+                            navigateToSearchWithTerm = { appActions.navigateToSearch(it) },
+                            navigateToSettings = { appActions.navigateToSettings() },
+                            navigateToUpload = { appActions.navigateToUpload() },
+                            navigateToAbout = { appActions.navigateToAbout() },
                         )
                     }
                 },
@@ -253,17 +190,9 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             TopBar(
                                 scrollBehavior,
                                 state = topBarState,
-                                onExpandNavMenu = { vm.openDrawer() },
-                                onBackClicked = {
-                                    val currentStack =
-                                        navigationState.backStacks[navigationState.topLevelRoute]
-                                    if (currentStack != null && currentStack.size > 1) {
-                                        navigator.goBack()
-                                    } else {
-                                        navigator.navigate(CategoriesRoute(null))
-                                    }
-                                },
-                                onSearch = { vm.navigate(SearchRoute(it)) },
+                                onExpandNavMenu = { appActions.openDrawer() },
+                                onBackClicked = { navigator.goBack() },
+                                onSearch = { appActions.navigateToSearch(it) },
                             )
                         }
                     },
@@ -277,17 +206,12 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                         }
                     },
                 ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize(),
-                    ) {
-                        NavDisplay(
-                            entries = navigationState.toEntries(entryProvider),
-                            onBack = { navigator.goBack() },
-                            sceneStrategy = remember { DialogSceneStrategy() },
-                        )
-                    }
+                    NavDisplay(
+                        modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                        entries = navigationState.toEntries(entryProvider),
+                        onBack = { appActions.back() },
+                        sceneStrategy = remember { DialogSceneStrategy() },
+                    )
                 }
             }
         }

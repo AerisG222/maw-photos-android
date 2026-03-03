@@ -13,10 +13,10 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object AboutRoute : NavKey
+object AboutNavKey : NavKey
 
 fun EntryProviderScope<NavKey>.about() {
-    entry<AboutRoute> {
+    entry<AboutNavKey> {
         AboutRoute()
     }
 }
@@ -29,7 +29,8 @@ private fun AboutRoute(vm: AboutViewModel = hiltViewModel()) {
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.About)
         appActions.updateTopBar(
-            TopBarState().copy(
+            NavigationArea.About,
+            TopBarState(
                 showAppIcon = false,
                 title = "About",
             ),

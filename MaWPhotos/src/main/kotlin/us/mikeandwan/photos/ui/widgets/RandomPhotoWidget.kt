@@ -98,23 +98,20 @@ class RandomPhotoWidget : GlanceAppWidget() {
                         provider = ImageProvider(bitmap),
                         contentDescription = "Random Photo",
                         contentScale = ContentScale.Fit,
-                        modifier = GlanceModifier.fillMaxSize().clickable(
-                            actionRunCallback<RefreshWidgetAction>(),
-                        ),
+                        modifier = GlanceModifier.fillMaxSize(),
                     )
                 }
 
                 isError -> {
                     Text(
                         text = "Error loading image",
-                        modifier = GlanceModifier.clickable(actionRunCallback<RefreshWidgetAction>()),
                     )
                 }
 
                 else -> {
                     Text(
                         text = "Loading...",
-                        modifier = GlanceModifier.clickable(actionRunCallback<RefreshWidgetAction>()),
+                        modifier = GlanceModifier,
                     )
                 }
             }

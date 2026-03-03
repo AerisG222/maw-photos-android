@@ -21,12 +21,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -42,9 +44,9 @@ import us.mikeandwan.photos.domain.models.ErrorMessage
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
-import us.mikeandwan.photos.ui.screens.categories.CategoriesRoute
-import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserRoute
-import us.mikeandwan.photos.ui.screens.upload.UploadRoute
+import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
+import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
+import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
 import us.mikeandwan.photos.workers.RandomPhotoWorker
 import us.mikeandwan.photos.workers.UploadWorker
 
@@ -82,8 +84,8 @@ class MawPhotosAppViewModel
         private val _drawerState = MutableStateFlow(DrawerValue.Closed)
         val drawerState = _drawerState.asStateFlow()
 
-        private val _signalNavigate = MutableStateFlow<NavKey?>(null)
-        val signalNavigate = _signalNavigate.asStateFlow()
+        private val _navigationEvents = Channel<NavKey>(Channel.BUFFERED)
+        val navigationEvents = _navigationEvents.receiveAsFlow()
 
         val errorsToDisplay = errorRepository.error
             .filter { it is ErrorMessage.Display }
@@ -105,17 +107,24 @@ class MawPhotosAppViewModel
             _drawerState.value = DrawerValue.Closed
         }
 
-        fun navigate(destination: NavKey?) {
-            _signalNavigate.value = destination
+        fun navigate(route: NavKey) {
+            viewModelScope.launch {
+                _navigationEvents.send(route)
+            }
         }
 
-        fun navigateAndCloseDrawer(destination: NavKey?) {
-            closeDrawer()
-            navigate(destination)
-        }
-
-        fun updateTopBar(nextState: TopBarState) {
-            _topBarState.value = nextState
+        fun updateTopBar(
+            navArea: NavigationArea,
+            nextState: TopBarState,
+        ) {
+            // added the navarea param so callers can identify where they are coming from.  in particular, this
+            // guards against cases where the nav area is changed but we get a late request to update the top nav.
+            // this easily happened when on a category and then go to perform an upload.  handling the intent for the
+            // send/upload results in the upload page firing first, but the category screen loads data late as it is
+            // the starting route and would often result in the year at the top of the upload page...
+            if (navArea == _navArea.value) {
+                _topBarState.value = nextState
+            }
         }
 
         fun setActiveYear(year: Int) {
@@ -144,17 +153,20 @@ class MawPhotosAppViewModel
         }
 
         fun handleIntent(intent: Intent?) {
-            if (intent == null) return
+            if (intent == null) {
+                navigate(CategoriesNavKey(null))
+                return
+            }
 
             when (intent.action) {
                 Intent.ACTION_SEND -> {
                     handleSendSingle(intent)
-                    navigate(UploadRoute)
+                    navigate(UploadNavKey)
                 }
 
                 Intent.ACTION_SEND_MULTIPLE -> {
                     handleSendMultiple(intent)
-                    navigate(UploadRoute)
+                    navigate(UploadNavKey)
                 }
 
                 else -> {
@@ -169,34 +181,12 @@ class MawPhotosAppViewModel
 
                             if (userStatus is UserStatus.Inactive) {
                                 Timber.w("YO INACTIVE!")
-                                navigate(InactiveUserRoute)
-                            }
-
-                            if (userStatus is UserStatus.Active && authStatus is AuthStatus.Authorized) {
-                                triggerImmediateWidgetUpdate()
-                                navigate(CategoriesRoute(null))
+                                navigate(InactiveUserNavKey)
                             }
                         }.collect { }
                     }
                 }
             }
-        }
-
-        private fun triggerImmediateWidgetUpdate() {
-            val constraints = Constraints
-                .Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-            val work = OneTimeWorkRequestBuilder<RandomPhotoWorker>()
-                .setConstraints(constraints)
-                .build()
-
-            WorkManager.getInstance(application).enqueueUniqueWork(
-                "ImmediateRandomPhotoWidgetUpdate",
-                ExistingWorkPolicy.KEEP,
-                work,
-            )
         }
 
         private fun handleSendSingle(intent: Intent) {

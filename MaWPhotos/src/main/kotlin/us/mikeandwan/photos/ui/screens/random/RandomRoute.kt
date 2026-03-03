@@ -9,49 +9,39 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object RandomRoute : NavKey
+object RandomNavKey : NavKey
 
-fun EntryProviderScope<NavKey>.random(
-    navigateToMedia: (Uuid) -> Unit,
-    navigateToLogin: () -> Unit,
-) {
-    entry<RandomRoute> {
-        RandomRoute(
-            navigateToMedia = navigateToMedia,
-            navigateToLogin = navigateToLogin,
-        )
+fun EntryProviderScope<NavKey>.random() {
+    entry<RandomNavKey> {
+        RandomRoute()
     }
 }
 
 @Composable
-private fun RandomRoute(
-    navigateToMedia: (Uuid) -> Unit,
-    navigateToLogin: () -> Unit,
-    vm: RandomViewModel = hiltViewModel(),
-) {
+private fun RandomRoute(vm: RandomViewModel = hiltViewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
     LaunchedEffect(Unit) {
-        vm.initialFetch(24)
-    }
-
-    LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Random)
-        appActions.updateTopBar(TopBarState(title = "Random"))
+        appActions.updateTopBar(
+            NavigationArea.Random,
+            TopBarState(title = "Random"),
+        )
+
+        vm.initialFetch(24)
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
@@ -64,6 +54,6 @@ private fun RandomRoute(
 
     RandomScreen(
         uiState = uiState,
-        onMediaClicked = { navigateToMedia(it.id) },
+        onMediaClicked = { appActions.navigateToRandomItem(it.id) },
     )
 }

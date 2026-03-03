@@ -9,27 +9,19 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-data class RandomItemRoute(
+data class RandomItemNavKey(
     val mediaId: Uuid,
 ) : NavKey
 
-fun EntryProviderScope<NavKey>.randomItem(
-    navigateToYear: (Int) -> Unit,
-    navigateToCategory: (Category) -> Unit,
-    navigateToLogin: () -> Unit,
-) {
-    entry<RandomItemRoute> { args ->
+fun EntryProviderScope<NavKey>.randomItem() {
+    entry<RandomItemNavKey> { args ->
         RandomItemRoute(
             mediaId = args.mediaId,
-            navigateToYear = navigateToYear,
-            navigateToCategory = navigateToCategory,
-            navigateToLogin = navigateToLogin
         )
     }
 }
@@ -37,9 +29,6 @@ fun EntryProviderScope<NavKey>.randomItem(
 @Composable
 private fun RandomItemRoute(
     mediaId: Uuid,
-    navigateToYear: (Int) -> Unit,
-    navigateToCategory: (Category) -> Unit,
-    navigateToLogin: () -> Unit,
     vm: RandomItemViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
@@ -51,20 +40,23 @@ private fun RandomItemRoute(
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Random)
-        appActions.updateTopBar(TopBarState(title = "Random"))
+        appActions.updateTopBar(
+            NavigationArea.Random,
+            TopBarState(title = "Random"),
+        )
     }
 
     RandomItemScreen(
         uiState = uiState,
         videoPlayerDataSourceFactory = vm.videoPlayerDataSourceFactory,
-        onNavigateToYear = navigateToYear,
-        onNavigateToCategory = navigateToCategory,
+        onNavigateToYear = { appActions.navigateToCategories(it) },
+        onNavigateToCategory = { appActions.navigateToCategory(it.id) },
         onSetActiveIndex = { vm.setActiveIndex(it) },
         onToggleSlideshow = { vm.toggleSlideshow() },
         onToggleFavorite = { vm.toggleFavorite() },
@@ -74,6 +66,6 @@ private fun RandomItemRoute(
         onAddComment = { vm.addComment(it) },
         onSaveMediaToShare = { drawable, filename, onComplete ->
             vm.saveFileToShare(drawable, filename, onComplete)
-        }
+        },
     )
 }

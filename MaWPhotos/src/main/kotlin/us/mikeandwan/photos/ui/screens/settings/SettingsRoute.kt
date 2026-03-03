@@ -22,21 +22,16 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object SettingsRoute : NavKey
+object SettingsNavKey : NavKey
 
-fun EntryProviderScope<NavKey>.settings(
-    navigateToLogin: () -> Unit,
-) {
-    entry<SettingsRoute> {
-        SettingsRoute(navigateToLogin = navigateToLogin)
+fun EntryProviderScope<NavKey>.settings() {
+    entry<SettingsNavKey> {
+        SettingsRoute()
     }
 }
 
 @Composable
-private fun SettingsRoute(
-    navigateToLogin: () -> Unit,
-    vm: SettingsViewModel = hiltViewModel(),
-) {
+private fun SettingsRoute(vm: SettingsViewModel = hiltViewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
     val context = LocalContext.current
@@ -58,7 +53,8 @@ private fun SettingsRoute(
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Settings)
         appActions.updateTopBar(
-            TopBarState(showAppIcon = false, title = "Settings")
+            NavigationArea.Settings,
+            TopBarState(showAppIcon = false, title = "Settings"),
         )
         setPermissionPostNotificationAllowed(areNotificationsPermitted())
     }
@@ -96,7 +92,7 @@ private fun SettingsRoute(
         onSearchThumbnailSizeChange = { vm.setSearchThumbnailSize(it) },
         onLogout = {
             vm.logout(context)
-            navigateToLogin()
-        }
+            appActions.navigateToLogin()
+        },
     )
 }

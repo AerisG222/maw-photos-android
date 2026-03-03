@@ -9,25 +9,19 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
-import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-data class CategoryRoute(
+data class CategoryNavKey(
     val categoryId: Uuid,
 ) : NavKey
 
-fun EntryProviderScope<NavKey>.category(
-    navigateToMedia: (Media) -> Unit,
-    navigateToLogin: () -> Unit,
-) {
-    entry<CategoryRoute> { args ->
+fun EntryProviderScope<NavKey>.category() {
+    entry<CategoryNavKey> { args ->
         CategoryRoute(
             categoryId = args.categoryId,
-            navigateToMedia = navigateToMedia,
-            navigateToLogin = navigateToLogin,
         )
     }
 }
@@ -35,12 +29,14 @@ fun EntryProviderScope<NavKey>.category(
 @Composable
 private fun CategoryRoute(
     categoryId: Uuid,
-    navigateToMedia: (Media) -> Unit,
-    navigateToLogin: () -> Unit,
     vm: CategoryViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
+
+    LaunchedEffect(Unit) {
+        appActions.setNavArea(NavigationArea.Category)
+    }
 
     LaunchedEffect(categoryId) {
         vm.initState(categoryId)
@@ -48,25 +44,32 @@ private fun CategoryRoute(
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
     LaunchedEffect(uiState.isLoading) {
         if (uiState.isLoading) {
-            appActions.updateTopBar(TopBarState(title = "Loading..."))
+            appActions.updateTopBar(
+                NavigationArea.Category,
+                TopBarState(title = "Loading..."),
+            )
         }
     }
 
     LaunchedEffect(uiState.category) {
         uiState.category?.let {
-            appActions.setNavArea(NavigationArea.Category)
-            appActions.updateTopBar(TopBarState(title = it.name))
+            appActions.updateTopBar(
+                NavigationArea.Category,
+                TopBarState(title = it.name),
+            )
         }
     }
 
     CategoryScreen(
         uiState = uiState,
-        onMediaClicked = navigateToMedia,
+        onMediaClicked = { media ->
+            appActions.navigateToCategoryItem(media.categoryId, media.id)
+        },
     )
 }

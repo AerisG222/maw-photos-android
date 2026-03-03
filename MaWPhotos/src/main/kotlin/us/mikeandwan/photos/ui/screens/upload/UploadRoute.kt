@@ -13,37 +13,33 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
-object UploadRoute : NavKey
+object UploadNavKey : NavKey
 
-fun EntryProviderScope<NavKey>.upload(
-    navigateToLogin: () -> Unit,
-) {
-    entry<UploadRoute> {
-        UploadRoute(navigateToLogin = navigateToLogin)
+fun EntryProviderScope<NavKey>.upload() {
+    entry<UploadNavKey> {
+        UploadRoute()
     }
 }
 
 @Composable
-private fun UploadRoute(
-    navigateToLogin: () -> Unit,
-    vm: UploadViewModel = hiltViewModel(),
-) {
+private fun UploadRoute(vm: UploadViewModel = hiltViewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
 
     LaunchedEffect(uiState.isAuthorized) {
         if (!uiState.isAuthorized) {
-            navigateToLogin()
+            appActions.navigateToLogin()
         }
     }
 
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Upload)
         appActions.updateTopBar(
+            NavigationArea.Upload,
             TopBarState(
                 showAppIcon = false,
                 title = "Upload Queue",
-            )
+            ),
         )
     }
 
