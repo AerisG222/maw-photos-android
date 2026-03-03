@@ -31,10 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import us.mikeandwan.photos.authorization.AuthStatus
-import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.navigation.NavigationRail
 import us.mikeandwan.photos.ui.components.topbar.TopBar
 import us.mikeandwan.photos.ui.navigation.Navigator

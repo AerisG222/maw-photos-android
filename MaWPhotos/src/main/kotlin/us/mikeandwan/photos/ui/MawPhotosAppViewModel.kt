@@ -47,7 +47,6 @@ import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
-import us.mikeandwan.photos.workers.RandomPhotoWorker
 import us.mikeandwan.photos.workers.UploadWorker
 
 @HiltViewModel
