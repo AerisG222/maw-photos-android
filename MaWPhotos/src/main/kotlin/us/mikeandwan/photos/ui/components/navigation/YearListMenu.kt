@@ -18,30 +18,24 @@ fun YearListMenu(
     onYearSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val containerModifier = modifier.then(
-        Modifier
+    LazyColumn(
+        modifier = modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.secondaryContainer),
-    )
-
-    val yearDividerModifier = Modifier
-        .padding(16.dp, 0.dp)
-        .background(color = MaterialTheme.colorScheme.secondary)
-
-    LazyColumn(containerModifier) {
+            .background(color = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
         itemsIndexed(
             years,
-            key = { index, item -> item },
+            key = { _, year -> year },
         ) { index, year ->
             YearListItem(
-                year,
-                year == activeYear,
-                onYearSelected,
+                year = year,
+                isActive = year == activeYear,
+                onYearSelected = onYearSelected,
             )
 
-            if (index != years.size - 1) {
+            if (index < years.lastIndex) {
                 HorizontalDivider(
-                    modifier = yearDividerModifier,
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     color = MaterialTheme.colorScheme.inverseOnSurface,
                 )
             }
