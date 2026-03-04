@@ -41,9 +41,6 @@ class SearchRepository
         private val _activeSearchTerm = MutableStateFlow("")
         val activeSearchTerm = _activeSearchTerm.asStateFlow()
 
-        private val _isSearching = MutableStateFlow(false)
-        val isSearching = _isSearching.asStateFlow()
-
         fun getSearchHistory() =
             searchHistoryDao
                 .getSearchTerms()
@@ -63,7 +60,6 @@ class SearchRepository
                 _activeSearchTerm.value = query
                 _searchResults.value = emptyList()
                 _searchRequest.value = SearchRequest(query, searchSource)
-                _isSearching.value = true
 
                 executeSearch(query, 0)
                     .collect { emit(it) }
@@ -71,8 +67,6 @@ class SearchRepository
                 if (searchResults.value.isNotEmpty()) {
                     addSearchHistory(query)
                 }
-
-                _isSearching.value = false
             }
         }
 

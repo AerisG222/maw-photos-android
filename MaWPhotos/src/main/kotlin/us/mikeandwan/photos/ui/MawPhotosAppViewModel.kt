@@ -56,7 +56,7 @@ import us.mikeandwan.photos.workers.UploadWorker
 class MawPhotosAppViewModel
     @Inject
     constructor(
-        private val errorRepository: ErrorRepository,
+        errorRepository: ErrorRepository,
         private val categoryRepository: CategoryRepository,
         authService: AuthService,
         private val configRepository: ConfigRepository,
