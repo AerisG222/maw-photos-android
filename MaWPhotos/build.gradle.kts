@@ -1,6 +1,5 @@
 import java.io.FileInputStream
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -33,11 +32,6 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     // https://developer.android.com/training/data-storage/room/migrating-db-versions#kotlin_2
@@ -102,7 +96,6 @@ kotlin {
     jvmToolchain(17)
 
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
         freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
         freeCompilerArgs.add("-opt-in=kotlin.time.ExperimentalTime")
     }
