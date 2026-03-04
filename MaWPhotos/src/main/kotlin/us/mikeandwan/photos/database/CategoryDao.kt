@@ -42,8 +42,8 @@ abstract class CategoryDao {
     abstract fun getMostRecentModifiedDate(): Flow<Instant?>
 
     @Upsert
-    abstract suspend fun upsertCategories(vararg categories: Category)
+    abstract suspend fun upsertCategories(categories: List<Category>)
 
     @Upsert
-    abstract suspend fun upsertMediaFiles(vararg mediaFiles: MediaFile)
+    abstract suspend fun upsertMediaFiles(mediaFiles: List<MediaFile>)
 }

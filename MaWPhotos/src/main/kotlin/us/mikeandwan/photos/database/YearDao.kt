@@ -17,5 +17,5 @@ interface YearDao {
     fun getYearsNeedingInitialization(): Flow<List<Int>>
 
     @Upsert
-    suspend fun upsert(vararg years: Year)
+    suspend fun upsert(years: List<Year>)
 }

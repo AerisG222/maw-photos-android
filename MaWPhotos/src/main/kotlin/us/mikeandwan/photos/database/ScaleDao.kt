@@ -11,5 +11,5 @@ interface ScaleDao {
     fun getScales(): Flow<List<Scale>>
 
     @Upsert
-    suspend fun upsert(vararg scale: Scale)
+    suspend fun upsert(scale: List<Scale>)
 }

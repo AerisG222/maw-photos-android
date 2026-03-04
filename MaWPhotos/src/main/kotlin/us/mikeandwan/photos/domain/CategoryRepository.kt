@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -64,7 +65,7 @@ class CategoryRepository
                                 loadCategories(year)
                                     .collect { status ->
                                         if (status is ExternalCallStatus.Success) {
-                                            yearDao.upsert(Year(year, true))
+                                            yearDao.upsert(listOf(Year(year, true)))
                                         }
                                     }
                             }
@@ -79,6 +80,7 @@ class CategoryRepository
             flow {
                 val years = yearDao
                     .getYears()
+                    .distinctUntilChanged()
 
                 if (years.first().isEmpty()) {
                     emit(emptyList())
@@ -89,7 +91,7 @@ class CategoryRepository
                 emitAll(years)
             }
 
-        override fun getMostRecentYear() = yearDao.getMostRecentYear()
+        override fun getMostRecentYear() = yearDao.getMostRecentYear().distinctUntilChanged()
 
         override fun getUpdatedCategories() =
             flow {
@@ -143,6 +145,7 @@ class CategoryRepository
                     .map { dbList ->
                         dbList.map { dbCat -> dbCat.toDomainCategory() }
                     }
+                    .distinctUntilChanged()
 
                 if (cat.first().isEmpty()) {
                     emit(emptyList())
@@ -158,6 +161,7 @@ class CategoryRepository
                 val cat = catDao
                     .getCategory(categoryId)
                     .map { dbCat -> dbCat?.toDomainCategory() }
+                    .distinctUntilChanged()
 
                 if (cat.first() == null) {
                     loadCategory(categoryId)
@@ -187,10 +191,10 @@ class CategoryRepository
                         if (years.isEmpty()) {
                             emit(ExternalCallStatus.Success(emptyList()))
                         } else {
-                            val dbYears = years.map { y -> Year(y) }
+                            val dbYears = years.map { Year(it) }
 
                             db.withTransaction {
-                                yearDao.upsert(*dbYears.toTypedArray())
+                                yearDao.upsert(dbYears)
                             }
 
                             emit(ExternalCallStatus.Success(dbYears.map { it.year }))
@@ -214,23 +218,8 @@ class CategoryRepository
 
                     is ApiResult.Success -> {
                         val categories = result.result
-
-                        if (categories.isEmpty()) {
-                            emit(ExternalCallStatus.Success(emptyList()))
-                        } else {
-                            val dbCategories = categories.map { apiCat ->
-                                apiCat.toDatabaseCategory()
-                            }
-                            val dbMediaFiles = prepareMediaFilesForDatabase(categories)
-
-                            db.withTransaction {
-                                catDao.upsertCategories(*dbCategories.toTypedArray())
-                                catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
-                                yearDao.upsert(Year(year, true))
-                            }
-
-                            emit(ExternalCallStatus.Success(categories))
-                        }
+                        saveCategoriesToDb(categories, listOf(Year(year, true)))
+                        emit(ExternalCallStatus.Success(categories))
                     }
                 }
             }
@@ -250,35 +239,18 @@ class CategoryRepository
 
                     is ApiResult.Success -> {
                         val categories = result.result
-
                         if (categories.isEmpty()) {
                             emit(ExternalCallStatus.Success(emptyList()))
                         } else {
-                            val dbCategories = categories.map { apiCat ->
-                                apiCat.toDatabaseCategory()
-                            }
-                            val dbMediaFiles = prepareMediaFilesForDatabase(categories)
-                            val allYears = yearDao
-                                .getYears()
-                                .first()
-
+                            val allYears = yearDao.getYears().first()
                             val newYears = categories
-                                .map { c -> c.effectiveDate.year }
+                                .map { it.effectiveDate.year }
                                 .distinct()
-                                .filter { y -> !allYears.contains(y) }
-                                .map { y -> Year(y, false) }
+                                .filter { !allYears.contains(it) }
+                                .map { Year(it, false) }
 
-                            db.withTransaction {
-                                catDao.upsertCategories(*dbCategories.toTypedArray())
-                                catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
-                                yearDao.upsert(*newYears.toTypedArray())
-                            }
-
-                            emit(
-                                ExternalCallStatus.Success(
-                                    categories.map { it.toDomainCategory() },
-                                ),
-                            )
+                            saveCategoriesToDb(categories, newYears)
+                            emit(ExternalCallStatus.Success(categories.map { it.toDomainCategory() }))
                         }
                     }
                 }
@@ -299,23 +271,33 @@ class CategoryRepository
 
                     is ApiResult.Success -> {
                         val category = result.result
-
                         if (category == null) {
                             emit(ExternalCallStatus.Error("Category not found"))
                         } else {
-                            val dbCategory = category.toDatabaseCategory()
-                            val dbMediaFiles = prepareMediaFilesForDatabase(listOf(category))
-
-                            db.withTransaction {
-                                catDao.upsertCategories(dbCategory)
-                                catDao.upsertMediaFiles(*dbMediaFiles.toTypedArray())
-                            }
-
+                            saveCategoriesToDb(listOf(category))
                             emit(ExternalCallStatus.Success(category))
                         }
                     }
                 }
             }
+
+        private suspend fun saveCategoriesToDb(
+            apiCategories: List<us.mikeandwan.photos.api.Category>,
+            yearsToUpsert: List<Year> = emptyList(),
+        ) {
+            if (apiCategories.isEmpty()) return
+
+            val dbCategories = apiCategories.map { it.toDatabaseCategory() }
+            val dbMediaFiles = prepareMediaFilesForDatabase(apiCategories)
+
+            db.withTransaction {
+                catDao.upsertCategories(dbCategories)
+                catDao.upsertMediaFiles(dbMediaFiles)
+                if (yearsToUpsert.isNotEmpty()) {
+                    yearDao.upsert(yearsToUpsert)
+                }
+            }
+        }
 
         fun tryUpdateCache(media: Media) {
             val mediaList = cachedCategoryMedia[media.categoryId]
@@ -331,7 +313,7 @@ class CategoryRepository
             }
         }
 
-        fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category =
+        private fun us.mikeandwan.photos.api.Category.toDatabaseCategory(): us.mikeandwan.photos.database.Category =
             us.mikeandwan.photos.database.Category(
                 this.id,
                 this.effectiveDate.year,
@@ -344,42 +326,23 @@ class CategoryRepository
         suspend fun prepareMediaFilesForDatabase(
             categories: List<us.mikeandwan.photos.api.Category>,
         ): List<us.mikeandwan.photos.database.MediaFile> {
-            val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
             val scales = scaleDao
                 .getScales()
                 .first()
+                .associateBy { it.code }
 
-            for (category in categories) {
-                val adaptedFiles = buildMediaFiles(category, scales)
-                result.addAll(adaptedFiles)
-            }
+            return categories.flatMap { category ->
+                category.teaser.files.map { file ->
+                    val scale = scales[file.scale]
+                        ?: throw IllegalArgumentException("Scale ${file.scale} not found in database")
 
-            return result
-        }
-
-        fun buildMediaFiles(
-            category: us.mikeandwan.photos.api.Category,
-            scales: List<us.mikeandwan.photos.database.Scale>,
-        ): List<us.mikeandwan.photos.database.MediaFile> {
-            val result = mutableListOf<us.mikeandwan.photos.database.MediaFile>()
-
-            for (file in category.teaser.files) {
-                val scale = scales.firstOrNull { it.code == file.scale }
-
-                if (scale == null) {
-                    throw IllegalArgumentException("Scale ${file.scale} not found in database")
-                }
-
-                result.add(
                     us.mikeandwan.photos.database.MediaFile(
                         category.id,
                         scale.id,
                         file.type,
                         file.path,
-                    ),
-                )
+                    )
+                }
             }
-
-            return result
         }
     }

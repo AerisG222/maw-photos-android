@@ -82,7 +82,7 @@ class ConfigRepository
                     val dbScales = scales.map { s -> s.toDatabaseScale() }
 
                     db.withTransaction {
-                        scaleDao.upsert(*dbScales.toTypedArray())
+                        scaleDao.upsert(dbScales)
                     }
 
                     scales
