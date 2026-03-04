@@ -5,14 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -20,11 +18,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.CategoryRepository
-import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
 import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
@@ -53,7 +49,6 @@ class CategoriesViewModel
         private val categoriesLoadedGuard: CategoriesLoadedGuard,
         categoryPreferenceRepository: CategoryPreferenceRepository,
         private val errorRepository: ErrorRepository,
-        private val configRepository: ConfigRepository,
     ) : ViewModel() {
         private val _year = MutableStateFlow<Int?>(null)
         private val _isRefreshing = MutableStateFlow(false)
@@ -80,64 +75,6 @@ class CategoriesViewModel
                             setYear(years.max())
                         }
                     }.collect { }
-            }
-
-            viewModelScope.launch {
-                configRepository
-                    .getScales()
-                    .collect { }
-            }
-
-            // If the app is newly installed there may be no years/categories in the DB yet.
-            // Listen for successful authentication and proactively trigger the repository
-            // to load years and the most recent year's categories so the UI doesn't stay
-            // stuck on the loading state.
-            viewModelScope.launch(Dispatchers.IO) {
-                authGuard.status.collect { status ->
-                    if (status is GuardStatus.Passed) {
-                        try {
-                            // Ensure scales are present in the DB before loading categories.
-                            val initialScales = configRepository.getScales().first()
-                            if (initialScales.isEmpty()) {
-                                // The repository's getScales() will trigger a load if the DB is empty,
-                                // but it emits an empty list first. Wait briefly for a non-empty
-                                // emission so downstream category loading has scale data available.
-                                val loaded = withTimeoutOrNull(10_000) {
-                                    configRepository.getScales().first { it.isNotEmpty() }
-                                }
-
-                                if (loaded == null) {
-                                    Timber.w("Scales did not load within timeout; continuing without scales")
-                                }
-                            }
-
-                            val years = categoryRepository.getYears().first()
-
-                            if (years.isEmpty()) {
-                                // Trigger an explicit load of years from the API
-                                categoryRepository.loadYears(null).collect { /* intentional no-op */ }
-                            }
-
-                            val finalYears = categoryRepository.getYears().first()
-                            val targetYear = finalYears.maxOrNull()
-
-                            if (targetYear != null) {
-                                // Ensure categories for the selected/most-recent year are loaded.
-                                val cats = categoryRepository.getCategories(targetYear).first()
-                                if (cats.isEmpty()) {
-                                    categoryRepository.loadCategories(targetYear).collect { /* no-op */ }
-                                }
-
-                                // If the view model hasn't selected a year yet, pick the most-recent.
-                                if (_year.value == null) {
-                                    _year.value = targetYear
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Timber.e(e, "Error loading scales/years/categories after auth")
-                        }
-                    }
-                }
             }
 
             combine(

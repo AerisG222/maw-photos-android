@@ -21,16 +21,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.AuthStatus
@@ -53,8 +56,8 @@ import us.mikeandwan.photos.workers.UploadWorker
 class MawPhotosAppViewModel
     @Inject
     constructor(
-        errorRepository: ErrorRepository,
-        categoryRepository: CategoryRepository,
+        private val errorRepository: ErrorRepository,
+        private val categoryRepository: CategoryRepository,
         authService: AuthService,
         private val configRepository: ConfigRepository,
         private val imageLoader: ImageLoader,
@@ -262,12 +265,52 @@ class MawPhotosAppViewModel
 
         private suspend fun saveUploadFile(mediaUri: Uri): File? = fileStorageRepository.saveFileToUpload(mediaUri)
 
+        private fun bootstrapAppData() {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    val loaded = withTimeoutOrNull(10_000) {
+                        configRepository.getScales().first { it.isNotEmpty() }
+                    }
+
+                    if (loaded == null) {
+                        Timber.w("Scales did not load within timeout; continuing without scales")
+                    }
+
+                    val years = categoryRepository.getYears().first()
+
+                    if (years.isEmpty()) {
+                        categoryRepository.loadYears(null).collect { }
+                    }
+
+                    val finalYears = categoryRepository.getYears().first()
+                    val targetYear = finalYears.maxOrNull()
+
+                    if (targetYear != null) {
+                        val cats = categoryRepository.getCategories(targetYear).first()
+                        if (cats.isEmpty()) {
+                            categoryRepository.loadCategories(targetYear).collect { /* no-op */ }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Error loading scales/years/categories after auth")
+                }
+            }
+        }
+
         init {
             SingletonImageLoader.setSafe { imageLoader }
 
             viewModelScope.launch {
                 fileStorageRepository.refreshPendingUploads()
                 clearFileCache()
+            }
+
+            viewModelScope.launch {
+                authenticationStatus.collect { status ->
+                    if (status is AuthStatus.Authorized) {
+                        bootstrapAppData()
+                    }
+                }
             }
         }
     }
