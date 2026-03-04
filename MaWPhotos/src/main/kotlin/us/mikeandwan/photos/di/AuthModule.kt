@@ -13,6 +13,7 @@ import javax.inject.Singleton
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import us.mikeandwan.photos.authorization.AuthService
+import us.mikeandwan.photos.authorization.TokenAuthenticator
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -29,9 +30,15 @@ object AuthModule {
     @Singleton
     fun provideAuthInterceptor(
         application: Application,
+        credManager: CredentialsManager,
+    ): AuthInterceptor = AuthInterceptor(application, credManager)
+
+    @Provides
+    @Singleton
+    fun provideTokenAuthenticator(
         authService: AuthService,
         credManager: CredentialsManager,
-    ): AuthInterceptor = AuthInterceptor(application, authService, credManager)
+    ): TokenAuthenticator = TokenAuthenticator(authService, credManager)
 
     @Provides
     @Singleton

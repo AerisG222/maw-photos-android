@@ -27,16 +27,21 @@ import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.api.UploadApiClient
 import us.mikeandwan.photos.authorization.AuthInterceptor
+import us.mikeandwan.photos.authorization.TokenAuthenticator
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator,
+    ): OkHttpClient {
         val builder = OkHttpClient
             .Builder()
             .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
 
         if (BuildConfig.DEBUG) {
             val logging = HttpLoggingInterceptor()

@@ -6,34 +6,29 @@ import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
-import timber.log.Timber
 import us.mikeandwan.photos.R
 
 class AuthInterceptor(
     private val application: Application,
-    private val authService: AuthService,
     private val credManager: CredentialsManager,
 ) : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val srcRequest = chain.request()
 
-        // only send access token to the API that requires it
+        // Only send access token to the API that requires it
         val needsToken = srcRequest.url
             .toString()
             .startsWith(application.getString(R.string.auth0_audience_api), true)
 
         if (needsToken) {
-            var accessToken: String? = null
-
-            runBlocking {
+            val accessToken = runBlocking {
                 try {
-                    val credentials = credManager.awaitCredentials()
-                    accessToken = credentials.accessToken
-                    Timber.i("Attempting to get credentials from Auth0: ${srcRequest.url}")
+                    // awaitCredentials() returns the current token if valid,
+                    // or refreshes it if it has expired.
+                    credManager.awaitCredentials().accessToken
                 } catch (e: Exception) {
-                    authService.updateStatus(AuthStatus.RequiresAuthorization)
-                    Timber.e(e, "Error trying to get credentials")
+                    null
                 }
             }
 
