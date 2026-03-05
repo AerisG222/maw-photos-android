@@ -1,5 +1,10 @@
 # Release Notes
 
+## v9.2 : 03/04/2026
+- playing with ai / gemini to update various elements of the application
+- introduce new widget to display random photos
+- update dependencies
+
 ## v9.1 : 11/08/2025
 - avoid scenario where swiping back leaves you stuck on a loading screen
 - improve styling of login screen

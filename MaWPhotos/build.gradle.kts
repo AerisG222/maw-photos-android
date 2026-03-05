@@ -23,8 +23,8 @@ android {
         applicationId = "us.mikeandwan.pictures"
         minSdk = 26
         targetSdk = 36
-        versionCode = 76
-        versionName = "9.1"
+        versionCode = 77
+        versionName = "9.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
