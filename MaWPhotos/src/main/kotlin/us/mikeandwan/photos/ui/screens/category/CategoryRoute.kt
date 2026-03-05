@@ -61,7 +61,10 @@ private fun CategoryRoute(
         uiState.category?.let {
             appActions.updateTopBar(
                 NavigationArea.Category,
-                TopBarState(title = it.name),
+                TopBarState(
+                    tinyVerticalTitlePrefix = it.year.toString(),
+                    title = it.name,
+                ),
             )
         }
     }

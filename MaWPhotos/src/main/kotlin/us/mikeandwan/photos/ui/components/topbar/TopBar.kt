@@ -1,6 +1,8 @@
 package us.mikeandwan.photos.ui.components.topbar
 
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
@@ -27,6 +28,7 @@ data class TopBarState(
     var title: String = "",
     var initialSearchTerm: String = "",
     var showSearch: Boolean = false,
+    var tinyVerticalTitlePrefix: String = "",
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,11 +61,21 @@ fun TopBar(
                     )
                 }
             } else {
-                Text(
-                    text = state.title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Column {
+                    if (state.tinyVerticalTitlePrefix.isNotEmpty()) {
+                        Text(
+                            text = state.tinyVerticalTitlePrefix,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                        )
+                    }
+
+                    Text(
+                        text = state.title,
+                        modifier = Modifier.basicMarquee(),
+                        maxLines = 1,
+                    )
+                }
             }
         },
         navigationIcon = {
