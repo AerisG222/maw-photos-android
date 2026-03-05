@@ -6,6 +6,7 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import us.mikeandwan.photos.workers.RandomPhotoWorker
 
@@ -15,7 +16,9 @@ class RefreshWidgetAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        val workRequest = OneTimeWorkRequestBuilder<RandomPhotoWorker>().build()
+        val workRequest = OneTimeWorkRequestBuilder<RandomPhotoWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "RefreshRandomPhotoWidget",
