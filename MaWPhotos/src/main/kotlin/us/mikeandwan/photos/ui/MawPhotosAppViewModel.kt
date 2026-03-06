@@ -56,7 +56,7 @@ import us.mikeandwan.photos.workers.UploadWorker
 class MawPhotosAppViewModel
     @Inject
     constructor(
-        errorRepository: ErrorRepository,
+        private val errorRepository: ErrorRepository,
         private val categoryRepository: CategoryRepository,
         authService: AuthService,
         private val configRepository: ConfigRepository,
@@ -273,7 +273,7 @@ class MawPhotosAppViewModel
                     }
 
                     if (loaded == null) {
-                        Timber.w("Scales did not load within timeout; continuing without scales")
+                        errorRepository.logError("MawPhotosAppViewModel: Scales did not load within timeout")
                     }
 
                     val years = categoryRepository.getYears().first()
@@ -292,7 +292,7 @@ class MawPhotosAppViewModel
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "Error loading scales/years/categories after auth")
+                    errorRepository.logError("MawPhotosAppViewModel: Error loading scales/years/categories after auth", e)
                 }
             }
         }

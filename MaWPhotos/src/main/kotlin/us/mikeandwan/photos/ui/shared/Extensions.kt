@@ -1,5 +1,10 @@
 package us.mikeandwan.photos.ui.shared
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.Category
@@ -42,3 +47,13 @@ fun <T> ApiResult<T>.toExternalCallStatus(): ExternalCallStatus<T> =
         is ApiResult.Empty -> ExternalCallStatus.Error("Unexpected result")
         is ApiResult.Error -> ExternalCallStatus.Error(this.error, this.exception)
     }
+
+fun Context.areNotificationsPermitted(): Boolean {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    return true
+}

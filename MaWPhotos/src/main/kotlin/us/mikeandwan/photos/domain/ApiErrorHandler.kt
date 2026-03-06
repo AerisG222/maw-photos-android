@@ -20,9 +20,10 @@ class ApiErrorHandler
                 return error.toExternalCallStatus()
             }
 
+            val detailedLog = "API Error: ${error.exception?.message ?: "Unknown error"}\nCode: ${error.errorCode}\nMessage: ${error.error}"
+            errorRepository.logError(detailedLog, error.exception)
+
             if (error.isUnauthorized()) {
-                // we used to logout here, but when there are multiple requests in flight, the logout
-                // would overrule the reauth that would come back a bit later - so just log this condition
                 Timber.i("ApiErrorHandler::handleError: Unauthorized")
             } else if (!message.isNullOrBlank()) {
                 Timber.i("ApiErrorHandler::handleError: $message")
@@ -34,8 +35,11 @@ class ApiErrorHandler
 
         fun handleEmpty(
             empty: ApiResult.Empty,
-            message: String?,
+            message: String? = null,
         ): ExternalCallStatus<Nothing> {
+            val detailedLog = "API Empty Result"
+            errorRepository.logError(detailedLog)
+
             if (!message.isNullOrBlank()) {
                 errorRepository.showError(message)
             }

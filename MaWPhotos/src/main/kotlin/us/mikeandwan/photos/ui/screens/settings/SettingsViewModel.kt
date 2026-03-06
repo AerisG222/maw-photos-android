@@ -34,6 +34,8 @@ data class SettingsUiState(
     val searchQueryCount: Int = 20,
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val isDeveloperMode: Boolean = false,
+    val developerLogs: List<String> = emptyList(),
 )
 
 @HiltViewModel
@@ -64,6 +66,8 @@ class SettingsViewModel
                 searchPreferenceRepository.getSearchesToSaveCount(),
                 searchPreferenceRepository.getSearchDisplayType(),
                 searchPreferenceRepository.getSearchGridItemSize(),
+                errorRepository.isDeveloperMode,
+                errorRepository.developerLogs,
             ) { args: Array<Any?> ->
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
@@ -77,6 +81,8 @@ class SettingsViewModel
                     searchQueryCount = args[8] as Int,
                     searchDisplayType = args[9] as CategoryDisplayType,
                     searchThumbnailSize = args[10] as GridThumbnailSize,
+                    isDeveloperMode = args[11] as Boolean,
+                    developerLogs = args[12] as List<String>,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
@@ -147,6 +153,19 @@ class SettingsViewModel
             viewModelScope.launch {
                 searchPreferenceRepository.setSearchGridItemSize(searchThumbnailSize)
             }
+        }
+
+        fun toggleDeveloperMode(code: String) {
+            if (errorRepository.toggleDeveloperMode(code)) {
+                val msg = if (errorRepository.isDeveloperMode.value) "Developer mode enabled" else "Developer mode disabled"
+                errorRepository.showError(msg)
+            } else {
+                errorRepository.showError("Invalid developer code")
+            }
+        }
+
+        fun clearLogs() {
+            errorRepository.clearLogs()
         }
 
         fun showError(message: String) {

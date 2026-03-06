@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.services.WidgetRandomPhotoService
 
 @HiltWorker
@@ -15,6 +16,7 @@ class RandomPhotoWorker
         @Assisted context: Context,
         @Assisted workerParams: WorkerParameters,
         private val widgetRandomPhotoService: WidgetRandomPhotoService,
+        private val errorRepository: ErrorRepository,
     ) : CoroutineWorker(context, workerParams) {
         companion object {
             const val WORK_NAME = "RandomPhotoWidgetWorker"
@@ -25,6 +27,7 @@ class RandomPhotoWorker
                 widgetRandomPhotoService.fetchAndRefreshAllWidgets(applicationContext)
                 Result.success()
             } catch (e: Exception) {
+                errorRepository.logError("RandomPhotoWorker: Exception in doWork", e)
                 Result.failure()
             }
         }

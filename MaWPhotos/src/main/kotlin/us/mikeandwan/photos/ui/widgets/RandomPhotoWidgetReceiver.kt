@@ -9,6 +9,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.services.WidgetRandomPhotoService
 
 class RandomPhotoWidgetReceiver : GlanceAppWidgetReceiver() {
@@ -20,6 +21,7 @@ class RandomPhotoWidgetReceiver : GlanceAppWidgetReceiver() {
     @InstallIn(SingletonComponent::class)
     interface RandomPhotoWidgetReceiverEntryPoint {
         fun widgetRandomPhotoService(): WidgetRandomPhotoService
+        fun errorRepository(): ErrorRepository
     }
 
     override fun onUpdate(
@@ -36,13 +38,14 @@ class RandomPhotoWidgetReceiver : GlanceAppWidgetReceiver() {
             )
 
         val service = entryPoint.widgetRandomPhotoService()
+        val errorRepository = entryPoint.errorRepository()
 
         // Trigger an immediate fetch when widgets are added or updated
         scope.launch {
             try {
                 service.fetchAndRefreshAllWidgets(context)
             } catch (e: Exception) {
-                // Handle error
+                errorRepository.logError("RandomPhotoWidgetReceiver: Exception in onUpdate scope", e)
             }
         }
     }

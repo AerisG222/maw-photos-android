@@ -9,13 +9,13 @@ import coil3.BitmapImage
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
-import coil3.request.maxBitmapSize
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
@@ -27,17 +27,29 @@ class WidgetRandomPhotoService
     constructor(
         private val randomMediaRepository: RandomMediaRepository,
         private val imageLoader: ImageLoader,
+        private val errorRepository: ErrorRepository,
     ) {
         suspend fun fetchAndRefreshAllWidgets(context: Context) {
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(RandomPhotoWidget::class.java)
+            try {
+                val manager = GlanceAppWidgetManager(context)
+                val glanceIds = manager.getGlanceIds(RandomPhotoWidget::class.java)
 
-            if (glanceIds.isEmpty()) return
+                if (glanceIds.isEmpty()) {
+                    errorRepository.logError("WidgetRandomPhotoService: No widgets found to refresh")
+                    return
+                }
 
-            val file = fetchRandomPhoto(context) ?: return
+                val file = fetchRandomPhoto(context)
+                if (file == null) {
+                    errorRepository.logError("WidgetRandomPhotoService: Failed to fetch random photo for refresh all")
+                    return
+                }
 
-            glanceIds.forEach { glanceId ->
-                updateWidgetState(context, glanceId, file)
+                glanceIds.forEach { glanceId ->
+                    updateWidgetState(context, glanceId, file)
+                }
+            } catch (e: Exception) {
+                errorRepository.logError("WidgetRandomPhotoService: Exception in fetchAndRefreshAllWidgets", e)
             }
         }
 
@@ -45,8 +57,16 @@ class WidgetRandomPhotoService
             context: Context,
             glanceId: GlanceId,
         ) {
-            val file = fetchRandomPhoto(context) ?: return
-            updateWidgetState(context, glanceId, file)
+            try {
+                val file = fetchRandomPhoto(context)
+                if (file == null) {
+                    errorRepository.logError("WidgetRandomPhotoService: Failed to fetch random photo for widget $glanceId")
+                    return
+                }
+                updateWidgetState(context, glanceId, file)
+            } catch (e: Exception) {
+                errorRepository.logError("WidgetRandomPhotoService: Exception in fetchAndRefreshWidget for $glanceId", e)
+            }
         }
 
         private suspend fun updateWidgetState(
@@ -54,10 +74,14 @@ class WidgetRandomPhotoService
             glanceId: GlanceId,
             file: File,
         ) {
-            updateAppWidgetState(context, glanceId) { prefs ->
-                prefs[RandomPhotoWidget.IMAGE_URL_KEY] = file.absolutePath
+            try {
+                updateAppWidgetState(context, glanceId) { prefs ->
+                    prefs[RandomPhotoWidget.IMAGE_URL_KEY] = file.absolutePath
+                }
+                RandomPhotoWidget().update(context, glanceId)
+            } catch (e: Exception) {
+                errorRepository.logError("WidgetRandomPhotoService: Failed to update widget state for $glanceId", e)
             }
-            RandomPhotoWidget().update(context, glanceId)
         }
 
         private suspend fun fetchRandomPhoto(context: Context): File? {
@@ -67,10 +91,17 @@ class WidgetRandomPhotoService
                     .filterIsInstance<ExternalCallStatus.Success<List<Media>>>()
                     .first()
 
-                val media = result.result.firstOrNull() ?: return null
+                val media = result.result.firstOrNull() ?: run {
+                    errorRepository.logError("WidgetRandomPhotoService: Random media fetch returned empty list")
+                    return null
+                }
+
                 val mediaFile = media.files.firstOrNull { it.scale.code == "full-hd" }
                     ?: media.files.firstOrNull()
-                    ?: return null
+                    ?: run {
+                        errorRepository.logError("WidgetRandomPhotoService: Media ${media.id} has no files")
+                        return null
+                    }
 
                 val request = ImageRequest
                     .Builder(context)
@@ -87,7 +118,12 @@ class WidgetRandomPhotoService
 
                     file.outputStream().use { outputStream ->
                         val bitmap = (imageResult.image as? BitmapImage)?.bitmap
-                        bitmap?.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+                        if (bitmap != null) {
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+                        } else {
+                            errorRepository.logError("WidgetRandomPhotoService: Loaded image is not a bitmap for ${mediaFile.path}")
+                            return null
+                        }
                     }
 
                     // Clean up old widget images
@@ -98,9 +134,11 @@ class WidgetRandomPhotoService
 
                     file
                 } else {
+                    errorRepository.logError("WidgetRandomPhotoService: Image loading failed for ${mediaFile.path}")
                     null
                 }
             } catch (e: Exception) {
+                errorRepository.logError("WidgetRandomPhotoService: Exception during random photo fetch", e)
                 null
             }
         }

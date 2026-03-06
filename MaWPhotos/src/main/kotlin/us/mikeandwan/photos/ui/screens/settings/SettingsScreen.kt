@@ -1,6 +1,8 @@
 package us.mikeandwan.photos.ui.screens.settings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,22 +12,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+import us.mikeandwan.photos.ui.components.logo.Logo
 
 @Composable
 fun SettingsScreen(
@@ -42,19 +60,26 @@ fun SettingsScreen(
     onSearchQueryCountChange: (Int) -> Unit,
     onSearchDisplayTypeChange: (CategoryDisplayType) -> Unit,
     onSearchThumbnailSizeChange: (GridThumbnailSize) -> Unit,
+    onToggleDeveloperMode: (String) -> Unit,
+    onClearLogs: () -> Unit,
     onLogout: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val displayTypeList = listOf("Grid", "List")
-    val thumbnailSizeList = listOf("ExtraSmall", "Small", "Medium", "Large")
-    val slideshowIntervalList = listOf("1s", "2s", "3s", "4s", "5s", "10s", "15s", "20s", "30s")
-
-    val dividerModifier = Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)
+    val scrollState = rememberScrollState()
+    val displayTypeList = CategoryDisplayType.entries.map { it.name }
+    val thumbnailSizeList = GridThumbnailSize.entries.map { it.name }
+    val slideshowIntervals = listOf("1", "2", "3", "4", "5", "10", "15", "20", "25", "30", "45", "60")
+    val searchCountList = listOf("5", "10", "20", "30", "50")
+    val dividerModifier = Modifier.padding(vertical = 8.dp)
+    var showDeveloperModeDialog by remember { mutableStateOf(false) }
+    var iconClickCount by remember { mutableStateOf(0) }
+    val tangerine = remember { FontFamily(Font(R.font.tangerine)) }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp),
     ) {
         // --- NOTIFICATIONS ----
         Heading(stringId = R.string.pref_notifications_header)
@@ -73,12 +98,12 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
-        // --- CATEGORY LIST ----
+        // --- CATEGORIES ----
         Heading(stringId = R.string.pref_category_display_header)
         MenuPreference(
-            labelStringId = R.string.pref_category_display_header,
+            labelStringId = R.string.display_type,
             options = displayTypeList,
-            selectedValue = uiState.categoryDisplayType.toString(),
+            selectedValue = uiState.categoryDisplayType.name,
             onSelect = {
                 onCategoryDisplayTypeChange(enumValueOf(it))
             },
@@ -86,7 +111,7 @@ fun SettingsScreen(
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
-            selectedValue = uiState.categoryThumbnailSize.toString(),
+            selectedValue = uiState.categoryThumbnailSize.name,
             onSelect = {
                 onCategoryThumbnailSizeChange(enumValueOf(it))
             },
@@ -96,20 +121,20 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
-        // --- CATEGORY / PHOTO ----
+        // --- PHOTOS ----
         Heading(stringId = R.string.pref_media_display_header)
         MenuPreference(
             labelStringId = R.string.pref_media_display_slideshow_interval,
-            options = slideshowIntervalList,
-            selectedValue = "${uiState.photoSlideshowInterval}s",
+            options = slideshowIntervals,
+            selectedValue = uiState.photoSlideshowInterval.toString(),
             onSelect = {
-                onPhotoSlideshowIntervalChange(it.substring(0, it.length - 1).toInt())
+                onPhotoSlideshowIntervalChange(it.toInt())
             },
         )
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
-            selectedValue = uiState.photoThumbnailSize.toString(),
+            selectedValue = uiState.photoThumbnailSize.name,
             onSelect = {
                 onPhotoThumbnailSizeChange(enumValueOf(it))
             },
@@ -123,16 +148,16 @@ fun SettingsScreen(
         Heading(stringId = R.string.pref_random_display_header)
         MenuPreference(
             labelStringId = R.string.pref_media_display_slideshow_interval,
-            options = slideshowIntervalList,
-            selectedValue = "${uiState.randomSlideshowInterval}s",
+            options = slideshowIntervals,
+            selectedValue = uiState.randomSlideshowInterval.toString(),
             onSelect = {
-                onRandomSlideshowIntervalChange(it.substring(0, it.length - 1).toInt())
+                onRandomSlideshowIntervalChange(it.toInt())
             },
         )
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
-            selectedValue = uiState.randomThumbnailSize.toString(),
+            selectedValue = uiState.randomThumbnailSize.name,
             onSelect = {
                 onRandomThumbnailSizeChange(enumValueOf(it))
             },
@@ -146,16 +171,16 @@ fun SettingsScreen(
         Heading(stringId = R.string.pref_search_display_header)
         MenuPreference(
             labelStringId = R.string.pref_search_query_count_to_remember,
-            options = listOf("5", "10", "20", "30", "50"),
+            options = searchCountList,
             selectedValue = uiState.searchQueryCount.toString(),
             onSelect = {
                 onSearchQueryCountChange(it.toInt())
             },
         )
         MenuPreference(
-            labelStringId = R.string.pref_category_display_header,
+            labelStringId = R.string.display_type,
             options = displayTypeList,
-            selectedValue = uiState.searchDisplayType.toString(),
+            selectedValue = uiState.searchDisplayType.name,
             onSelect = {
                 onSearchDisplayTypeChange(enumValueOf(it))
             },
@@ -163,7 +188,7 @@ fun SettingsScreen(
         MenuPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
-            selectedValue = uiState.searchThumbnailSize.toString(),
+            selectedValue = uiState.searchThumbnailSize.name,
             onSelect = {
                 onSearchThumbnailSizeChange(enumValueOf(it))
             },
@@ -177,9 +202,10 @@ fun SettingsScreen(
         Heading(stringId = R.string.pref_advanced_display_header)
         Row(
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
         ) {
             OutlinedButton(
                 onClick = onLogout,
@@ -207,7 +233,105 @@ fun SettingsScreen(
                 )
             }
         }
+
+        HorizontalDivider(
+            modifier = dividerModifier,
+            color = MaterialTheme.colorScheme.inverseOnSurface,
+        )
+
+        // --- DEVELOPER LOGS (CONDITIONAL) ----
+        if (uiState.isDeveloperMode) {
+            DeveloperLogsScreen(
+                logs = uiState.developerLogs,
+                onClearLogs = onClearLogs,
+                modifier = Modifier.height(400.dp),
+            )
+            HorizontalDivider(
+                modifier = dividerModifier,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+            )
+        }
+
+        // --- LOGO ----
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Logo(
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) {
+                    iconClickCount++
+                    if (iconClickCount >= 4) {
+                        showDeveloperModeDialog = true
+                        iconClickCount = 0
+                    }
+                },
+            )
+
+            Text(
+                text = "mikeandwan.us",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 48.sp,
+                fontFamily = tangerine,
+            )
+            Text(
+                text = "Photos v${BuildConfig.VERSION_NAME}",
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 48.sp,
+                fontFamily = tangerine,
+            )
+        }
     }
+
+    if (showDeveloperModeDialog) {
+        DeveloperModeDialog(
+            onDismiss = { showDeveloperModeDialog = false },
+            onConfirm = {
+                onToggleDeveloperMode(it)
+                showDeveloperModeDialog = false
+            },
+        )
+    }
+}
+
+@Composable
+fun DeveloperModeDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var code by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Developer Mode") },
+        text = {
+            Column {
+                Text("Enter developer code:")
+                TextField(
+                    value = code,
+                    onValueChange = { code = it },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(code) }) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
 }
 
 @Preview(showBackground = true)
@@ -227,6 +351,8 @@ fun SettingsScreenPreview() {
         onSearchQueryCountChange = {},
         onSearchDisplayTypeChange = {},
         onSearchThumbnailSizeChange = {},
-        onLogout = {}
+        onToggleDeveloperMode = {},
+        onClearLogs = {},
+        onLogout = {},
     )
 }

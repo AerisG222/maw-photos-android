@@ -8,6 +8,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.services.WidgetRandomPhotoService
 
 class RefreshWidgetAction : ActionCallback {
@@ -15,6 +16,7 @@ class RefreshWidgetAction : ActionCallback {
     @InstallIn(SingletonComponent::class)
     interface RefreshWidgetEntryPoint {
         fun widgetRandomPhotoService(): WidgetRandomPhotoService
+        fun errorRepository(): ErrorRepository
     }
 
     override suspend fun onAction(
@@ -29,11 +31,12 @@ class RefreshWidgetAction : ActionCallback {
             )
 
         val service = entryPoint.widgetRandomPhotoService()
+        val errorRepository = entryPoint.errorRepository()
 
         try {
             service.fetchAndRefreshWidget(context, glanceId)
         } catch (e: Exception) {
-            // Handle error or log
+            errorRepository.logError("RefreshWidgetAction: Exception in onAction for $glanceId", e)
         }
     }
 }

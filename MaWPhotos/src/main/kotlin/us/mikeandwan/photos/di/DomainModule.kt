@@ -130,5 +130,6 @@ object DomainModule {
     fun provideWidgetRandomPhotoService(
         randomMediaRepository: RandomMediaRepository,
         imageLoader: ImageLoader,
-    ): WidgetRandomPhotoService = WidgetRandomPhotoService(randomMediaRepository, imageLoader)
+        errorRepository: ErrorRepository,
+    ): WidgetRandomPhotoService = WidgetRandomPhotoService(randomMediaRepository, imageLoader, errorRepository)
 }
