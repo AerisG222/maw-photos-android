@@ -63,19 +63,7 @@ fun AboutScreen(
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "Photos",
-                color = MaterialTheme.colorScheme.secondary,
-                fontSize = 48.sp,
-                fontFamily = tangerine,
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = uiState.version,
+                text = "Photos ${uiState.version}",
                 color = MaterialTheme.colorScheme.secondary,
                 fontSize = 48.sp,
                 fontFamily = tangerine,
