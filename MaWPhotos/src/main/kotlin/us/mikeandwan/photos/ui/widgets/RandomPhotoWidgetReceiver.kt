@@ -3,13 +3,24 @@ package us.mikeandwan.photos.ui.widgets
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import us.mikeandwan.photos.workers.RandomPhotoWorker
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import us.mikeandwan.photos.domain.services.WidgetRandomPhotoService
 
 class RandomPhotoWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget = RandomPhotoWidget()
+
+    private val scope = MainScope()
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface RandomPhotoWidgetReceiverEntryPoint {
+        fun widgetRandomPhotoService(): WidgetRandomPhotoService
+    }
 
     override fun onUpdate(
         context: Context,
@@ -18,13 +29,21 @@ class RandomPhotoWidgetReceiver : GlanceAppWidgetReceiver() {
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-        // Trigger an immediate fetch when widgets are added or updated
-        val workRequest = OneTimeWorkRequestBuilder<RandomPhotoWorker>().build()
+        val entryPoint =
+            EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                RandomPhotoWidgetReceiverEntryPoint::class.java,
+            )
 
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            "RefreshRandomPhotoWidgetOnUpdate",
-            ExistingWorkPolicy.REPLACE,
-            workRequest,
-        )
+        val service = entryPoint.widgetRandomPhotoService()
+
+        // Trigger an immediate fetch when widgets are added or updated
+        scope.launch {
+            try {
+                service.fetchAndRefreshAllWidgets(context)
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
     }
 }

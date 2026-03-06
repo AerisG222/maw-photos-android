@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.di
 
 import android.app.Application
+import coil3.ImageLoader
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,6 +33,7 @@ import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.SearchRepository
+import us.mikeandwan.photos.domain.services.WidgetRandomPhotoService
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -122,4 +124,11 @@ object DomainModule {
     @Singleton
     fun provideSearchPreferenceRepository(searchPreferenceDao: SearchPreferenceDao): SearchPreferenceRepository =
         SearchPreferenceRepository(searchPreferenceDao)
+
+    @Provides
+    @Singleton
+    fun provideWidgetRandomPhotoService(
+        randomMediaRepository: RandomMediaRepository,
+        imageLoader: ImageLoader,
+    ): WidgetRandomPhotoService = WidgetRandomPhotoService(randomMediaRepository, imageLoader)
 }
