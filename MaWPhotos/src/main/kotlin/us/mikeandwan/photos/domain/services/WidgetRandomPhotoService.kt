@@ -9,6 +9,7 @@ import coil3.BitmapImage
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import coil3.request.maxBitmapSize
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -74,6 +75,7 @@ class WidgetRandomPhotoService
                 val request = ImageRequest
                     .Builder(context)
                     .data(mediaFile.path)
+                    .size(800, 800)
                     .build()
 
                 val imageResult = imageLoader.execute(request)
