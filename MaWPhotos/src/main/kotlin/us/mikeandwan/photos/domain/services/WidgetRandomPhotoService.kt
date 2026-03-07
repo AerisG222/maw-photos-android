@@ -60,12 +60,17 @@ class WidgetRandomPhotoService
             try {
                 val file = fetchRandomPhoto(context)
                 if (file == null) {
-                    errorRepository.logError("WidgetRandomPhotoService: Failed to fetch random photo for widget $glanceId")
+                    errorRepository.logError(
+                        "WidgetRandomPhotoService: Failed to fetch random photo for widget $glanceId",
+                    )
                     return
                 }
                 updateWidgetState(context, glanceId, file)
             } catch (e: Exception) {
-                errorRepository.logError("WidgetRandomPhotoService: Exception in fetchAndRefreshWidget for $glanceId", e)
+                errorRepository.logError(
+                    "WidgetRandomPhotoService: Exception in fetchAndRefreshWidget for $glanceId",
+                    e,
+                )
             }
         }
 
@@ -106,7 +111,7 @@ class WidgetRandomPhotoService
                 val request = ImageRequest
                     .Builder(context)
                     .data(mediaFile.path)
-                    .size(800, 800)
+                    .size(600, 600)
                     .build()
 
                 val imageResult = imageLoader.execute(request)
@@ -121,7 +126,9 @@ class WidgetRandomPhotoService
                         if (bitmap != null) {
                             bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
                         } else {
-                            errorRepository.logError("WidgetRandomPhotoService: Loaded image is not a bitmap for ${mediaFile.path}")
+                            errorRepository.logError(
+                                "WidgetRandomPhotoService: Loaded image is not a bitmap for ${mediaFile.path}",
+                            )
                             return null
                         }
                     }
