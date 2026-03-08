@@ -34,6 +34,8 @@ class WidgetRandomPhotoService
                 val manager = GlanceAppWidgetManager(context)
                 val glanceIds = manager.getGlanceIds(RandomPhotoWidget::class.java)
 
+                errorRepository.logInfo("calling fetchAndRefreshAllWidgets with ${glanceIds.size} widgets")
+
                 if (glanceIds.isEmpty()) {
                     errorRepository.logError("WidgetRandomPhotoService: No widgets found to refresh")
                     return
@@ -46,7 +48,7 @@ class WidgetRandomPhotoService
                 }
 
                 glanceIds.forEach { glanceId ->
-                    updateWidgetState(context, glanceId, file)
+                    fetchAndRefreshWidget(context, glanceId)
                 }
             } catch (e: Exception) {
                 errorRepository.logError("WidgetRandomPhotoService: Exception in fetchAndRefreshAllWidgets", e)
@@ -58,6 +60,8 @@ class WidgetRandomPhotoService
             glanceId: GlanceId,
         ) {
             try {
+                errorRepository.logInfo("calling fetchAndRefreshWidget for widget $glanceId")
+
                 val file = fetchRandomPhoto(context)
                 if (file == null) {
                     errorRepository.logError(
@@ -65,6 +69,7 @@ class WidgetRandomPhotoService
                     )
                     return
                 }
+
                 updateWidgetState(context, glanceId, file)
             } catch (e: Exception) {
                 errorRepository.logError(
@@ -80,10 +85,15 @@ class WidgetRandomPhotoService
             file: File,
         ) {
             try {
+                errorRepository.logInfo("setting widget id $glanceId to use image ${file.absolutePath}")
+
                 updateAppWidgetState(context, glanceId) { prefs ->
                     prefs[RandomPhotoWidget.IMAGE_URL_KEY] = file.absolutePath
                 }
+
                 RandomPhotoWidget().update(context, glanceId)
+
+                errorRepository.logInfo("completed widget update for $glanceId")
             } catch (e: Exception) {
                 errorRepository.logError("WidgetRandomPhotoService: Failed to update widget state for $glanceId", e)
             }
@@ -111,7 +121,7 @@ class WidgetRandomPhotoService
                 val request = ImageRequest
                     .Builder(context)
                     .data(mediaFile.path)
-                    .size(600, 600)
+                    .size(800, 800)
                     .build()
 
                 val imageResult = imageLoader.execute(request)
@@ -133,11 +143,18 @@ class WidgetRandomPhotoService
                         }
                     }
 
-                    // Clean up old widget images
+                    errorRepository.logInfo(
+                        "successfully loaded new random image and saved to ${file.absolutePath} with size of ${file.length()}",
+                    )
+
                     context.cacheDir
                         .listFiles { f ->
                             f.name.startsWith("widget_photo_") && f.name != filename
                         }?.forEach { it.delete() }
+
+                    errorRepository.logInfo(
+                        "does file exist after cleanup pass: ${file.exists()}",
+                    )
 
                     file
                 } else {

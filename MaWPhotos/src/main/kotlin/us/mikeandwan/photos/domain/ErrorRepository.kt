@@ -53,6 +53,13 @@ class ErrorRepository {
         }
     }
 
+    fun logInfo(message: String) {
+        Timber.i(message)
+        if (_isDeveloperMode.value) {
+            _developerLogs.value = (listOf(message) + _developerLogs.value).take(50)
+        }
+    }
+
     fun clearLogs() {
         _developerLogs.value = emptyList()
     }

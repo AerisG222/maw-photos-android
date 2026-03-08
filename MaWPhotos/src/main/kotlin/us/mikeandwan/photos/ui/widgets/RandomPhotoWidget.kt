@@ -8,11 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -32,15 +30,25 @@ import androidx.glance.layout.size
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
-import androidx.glance.unit.ColorProvider
 import coil3.BitmapImage
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.ErrorRepository
 
 class RandomPhotoWidget : GlanceAppWidget() {
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface RandomPhotoWidgetEntryPoint {
+        fun errorRepository(): ErrorRepository
+    }
 
     companion object {
         val IMAGE_URL_KEY = stringPreferencesKey("random_photo_url")
@@ -50,18 +58,23 @@ class RandomPhotoWidget : GlanceAppWidget() {
         context: Context,
         id: GlanceId,
     ) {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            RandomPhotoWidgetEntryPoint::class.java,
+        )
+        val errorRepository = entryPoint.errorRepository()
+
         provideContent {
-            // 1. Observe the preferences reactively
             val prefs = currentState<Preferences>()
             val imageUrl = prefs[IMAGE_URL_KEY]
             val context = LocalContext.current
 
-            // 2. Manage the bitmap as internal state
             var bitmap by remember { mutableStateOf<Bitmap?>(null) }
             var isError by remember { mutableStateOf(false) }
 
-            // 3. React to imageUrl changes without polling
             LaunchedEffect(imageUrl) {
+                errorRepository.logInfo("RandomPhotoWidget: imageUrl is $imageUrl")
+
                 if (imageUrl != null) {
                     val loader = SingletonImageLoader.get(context)
                     val request = ImageRequest
@@ -75,7 +88,10 @@ class RandomPhotoWidget : GlanceAppWidget() {
                         isError = false
                     } else {
                         isError = true
+                        errorRepository.logError("RandomPhotoWidget: Failed to load image from $imageUrl")
                     }
+                } else {
+                    errorRepository.logError("RandomPhotoWidget: imageUrl is null in preferences")
                 }
             }
 
@@ -105,6 +121,7 @@ class RandomPhotoWidget : GlanceAppWidget() {
                 isError -> {
                     Text(
                         text = "Error loading image",
+                        modifier = GlanceModifier,
                     )
                 }
 
@@ -126,7 +143,6 @@ class RandomPhotoWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .size(24.dp)
                         .clickable(actionRunCallback<RefreshWidgetAction>()),
-                    colorFilter = ColorFilter.tint(ColorProvider(Color.White)),
                 )
             }
         }
