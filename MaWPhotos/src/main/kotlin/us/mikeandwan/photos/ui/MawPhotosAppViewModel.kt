@@ -15,8 +15,6 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import coil3.ImageLoader
-import coil3.SingletonImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -60,7 +58,6 @@ class MawPhotosAppViewModel
         private val categoryRepository: CategoryRepository,
         authService: AuthService,
         private val configRepository: ConfigRepository,
-        private val imageLoader: ImageLoader,
         private val application: Application,
         private val fileStorageRepository: FileStorageRepository,
         private val searchRepository: SearchRepository,
@@ -292,14 +289,15 @@ class MawPhotosAppViewModel
                         }
                     }
                 } catch (e: Exception) {
-                    errorRepository.logError("MawPhotosAppViewModel: Error loading scales/years/categories after auth", e)
+                    errorRepository.logError(
+                        "MawPhotosAppViewModel: Error loading scales/years/categories after auth",
+                        e,
+                    )
                 }
             }
         }
 
         init {
-            SingletonImageLoader.setSafe { imageLoader }
-
             viewModelScope.launch {
                 fileStorageRepository.refreshPendingUploads()
                 clearFileCache()

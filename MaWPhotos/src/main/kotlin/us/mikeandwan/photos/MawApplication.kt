@@ -11,6 +11,8 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -21,9 +23,17 @@ import us.mikeandwan.photos.workers.UpdateCategoriesWorker
 @HiltAndroidApp
 class MawApplication :
     Application(),
-    Configuration.Provider {
+    Configuration.Provider,
+    SingletonImageLoader.Factory {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var imageLoader: ImageLoader
+
+    override fun newImageLoader(context: android.content.Context): ImageLoader {
+        return imageLoader
+    }
 
     override fun onCreate() {
         super.onCreate()
