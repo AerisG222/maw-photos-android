@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import us.mikeandwan.photos.database.CategoryDao
 import us.mikeandwan.photos.database.CategoryPreferenceDao
+import us.mikeandwan.photos.database.DeveloperLogDao
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.MediaPreferenceDao
 import us.mikeandwan.photos.database.NotificationPreferenceDao
@@ -26,6 +27,7 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_6_7
 import us.mikeandwan.photos.database.migrations.MIGRATION_7_8
 import us.mikeandwan.photos.database.migrations.MIGRATION_8_9
 import us.mikeandwan.photos.database.migrations.MIGRATION_9_10
+import us.mikeandwan.photos.database.migrations.MIGRATION_10_11
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
 
 @Module
@@ -50,6 +52,7 @@ object DatabaseModule {
                 MIGRATION_7_8,
                 MIGRATION_8_9,
                 MIGRATION_9_10,
+                MIGRATION_10_11,
             ).build()
 
     @Provides
@@ -58,6 +61,9 @@ object DatabaseModule {
 
     @Provides
     fun provideCategoryDao(mawDatabase: MawDatabase): CategoryDao = mawDatabase.categoryDao()
+
+    @Provides
+    fun provideDeveloperLogDao(mawDatabase: MawDatabase): DeveloperLogDao = mawDatabase.developerLogDao()
 
     @Provides
     fun provideNotificationPreferenceDao(mawDatabase: MawDatabase): NotificationPreferenceDao =

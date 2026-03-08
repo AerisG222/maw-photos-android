@@ -8,6 +8,7 @@ import androidx.room.TypeConverters
     entities = [
         Category::class,
         CategoryPreference::class,
+        DeveloperLog::class,
         MediaFile::class,
         MediaPreference::class,
         NotificationPreference::class,
@@ -17,7 +18,7 @@ import androidx.room.TypeConverters
         SearchPreference::class,
         Year::class,
     ],
-    version = 10,
+    version = 11,
 )
 @TypeConverters(
     Converters::class,
@@ -30,6 +31,8 @@ abstract class MawDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
 
     abstract fun categoryPreferenceDao(): CategoryPreferenceDao
+
+    abstract fun developerLogDao(): DeveloperLogDao
 
     abstract fun mediaPreferenceDao(): MediaPreferenceDao
 

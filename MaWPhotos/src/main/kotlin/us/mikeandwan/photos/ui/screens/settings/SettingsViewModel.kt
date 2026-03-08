@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
+import us.mikeandwan.photos.database.DeveloperLog
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
@@ -35,7 +36,7 @@ data class SettingsUiState(
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val isDeveloperMode: Boolean = false,
-    val developerLogs: List<String> = emptyList(),
+    val developerLogs: List<DeveloperLog> = emptyList(),
 )
 
 @HiltViewModel
@@ -82,7 +83,7 @@ class SettingsViewModel
                     searchDisplayType = args[9] as CategoryDisplayType,
                     searchThumbnailSize = args[10] as GridThumbnailSize,
                     isDeveloperMode = args[11] as Boolean,
-                    developerLogs = args[12] as List<String>,
+                    developerLogs = args[12] as List<DeveloperLog>,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }

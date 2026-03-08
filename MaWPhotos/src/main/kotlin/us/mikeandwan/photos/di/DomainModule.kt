@@ -12,6 +12,7 @@ import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.database.CategoryDao
 import us.mikeandwan.photos.database.CategoryPreferenceDao
+import us.mikeandwan.photos.database.DeveloperLogDao
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.MediaPreferenceDao
 import us.mikeandwan.photos.database.NotificationPreferenceDao
@@ -40,7 +41,7 @@ import us.mikeandwan.photos.domain.services.WidgetRandomPhotoService
 object DomainModule {
     @Provides
     @Singleton
-    fun provideErrorRepository(): ErrorRepository = ErrorRepository()
+    fun provideErrorRepository(developerLogDao: DeveloperLogDao): ErrorRepository = ErrorRepository(developerLogDao)
 
     @Provides
     @Singleton
