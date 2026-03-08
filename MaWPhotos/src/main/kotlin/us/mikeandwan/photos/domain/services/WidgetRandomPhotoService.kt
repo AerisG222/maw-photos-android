@@ -13,7 +13,6 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.uuid.Uuid
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
@@ -103,11 +102,18 @@ class WidgetRandomPhotoService
             return try {
                 val result = randomMediaRepository
                     .fetch(1)
-                    .filterIsInstance<ExternalCallStatus.Success<List<Media>>>()
-                    .first()
+                    .first { it !is ExternalCallStatus.Loading }
 
-                val media = result.result.firstOrNull() ?: run {
-                    errorRepository.logError("WidgetRandomPhotoService: Random media fetch returned empty list")
+                if (result is ExternalCallStatus.Error) {
+                    errorRepository.logError("WidgetRandomPhotoService: Repository returned error: ${result.message}")
+                    return null
+                }
+
+                val successResult = result as? ExternalCallStatus.Success<List<Media>>
+                val media = successResult?.result?.firstOrNull() ?: run {
+                    errorRepository.logInfo(
+                        "WidgetRandomPhotoService: Random media fetch returned empty list or unexpected status",
+                    )
                     return null
                 }
 
@@ -135,6 +141,7 @@ class WidgetRandomPhotoService
                         val bitmap = (imageResult.image as? BitmapImage)?.bitmap
                         if (bitmap != null) {
                             bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+                            outputStream.flush()
                         } else {
                             errorRepository.logError(
                                 "WidgetRandomPhotoService: Loaded image is not a bitmap for ${mediaFile.path}",
