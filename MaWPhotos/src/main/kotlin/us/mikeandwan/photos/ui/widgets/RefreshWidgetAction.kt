@@ -16,6 +16,7 @@ class RefreshWidgetAction : ActionCallback {
     @InstallIn(SingletonComponent::class)
     interface RefreshWidgetEntryPoint {
         fun widgetRandomPhotoService(): WidgetRandomPhotoService
+
         fun errorRepository(): ErrorRepository
     }
 
@@ -34,6 +35,7 @@ class RefreshWidgetAction : ActionCallback {
         val errorRepository = entryPoint.errorRepository()
 
         try {
+            errorRepository.logInfo("RefreshWidgetAction called with glanceId: $glanceId and params: $parameters")
             service.fetchAndRefreshWidget(context, glanceId)
         } catch (e: Exception) {
             errorRepository.logError("RefreshWidgetAction: Exception in onAction for $glanceId", e)

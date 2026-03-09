@@ -166,7 +166,9 @@ class SettingsViewModel
         }
 
         fun clearLogs() {
-            errorRepository.clearLogs()
+            viewModelScope.launch {
+                errorRepository.clearLogs()
+            }
         }
 
         fun showError(message: String) {

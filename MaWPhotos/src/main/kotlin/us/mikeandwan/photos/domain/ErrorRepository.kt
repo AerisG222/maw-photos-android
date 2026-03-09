@@ -2,14 +2,12 @@ package us.mikeandwan.photos.domain
 
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.Clock
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.time.Clock
 import timber.log.Timber
 import us.mikeandwan.photos.database.DeveloperLog
 import us.mikeandwan.photos.database.DeveloperLogDao
@@ -21,8 +19,6 @@ class ErrorRepository
     constructor(
         private val developerLogDao: DeveloperLogDao,
     ) {
-        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
         private val _error = MutableStateFlow<ErrorMessage>(ErrorMessage.DoNotDisplay)
         val error = _error.asStateFlow()
 
@@ -49,40 +45,48 @@ class ErrorRepository
             return false
         }
 
-        fun logError(
+        suspend fun logError(
             message: String,
             throwable: Throwable? = null,
         ) {
             Timber.e(throwable, message)
-            scope.launch {
-                developerLogDao.insert(
-                    DeveloperLog(
-                        message = message,
-                        timestamp = Clock.System.now(),
-                        level = "ERROR",
-                        throwable = throwable?.stackTraceToString(),
-                    ),
-                )
-                developerLogDao.pruneOldLogs()
+            withContext(Dispatchers.IO) {
+                try {
+                    developerLogDao.insert(
+                        DeveloperLog(
+                            message = message,
+                            timestamp = Clock.System.now(),
+                            level = "ERROR",
+                            throwable = throwable?.stackTraceToString(),
+                        ),
+                    )
+                    developerLogDao.pruneOldLogs()
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to write error log to database")
+                }
             }
         }
 
-        fun logInfo(message: String) {
+        suspend fun logInfo(message: String) {
             Timber.i(message)
-            scope.launch {
-                developerLogDao.insert(
-                    DeveloperLog(
-                        message = message,
-                        timestamp = Clock.System.now(),
-                        level = "INFO",
-                    ),
-                )
-                developerLogDao.pruneOldLogs()
+            withContext(Dispatchers.IO) {
+                try {
+                    developerLogDao.insert(
+                        DeveloperLog(
+                            message = message,
+                            timestamp = Clock.System.now(),
+                            level = "INFO",
+                        ),
+                    )
+                    developerLogDao.pruneOldLogs()
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to write info log to database")
+                }
             }
         }
 
-        fun clearLogs() {
-            scope.launch {
+        suspend fun clearLogs() {
+            withContext(Dispatchers.IO) {
                 developerLogDao.clearAll()
             }
         }

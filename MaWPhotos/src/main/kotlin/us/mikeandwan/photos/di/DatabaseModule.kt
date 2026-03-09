@@ -42,6 +42,7 @@ object DatabaseModule {
                 MawDatabase::class.java,
                 MawDatabase.DATABASE_NAME,
             ).addCallback(MawDatabaseCreateCallback())
+            .enableMultiInstanceInvalidation()
             .addMigrations(
                 MIGRATION_1_2,
                 MIGRATION_2_3,

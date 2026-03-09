@@ -12,7 +12,7 @@ class ApiErrorHandler
     constructor(
         private val errorRepository: ErrorRepository,
     ) {
-        fun handleError(
+        suspend fun handleError(
             error: ApiResult.Error,
             message: String?,
         ): ExternalCallStatus<Nothing> {
@@ -33,7 +33,7 @@ class ApiErrorHandler
             return error.toExternalCallStatus()
         }
 
-        fun handleEmpty(
+        suspend fun handleEmpty(
             empty: ApiResult.Empty,
             message: String? = null,
         ): ExternalCallStatus<Nothing> {

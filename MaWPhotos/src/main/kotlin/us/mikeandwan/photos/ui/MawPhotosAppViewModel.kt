@@ -20,6 +20,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -93,6 +94,8 @@ class MawPhotosAppViewModel
         val recentSearchTerms = searchRepository
             .getSearchHistory()
             .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+
+        private var handleIntentJob: Job? = null
 
         fun setNavArea(area: NavigationArea) {
             _navArea.value = area
@@ -169,7 +172,8 @@ class MawPhotosAppViewModel
                 }
 
                 else -> {
-                    viewModelScope.launch {
+                    handleIntentJob?.cancel()
+                    handleIntentJob = viewModelScope.launch {
                         combine(
                             userStatus,
                             authenticationStatus,
