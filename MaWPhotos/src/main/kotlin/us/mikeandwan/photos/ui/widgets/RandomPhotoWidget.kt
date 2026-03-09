@@ -2,12 +2,10 @@ package us.mikeandwan.photos.ui.widgets
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -15,7 +13,6 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionRunCallback
@@ -30,25 +27,14 @@ import androidx.glance.layout.size
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
-import coil3.BitmapImage
-import coil3.SingletonImageLoader
-import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.ErrorRepository
+import java.io.File
 
 class RandomPhotoWidget : GlanceAppWidget() {
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface RandomPhotoWidgetEntryPoint {
-        fun errorRepository(): ErrorRepository
-    }
 
     companion object {
         val IMAGE_URL_KEY = stringPreferencesKey("random_photo_url")
@@ -58,44 +44,37 @@ class RandomPhotoWidget : GlanceAppWidget() {
         context: Context,
         id: GlanceId,
     ) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            RandomPhotoWidgetEntryPoint::class.java,
-        )
-        val errorRepository = entryPoint.errorRepository()
-
         provideContent {
             val prefs = currentState<Preferences>()
             val imageUrl = prefs[IMAGE_URL_KEY]
-            val context = LocalContext.current
 
-            var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-            var isError by remember { mutableStateOf(false) }
-
-            LaunchedEffect(imageUrl) {
-                errorRepository.logInfo("RandomPhotoWidget: imageUrl is $imageUrl")
-
-                if (imageUrl != null) {
-                    val loader = SingletonImageLoader.get(context)
-                    val request = ImageRequest
-                        .Builder(context)
-                        .data(imageUrl)
-                        .build()
-
-                    val result = loader.execute(request)
-                    if (result is SuccessResult) {
-                        bitmap = (result.image as? BitmapImage)?.bitmap
-                        isError = false
-                    } else {
-                        isError = true
-                        errorRepository.logError("RandomPhotoWidget: Failed to load image from $imageUrl")
+            val bitmap by produceState<Bitmap?>(initialValue = null, key1 = imageUrl) {
+                value = if (imageUrl != null) {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val file = File(imageUrl)
+                            if (file.exists()) {
+                                Timber.d("Loading bitmap from $imageUrl, size: ${file.length()}")
+                                val options = BitmapFactory.Options().apply {
+                                    inPreferredConfig = Bitmap.Config.RGB_565
+                                }
+                                BitmapFactory.decodeFile(imageUrl, options)
+                            } else {
+                                Timber.e("File does not exist at $imageUrl")
+                                null
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Error decoding bitmap from $imageUrl")
+                            null
+                        }
                     }
                 } else {
-                    errorRepository.logError("RandomPhotoWidget: imageUrl is null in preferences")
+                    Timber.d("imageUrl is null in preferences")
+                    null
                 }
             }
 
-            RandomPhotoWidgetContent(bitmap, isError)
+            RandomPhotoWidgetContent(bitmap, imageUrl != null && bitmap == null)
         }
     }
 
@@ -134,16 +113,22 @@ class RandomPhotoWidget : GlanceAppWidget() {
             }
 
             Box(
-                modifier = GlanceModifier.fillMaxSize().padding(8.dp),
+                modifier = GlanceModifier.fillMaxSize(),
                 contentAlignment = Alignment.TopEnd,
             ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_shuffle),
-                    contentDescription = "Refresh",
+                Box(
                     modifier = GlanceModifier
-                        .size(24.dp)
+                        .padding(4.dp)
+                        .size(48.dp)
                         .clickable(actionRunCallback<RefreshWidgetAction>()),
-                )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_shuffle),
+                        contentDescription = "Refresh",
+                        modifier = GlanceModifier.size(24.dp),
+                    )
+                }
             }
         }
     }
