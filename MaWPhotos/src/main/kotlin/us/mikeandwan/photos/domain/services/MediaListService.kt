@@ -27,6 +27,21 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.Media
 
+sealed class MediaListAction {
+    data class SetActiveId(val id: Uuid) : MediaListAction()
+    data object ToggleSlideshow : MediaListAction()
+    data object ToggleShowDetails : MediaListAction()
+    data class SetIsFavorite(val isFavorite: Boolean) : MediaListAction()
+    data object FetchExif : MediaListAction()
+    data object FetchComments : MediaListAction()
+    data class AddComment(val comment: String) : MediaListAction()
+    data class SaveFileToShare(
+        val drawable: Drawable,
+        val filename: String,
+        val onComplete: (File) -> Unit,
+    ) : MediaListAction()
+}
+
 data class MediaListState(
     val category: Category? = null,
     val media: List<Media> = emptyList(),
@@ -104,11 +119,25 @@ class MediaListService
                 )
             }.stateIn(scope, SharingStarted.Eagerly, MediaListState())
 
-        fun setActiveId(id: Uuid) {
+        fun onAction(action: MediaListAction) {
+            when (action) {
+                is MediaListAction.SetActiveId -> setActiveId(action.id)
+                is MediaListAction.ToggleSlideshow -> toggleSlideshow()
+                is MediaListAction.ToggleShowDetails -> toggleShowDetails()
+                is MediaListAction.SetIsFavorite -> setIsFavorite(action.isFavorite)
+                is MediaListAction.FetchExif -> fetchExif()
+                is MediaListAction.FetchComments -> fetchComments()
+                is MediaListAction.AddComment -> addComment(action.comment)
+                is MediaListAction.SaveFileToShare ->
+                    saveFileToShare(action.drawable, action.filename, action.onComplete)
+            }
+        }
+
+        private fun setActiveId(id: Uuid) {
             _activeId.update { id }
         }
 
-        fun toggleSlideshow() {
+        private fun toggleSlideshow() {
             if (_slideshowJob.isRunning.value) {
                 stopSlideshow()
             } else {
@@ -124,7 +153,7 @@ class MediaListService
             _slideshowJob.stop()
         }
 
-        fun toggleShowDetails() {
+        private fun toggleShowDetails() {
             if (_showDetailSheet.value) {
                 if (_resumeSlideshowAfterShowingDetails.value) {
                     _slideshowJob.start()
@@ -137,7 +166,7 @@ class MediaListService
             _showDetailSheet.value = !_showDetailSheet.value
         }
 
-        fun saveFileToShare(
+        private fun saveFileToShare(
             drawable: Drawable,
             filename: String,
             onComplete: (File) -> Unit,
@@ -149,7 +178,7 @@ class MediaListService
         }
 
         // FAVORITES
-        fun setIsFavorite(isFavorite: Boolean) {
+        private fun setIsFavorite(isFavorite: Boolean) {
             scope.launch {
                 val currentMedia = state.value.activeMedia ?: return@launch
 
@@ -173,20 +202,20 @@ class MediaListService
         }
 
         // EXIF
-        fun fetchExif() {
+        private fun fetchExif() {
             scope.launch {
                 state.value.activeMedia?.let { mediaExifService.fetchExifDetails(it) }
             }
         }
 
         // COMMENTS
-        fun fetchComments() {
+        private fun fetchComments() {
             scope.launch {
                 state.value.activeMedia?.let { mediaCommentService.fetchCommentDetails(it) }
             }
         }
 
-        fun addComment(comment: String) {
+        private fun addComment(comment: String) {
             scope.launch {
                 state.value.activeMedia?.let { mediaCommentService.addComment(it, comment) }
             }

@@ -25,6 +25,7 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.RandomPreference
+import us.mikeandwan.photos.domain.services.MediaListAction
 import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.random.BaseRandomViewModel
 
@@ -99,37 +100,37 @@ class RandomItemViewModel
         }
 
         fun initState(id: Uuid) {
-            mediaListService.setActiveId(id)
+            mediaListService.onAction(MediaListAction.SetActiveId(id))
         }
 
         fun setActiveId(id: Uuid) {
-            mediaListService.setActiveId(id)
+            mediaListService.onAction(MediaListAction.SetActiveId(id))
         }
 
         fun toggleSlideshow() {
-            mediaListService.toggleSlideshow()
+            mediaListService.onAction(MediaListAction.ToggleSlideshow)
         }
 
         fun toggleShowDetails() {
-            mediaListService.toggleShowDetails()
+            mediaListService.onAction(MediaListAction.ToggleShowDetails)
         }
 
         fun toggleFavorite() {
             _uiState.value.activeMedia?.let {
-                mediaListService.setIsFavorite(!it.isFavorite)
+                mediaListService.onAction(MediaListAction.SetIsFavorite(!it.isFavorite))
             }
         }
 
         fun fetchExif() {
-            mediaListService.fetchExif()
+            mediaListService.onAction(MediaListAction.FetchExif)
         }
 
         fun fetchCommentDetails() {
-            mediaListService.fetchComments()
+            mediaListService.onAction(MediaListAction.FetchComments)
         }
 
         fun addComment(comment: String) {
-            mediaListService.addComment(comment)
+            mediaListService.onAction(MediaListAction.AddComment(comment))
         }
 
         fun saveFileToShare(
@@ -137,6 +138,8 @@ class RandomItemViewModel
             filename: String,
             onComplete: (File) -> Unit,
         ) {
-            mediaListService.saveFileToShare(drawable, filename, onComplete)
+            mediaListService.onAction(
+                MediaListAction.SaveFileToShare(drawable, filename, onComplete)
+            )
         }
     }
