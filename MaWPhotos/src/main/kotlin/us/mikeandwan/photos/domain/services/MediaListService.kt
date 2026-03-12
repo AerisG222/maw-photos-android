@@ -28,6 +28,7 @@ import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.Media
 
 sealed class MediaListAction {
+    data object Reset : MediaListAction()
     data class SetActiveId(val id: Uuid) : MediaListAction()
     data object ToggleSlideshow : MediaListAction()
     data object ToggleShowDetails : MediaListAction()
@@ -121,6 +122,7 @@ class MediaListService
 
         fun onAction(action: MediaListAction) {
             when (action) {
+                is MediaListAction.Reset -> reset()
                 is MediaListAction.SetActiveId -> setActiveId(action.id)
                 is MediaListAction.ToggleSlideshow -> toggleSlideshow()
                 is MediaListAction.ToggleShowDetails -> toggleShowDetails()
@@ -131,6 +133,15 @@ class MediaListService
                 is MediaListAction.SaveFileToShare ->
                     saveFileToShare(action.drawable, action.filename, action.onComplete)
             }
+        }
+
+        private fun reset() {
+            _slideshowJob.stop()
+            _category.value = null
+            _media.value = emptyList()
+            _activeId.value = null
+            _showDetailSheet.value = false
+            _resumeSlideshowAfterShowingDetails.value = false
         }
 
         private fun setActiveId(id: Uuid) {

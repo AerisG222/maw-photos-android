@@ -100,6 +100,7 @@ class CategoryItemViewModel
             categoryId: Uuid,
             mediaId: Uuid,
         ) {
+            mediaListService.onAction(MediaListAction.Reset)
             clear()
             _uiState.value = CategoryItemUiState()
 
