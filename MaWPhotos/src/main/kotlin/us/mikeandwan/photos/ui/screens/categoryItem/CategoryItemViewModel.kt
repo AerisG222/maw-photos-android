@@ -31,7 +31,7 @@ import us.mikeandwan.photos.ui.screens.category.BaseCategoryViewModel
 data class CategoryItemUiState(
     val category: Category? = null,
     val media: List<Media> = emptyList(),
-    val activeId: Uuid? = Uuid.NIL,
+    val activeId: Uuid = Uuid.NIL,
     val activeMedia: Media? = null,
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
@@ -102,7 +102,7 @@ class CategoryItemViewModel
         ) {
             mediaListService.onAction(MediaListAction.Reset)
             clear()
-            _uiState.value = CategoryItemUiState()
+            _uiState.update { CategoryItemUiState() }
 
             loadCategory(categoryId)
             loadMedia(categoryId)
@@ -146,7 +146,7 @@ class CategoryItemViewModel
             onComplete: (File) -> Unit,
         ) {
             mediaListService.onAction(
-                MediaListAction.SaveFileToShare(drawable, filename, onComplete)
+                MediaListAction.SaveFileToShare(drawable, filename, onComplete),
             )
         }
     }

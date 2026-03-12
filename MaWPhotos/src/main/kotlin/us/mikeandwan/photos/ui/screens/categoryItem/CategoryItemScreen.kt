@@ -37,11 +37,6 @@ fun CategoryItemScreen(
     onSaveMediaToShare: (Drawable, String, (File) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (uiState.isLoading) {
-        Loading()
-        return
-    }
-
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -57,6 +52,11 @@ fun CategoryItemScreen(
         fetchComments = onFetchComments,
         addComment = onAddComment,
     )
+
+    if (uiState.isLoading) {
+        Loading()
+        return
+    }
 
     ItemPagerScaffold(
         showDetails = uiState.showDetailSheet,
@@ -102,8 +102,6 @@ fun CategoryItemScreen(
         },
         modifier = modifier,
     ) {
-        if (uiState.activeId == null || uiState.activeId == Uuid.NIL) return@ItemPagerScaffold
-
         MediaPager(
             uiState.media,
             activeId = uiState.activeId,

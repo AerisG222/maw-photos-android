@@ -12,12 +12,12 @@ class RotationState(
 )
 
 @Composable
-fun rememberRotation(activeId: Uuid?): RotationState {
+fun rememberRotation(activeId: Uuid): RotationState {
     val rotationDictionary = rememberSaveable { HashMap<Uuid, Float>() }
     val (activeRotation, setActiveRotation) = rememberSaveable { mutableFloatStateOf(0f) }
 
-    fun getRotationForIndex(id: Uuid?): Float =
-        if (id == null) {
+    fun getRotationForIndex(id: Uuid): Float =
+        if (id == Uuid.NIL) {
             0f
         } else {
             when (rotationDictionary.containsKey(id)) {
@@ -30,7 +30,7 @@ fun rememberRotation(activeId: Uuid?): RotationState {
         val currRotation = getRotationForIndex(activeId)
         val newRotation = currRotation + deg
 
-        if (activeId != null) {
+        if (activeId != Uuid.NIL) {
             rotationDictionary[activeId] = newRotation
             setActiveRotation(newRotation)
         }

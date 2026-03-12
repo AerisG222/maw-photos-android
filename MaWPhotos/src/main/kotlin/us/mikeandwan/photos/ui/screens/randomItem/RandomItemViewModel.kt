@@ -33,7 +33,6 @@ data class RandomItemUiState(
     val category: Category? = null,
     val media: List<Media> = emptyList(),
     val activeId: Uuid = Uuid.NIL,
-    val activeIndex: Int = -1,
     val activeMedia: Media? = null,
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
@@ -43,7 +42,10 @@ data class RandomItemUiState(
     val isLoading: Boolean = true,
     val hasPrevious: Boolean = false,
     val hasNext: Boolean = false,
-)
+) {
+    val activeIndex: Int
+        get() = media.indexOfFirst { it.id == activeId }
+}
 
 @HiltViewModel
 class RandomItemViewModel
@@ -82,8 +84,7 @@ class RandomItemViewModel
                 RandomItemUiState(
                     category = mediaListState.category,
                     media = mediaListState.media,
-                    activeId = mediaListState.activeId ?: Uuid.NIL,
-                    activeIndex = mediaListState.activeIndex,
+                    activeId = mediaListState.activeId,
                     activeMedia = mediaListState.activeMedia,
                     isSlideshowPlaying = mediaListState.isSlideshowPlaying,
                     showDetailSheet = mediaListState.showDetailSheet,
@@ -139,7 +140,7 @@ class RandomItemViewModel
             onComplete: (File) -> Unit,
         ) {
             mediaListService.onAction(
-                MediaListAction.SaveFileToShare(drawable, filename, onComplete)
+                MediaListAction.SaveFileToShare(drawable, filename, onComplete),
             )
         }
     }

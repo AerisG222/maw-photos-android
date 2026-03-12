@@ -60,16 +60,20 @@ sealed class MediaListAction {
 data class MediaListState(
     val category: Category? = null,
     val media: List<Media> = emptyList(),
-    val activeId: Uuid? = null,
-    val activeMedia: Media? = null,
-    val activeIndex: Int = -1,
+    val activeId: Uuid = Uuid.NIL,
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
 ) {
+    val activeIndex: Int
+        get() = media.indexOfFirst { it.id == activeId }
+
+    val activeMedia: Media?
+        get() = media.firstOrNull { it.id == activeId }
+
     val isLoading: Boolean
-        get() = category == null || media.isEmpty() || activeId == null || activeMedia == null
+        get() = category == null || media.isEmpty() || activeId == Uuid.NIL || activeMedia == null
 
     val hasPrevious: Boolean
         get() = activeIndex > 0
@@ -90,7 +94,7 @@ class MediaListService
         private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
         private val category = MutableStateFlow<Category?>(null)
         private val media = MutableStateFlow<List<Media>>(emptyList())
-        private val activeId = MutableStateFlow<Uuid?>(null)
+        private val activeId = MutableStateFlow(Uuid.NIL)
         private val slideshowJob = PeriodicJob { moveNext() }
         private val resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
         private val showDetailSheet = MutableStateFlow(false)
@@ -113,14 +117,10 @@ class MediaListService
                 exif,
                 comments,
                 ->
-                val activeIndex = media.indexOfFirst { it.id == activeId }
-
                 MediaListState(
                     category = category,
                     media = media,
                     activeId = activeId,
-                    activeMedia = if (activeIndex >= 0) media[activeIndex] else null,
-                    activeIndex = activeIndex,
                     isSlideshowPlaying = isSlideshowPlaying,
                     showDetailSheet = showDetailSheet,
                     exif = exif,
@@ -170,11 +170,11 @@ class MediaListService
 
         private fun reset() {
             slideshowJob.stop()
-            category.value = null
-            media.value = emptyList()
-            activeId.value = null
-            showDetailSheet.value = false
-            resumeSlideshowAfterShowingDetails.value = false
+            category.update { null }
+            media.update { emptyList() }
+            activeId.update { Uuid.NIL }
+            showDetailSheet.update { false }
+            resumeSlideshowAfterShowingDetails.update { false }
         }
 
         private fun setActiveId(id: Uuid) {
@@ -203,11 +203,11 @@ class MediaListService
                     slideshowJob.start()
                 }
             } else {
-                resumeSlideshowAfterShowingDetails.value = slideshowJob.isRunning.value
+                resumeSlideshowAfterShowingDetails.update { slideshowJob.isRunning.value }
                 slideshowJob.stop()
             }
 
-            showDetailSheet.value = !showDetailSheet.value
+            showDetailSheet.update { !it }
         }
 
         private fun saveFileToShare(
@@ -229,18 +229,22 @@ class MediaListService
                 val resultIsFav = mediaFavoriteService.setIsFavorite(currentMedia, isFavorite)
 
                 // Update the media list safely
-                val updatedMedia = media.value.toMutableList()
-                val currentIndex = updatedMedia.indexOfFirst { it.id == currentMedia.id }
+                media.update { currentMediaList ->
+                    val updatedMedia = currentMediaList.toMutableList()
+                    val currentIndex = updatedMedia.indexOfFirst { it.id == currentMedia.id }
 
-                if (
-                    currentIndex >= 0 &&
-                    currentIndex < updatedMedia.size &&
-                    updatedMedia[currentIndex].id == currentMedia.id
-                ) {
-                    val updatedItem = currentMedia.copy(isFavorite = resultIsFav)
-                    updatedMedia[currentIndex] = updatedItem
-                    media.value = updatedMedia
-                    categoryRepository.tryUpdateCache(updatedItem)
+                    if (
+                        currentIndex >= 0 &&
+                        currentIndex < updatedMedia.size &&
+                        updatedMedia[currentIndex].id == currentMedia.id
+                    ) {
+                        val updatedItem = currentMedia.copy(isFavorite = resultIsFav)
+                        updatedMedia[currentIndex] = updatedItem
+                        categoryRepository.tryUpdateCache(updatedItem)
+                        updatedMedia
+                    } else {
+                        currentMediaList
+                    }
                 }
             }
         }
@@ -269,10 +273,10 @@ class MediaListService
             sourceMedia: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
         ) {
-            category.value = null
+            category.update { null }
 
             sourceMedia
-                .onEach { media.value = it }
+                .onEach { newList -> media.update { newList } }
                 .launchIn(scope)
 
             state
@@ -292,12 +296,12 @@ class MediaListService
         private fun loadCategory(categoryId: Uuid) {
             if (category.value?.id == categoryId) return
 
-            category.value = null
+            category.update { null }
 
             scope.launch {
                 categoryRepository
                     .getCategory(categoryId)
-                    .collect { category.value = it }
+                    .collect { newCategory -> category.update { newCategory } }
             }
         }
 
