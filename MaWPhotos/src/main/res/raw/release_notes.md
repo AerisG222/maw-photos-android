@@ -1,5 +1,8 @@
 # Release Notes
 
+## v9.3 : 03/12/2026
+- bug fixes
+
 ## v9.2 : 03/04/2026
 - playing with ai / gemini to update various elements of the application
 - introduce new widget to display random photos
