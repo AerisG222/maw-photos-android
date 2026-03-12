@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.CategoryApiClient
@@ -57,9 +58,9 @@ class SearchRepository
             val currentQuery = searchRequest.value.query
 
             if (query.isNotBlank() && !currentQuery.equals(query, true)) {
-                _activeSearchTerm.value = query
-                _searchResults.value = emptyList()
-                _searchRequest.value = SearchRequest(query, searchSource)
+                _activeSearchTerm.update { query }
+                _searchResults.update { emptyList() }
+                _searchRequest.update { SearchRequest(query, searchSource) }
 
                 executeSearch(query, 0)
                     .collect { emit(it) }
@@ -85,8 +86,6 @@ class SearchRepository
             query: String,
             startPosition: Int,
         ) = flow {
-            val currentResults = searchResults.value
-
             emit(ExternalCallStatus.Loading)
 
             when (val result = api.search(query, startPosition)) {
@@ -102,8 +101,8 @@ class SearchRepository
                     val searchResults = result.result.results
                     val domainResults = searchResults.map { it.toDomainCategory() }
 
-                    _searchResults.value = currentResults + domainResults
-                    _hasMoreResults.value = result.result.hasMoreResults
+                    _searchResults.update { it + domainResults }
+                    _hasMoreResults.update { result.result.hasMoreResults }
 
                     emit(domainResults)
                 }

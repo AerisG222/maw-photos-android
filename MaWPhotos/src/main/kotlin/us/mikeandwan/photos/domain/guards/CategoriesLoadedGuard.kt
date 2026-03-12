@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ErrorRepository
@@ -27,14 +28,14 @@ class CategoriesLoadedGuard
                     .getMostRecentYear()
                     .map {
                         if (it != null && it > 0) {
-                            _status.value = GuardStatus.Passed
+                            _status.update { GuardStatus.Passed }
                         } else {
                             if (allowLoad) {
                                 allowLoad = false
                                 categoryRepository.getUpdatedCategories()
                             } else {
                                 errorRepository.showError("Unable to load categories")
-                                _status.value = GuardStatus.Failed
+                                _status.update { GuardStatus.Failed }
                             }
                         }
                     }.collect { }

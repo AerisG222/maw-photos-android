@@ -7,6 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.MediaApiClient
@@ -54,7 +55,7 @@ class RandomMediaRepository
                     is ApiResult.Success -> {
                         val newPhotos = result.result.map { it.toDomainMedia() }
 
-                        _media.value += newPhotos
+                        _media.update { it + newPhotos }
 
                         emit(ExternalCallStatus.Success(newPhotos))
                     }
@@ -62,7 +63,7 @@ class RandomMediaRepository
             }
 
         fun clear() {
-            _media.value = emptyList()
+            _media.update { emptyList() }
         }
 
         init {

@@ -8,6 +8,7 @@ import com.auth0.android.authentication.storage.CredentialsManager
 import com.auth0.android.provider.WebAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import us.mikeandwan.photos.R
 
@@ -27,7 +28,7 @@ class AuthService(
 
     // force login screen on app start for testing
     //    init {
-    //        _authStatus.value = AuthStatus.RequiresAuthorization
+    //        _authStatus.update { AuthStatus.RequiresAuthorization }
     //    }
 
     suspend fun login(activity: Context) {
@@ -40,11 +41,11 @@ class AuthService(
                 .await(activity)
 
             credMgr.saveCredentials(credentials)
-            _authStatus.value = AuthStatus.Authorized
+            _authStatus.update { AuthStatus.Authorized }
 
             Timber.d("Successfully logged in with Auth0")
         } catch (e: AuthenticationException) {
-            _authStatus.value = AuthStatus.RequiresAuthorization
+            _authStatus.update { AuthStatus.RequiresAuthorization }
             Timber.e(e, "Error trying to login with Auth0")
         }
     }
@@ -56,7 +57,7 @@ class AuthService(
                 .withScheme(application.getString(R.string.auth0_scheme))
                 .await(activity)
             credMgr.clearCredentials()
-            _authStatus.value = AuthStatus.RequiresAuthorization
+            _authStatus.update { AuthStatus.RequiresAuthorization }
         } catch (e: AuthenticationException) {
             Timber.e(e, "Error trying to logout from Auth0")
         }
@@ -64,7 +65,7 @@ class AuthService(
 
     fun updateStatus(newStatus: AuthStatus) {
         Timber.d("Updating auth status to $newStatus")
-        _authStatus.value = newStatus
+        _authStatus.update { newStatus }
     }
 
     fun getScopes(): String =

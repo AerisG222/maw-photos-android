@@ -140,7 +140,7 @@ class CategoriesViewModel
         }
 
         fun setYear(year: Int?) {
-            _year.value = year
+            _year.update { year }
         }
 
         fun refreshCategories() {
@@ -151,12 +151,12 @@ class CategoriesViewModel
                         when (it) {
                             is ExternalCallStatus.Loading -> {
                                 delay(10)
-                                _isRefreshing.value = true
+                                _isRefreshing.update { true }
                             }
 
                             is ExternalCallStatus.Success -> {
                                 delay(10)
-                                _isRefreshing.value = false
+                                _isRefreshing.update { false }
 
                                 val msg = when (it.result.count()) {
                                     0 -> "No updates available"
@@ -169,7 +169,7 @@ class CategoriesViewModel
 
                             is ExternalCallStatus.Error -> {
                                 delay(10)
-                                _isRefreshing.value = false
+                                _isRefreshing.update { false }
 
                                 Timber.e(it.message)
                                 Timber.e(it.cause)

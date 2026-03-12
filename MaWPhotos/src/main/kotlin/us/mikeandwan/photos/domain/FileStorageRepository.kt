@@ -12,6 +12,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
 class FileStorageRepository
@@ -86,7 +87,8 @@ class FileStorageRepository
 
         suspend fun refreshPendingUploads() {
             withContext(Dispatchers.IO) {
-                _pendingUploads.value = getUploadDirectory()!!.listFiles { it.isFile }!!.asList()
+                val uploads = getUploadDirectory()?.listFiles { it.isFile }?.asList() ?: emptyList()
+                _pendingUploads.update { uploads }
             }
         }
 

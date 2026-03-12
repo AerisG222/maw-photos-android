@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
@@ -98,15 +99,15 @@ class MawPhotosAppViewModel
         private var handleIntentJob: Job? = null
 
         fun setNavArea(area: NavigationArea) {
-            _navArea.value = area
+            _navArea.update { area }
         }
 
         fun openDrawer() {
-            _drawerState.value = DrawerValue.Open
+            _drawerState.update { DrawerValue.Open }
         }
 
         fun closeDrawer() {
-            _drawerState.value = DrawerValue.Closed
+            _drawerState.update { DrawerValue.Closed }
         }
 
         fun navigate(route: NavKey) {
@@ -125,12 +126,12 @@ class MawPhotosAppViewModel
             // send/upload results in the upload page firing first, but the category screen loads data late as it is
             // the starting route and would often result in the year at the top of the upload page...
             if (navArea == _navArea.value) {
-                _topBarState.value = nextState
+                _topBarState.update { nextState }
             }
         }
 
         fun setActiveYear(year: Int) {
-            _activeYear.value = year
+            _activeYear.update { year }
         }
 
         fun clearSearchHistory() {

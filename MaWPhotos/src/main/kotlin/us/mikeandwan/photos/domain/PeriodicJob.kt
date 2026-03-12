@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -26,15 +27,15 @@ class PeriodicJob<T>(
     val isRunning = _doJob.asStateFlow()
 
     fun start() {
-        _doJob.value = true
+        _doJob.update { true }
     }
 
     fun stop() {
-        _doJob.value = false
+        _doJob.update { false }
     }
 
     fun setIntervalMillis(millis: Long) {
-        _intervalMillis.value = millis
+        _intervalMillis.update { millis }
     }
 
     init {

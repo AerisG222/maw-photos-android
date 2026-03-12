@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.domain.CategoryRepository
@@ -29,8 +30,8 @@ abstract class BaseCategoryViewModel(
     private var mediaJob: Job? = null
 
     fun reset() {
-        _category.value = null
-        _media.value = emptyList()
+        _category.update { null }
+        _media.update { emptyList() }
     }
 
     fun loadCategory(categoryId: Uuid) {
@@ -38,8 +39,8 @@ abstract class BaseCategoryViewModel(
             return
         }
 
-        _category.value = null
-        _media.value = emptyList()
+        _category.update { null }
+        _media.update { emptyList() }
 
         categoryJob?.cancel()
         categoryJob = viewModelScope.launch {
@@ -49,7 +50,7 @@ abstract class BaseCategoryViewModel(
 
             categoryRepository
                 .getCategory(categoryId)
-                .collect { _category.value = it }
+                .collect { newCategory -> _category.update { newCategory } }
         }
     }
 
@@ -68,7 +69,7 @@ abstract class BaseCategoryViewModel(
                 .getMedia(categoryId)
                 .filterIsInstance<ExternalCallStatus.Success<List<Media>>>()
                 .map { it.result }
-                .collect { _media.value = it }
+                .collect { newMedia -> _media.update { newMedia } }
         }
     }
 }
