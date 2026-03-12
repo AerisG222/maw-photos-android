@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
@@ -74,30 +73,22 @@ class RandomItemViewModel
             )
 
             combine(
-                mediaListService.category,
-                mediaListService.activeMedia,
-                mediaListService.activeId,
-                mediaListService.isSlideshowPlaying,
-                mediaListService.showDetailSheet,
+                mediaListService.state,
                 authGuard.status,
-                mediaListService.exif,
-                mediaListService.comments,
-                media,
-            ) { args: Array<Any?> ->
+            ) { mediaListState, authStatus ->
                 RandomItemUiState(
-                    category = args[0] as? Category,
-                    activeMedia = args[1] as? Media,
-                    activeId = args[2] as Uuid,
-                    activeIndex = args[3] as Int,
-                    isSlideshowPlaying = args[4] as Boolean,
-                    showDetailSheet = args[5] as Boolean,
-                    isAuthorized = args[6] !is GuardStatus.Failed,
-                    exif = args[7] as? JsonElement,
-                    comments = @Suppress("UNCHECKED_CAST") (args[8] as List<Comment>),
-                    media = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>),
+                    category = mediaListState.category,
+                    media = mediaListState.media,
+                    activeId = mediaListState.activeId ?: Uuid.NIL,
+                    activeIndex = mediaListState.activeIndex,
+                    activeMedia = mediaListState.activeMedia,
+                    isSlideshowPlaying = mediaListState.isSlideshowPlaying,
+                    showDetailSheet = mediaListState.showDetailSheet,
+                    isAuthorized = authStatus != GuardStatus.Failed,
+                    exif = mediaListState.exif,
+                    comments = mediaListState.comments,
                     isLoading =
-                        @Suppress("UNCHECKED_CAST")
-                        (args[9] as List<Media>).isEmpty() || (args[2] as Uuid) == Uuid.NIL,
+                        mediaListState.media.isEmpty() || mediaListState.activeId == null,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }

@@ -3,7 +3,6 @@ package us.mikeandwan.photos.ui.screens.categoryItem
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.HttpDataSource
-import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import javax.inject.Inject
@@ -11,12 +10,12 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.guards.AuthGuard
@@ -36,7 +35,7 @@ data class CategoryItemUiState(
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
     val isAuthorized: Boolean = true,
-    val exif: JsonElement? = null,
+    val exif: kotlinx.serialization.json.JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val isLoading: Boolean = true,
 )
@@ -72,41 +71,24 @@ class CategoryItemViewModel
             )
 
             combine(
-                mediaListService.category,
-                mediaListService.activeMedia,
-                mediaListService.activeId,
-                mediaListService.isSlideshowPlaying,
-                mediaListService.showDetailSheet,
+                mediaListService.state,
                 authGuard.status,
-                mediaListService.exif,
-                mediaListService.comments,
-                media,
-            ) {
-                category,
-                activeMedia,
-                activeId,
-                isSlideshowPlaying,
-                showDetailSheet,
-                isAuthorized,
-                exif,
-                comments,
-                media,
-                ->
+            ) { mediaListState, authStatus ->
                 CategoryItemUiState(
-                    category = category,
-                    activeMedia = activeMedia,
-                    activeId = activeId,
-                    isSlideshowPlaying = isSlideshowPlaying,
-                    showDetailSheet = showDetailSheet,
-                    isAuthorized = isAuthorized != GuardStatus.Failed,
-                    exif = exif,
-                    comments = comments,
-                    media = media,
+                    category = mediaListState.category,
+                    media = mediaListState.media,
+                    activeId = mediaListState.activeId,
+                    activeMedia = mediaListState.activeMedia,
+                    isSlideshowPlaying = mediaListState.isSlideshowPlaying,
+                    showDetailSheet = mediaListState.showDetailSheet,
+                    isAuthorized = authStatus != GuardStatus.Failed,
+                    exif = mediaListState.exif,
+                    comments = mediaListState.comments,
                     isLoading =
-                        category == null ||
-                            activeMedia == null ||
-                            activeId == null ||
-                            media.isEmpty(),
+                        mediaListState.category == null ||
+                            mediaListState.activeMedia == null ||
+                            mediaListState.activeId == null ||
+                            mediaListState.media.isEmpty(),
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
