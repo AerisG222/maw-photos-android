@@ -11,6 +11,7 @@ import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
+import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
@@ -51,19 +52,29 @@ private fun CategoryItemRoute(
         }
     }
 
-    LaunchedEffect(uiState.category) {
+    LaunchedEffect(uiState.category, categoryId) {
         uiState.category?.let {
-            appActions.updateTopBar(
-                NavigationArea.Category,
-                TopBarState(title = it.name),
-            )
+            if (it.id == categoryId) {
+                appActions.updateTopBar(
+                    NavigationArea.Category,
+                    TopBarState(
+                        title = it.name,
+                        tinyVerticalTitlePrefix = it.year.toString(),
+                    ),
+                )
+            }
         }
+    }
+
+    if (uiState.category?.id != categoryId || uiState.activeMedia?.id != uiState.activeId) {
+        Loading()
+        return
     }
 
     CategoryItemScreen(
         uiState = uiState,
         videoPlayerDataSourceFactory = vm.videoPlayerDataSourceFactory,
-        onSetActiveIndex = { vm.setActiveIndex(it) },
+        onSetActiveId = { vm.setActiveId(it) },
         onToggleSlideshow = { vm.toggleSlideshow() },
         onToggleFavorite = { vm.toggleFavorite() },
         onToggleDetails = { vm.toggleShowDetails() },

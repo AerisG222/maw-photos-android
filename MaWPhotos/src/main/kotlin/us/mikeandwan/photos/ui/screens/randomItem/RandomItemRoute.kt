@@ -57,7 +57,7 @@ private fun RandomItemRoute(
         videoPlayerDataSourceFactory = vm.videoPlayerDataSourceFactory,
         onNavigateToYear = { appActions.navigateToCategories(it) },
         onNavigateToCategory = { appActions.navigateToCategory(it.id) },
-        onSetActiveIndex = { vm.setActiveIndex(it) },
+        onSetActiveId = { vm.setActiveId(it) },
         onToggleSlideshow = { vm.toggleSlideshow() },
         onToggleFavorite = { vm.toggleFavorite() },
         onToggleDetails = { vm.toggleShowDetails() },

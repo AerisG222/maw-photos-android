@@ -8,16 +8,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
@@ -48,23 +47,15 @@ class MediaListService
         private val _category = MutableStateFlow<Category?>(null)
         val category = _category.asStateFlow()
 
-        private val _activeIndex = MutableStateFlow(-1)
-        val activeIndex = _activeIndex.asStateFlow()
+        private val _activeId = MutableStateFlow<Uuid?>(null)
+        val activeId = _activeId.asStateFlow()
 
-        val activeMedia = combine(_media, activeIndex) { media, index ->
-            media.getOrNull(index)
-        }.stateIn(scope, WhileSubscribed(5000), null)
-
-        val activeId = activeMedia
-            .map { media -> media?.id ?: Uuid.NIL }
-            .stateIn(scope, WhileSubscribed(5000), Uuid.NIL)
-
-        fun setActiveIndex(index: Int) {
-            _activeIndex.value = index
+        val activeMedia = combine(_media, _activeId) { media, activeId ->
+            media.firstOrNull { it.id == activeId }
         }
 
         fun setActiveId(id: Uuid) {
-            setActiveIndex(_media.value.indexOfFirst { it.id == id })
+            _activeId.update { id }
         }
 
         fun toggleSlideshow() {
@@ -111,15 +102,20 @@ class MediaListService
         val isFavorite = mediaFavoriteService.isFavorite
 
         fun setIsFavorite(isFavorite: Boolean) {
-            val currentMedia = activeMedia.value ?: return
-            val currentIndex = activeIndex.value
-
             scope.launch {
+                val currentMedia = activeMedia.firstOrNull() ?: return@launch
+
                 val resultIsFav = mediaFavoriteService.setIsFavorite(currentMedia, isFavorite)
 
                 // Update the media list safely
                 val updatedMedia = _media.value.toMutableList()
-                if (currentIndex >= 0 && currentIndex < updatedMedia.size && updatedMedia[currentIndex].id == currentMedia.id) {
+                val currentIndex = updatedMedia.indexOfFirst { it.id == currentMedia.id }
+
+                if (
+                    currentIndex >= 0 &&
+                    currentIndex < updatedMedia.size &&
+                    updatedMedia[currentIndex].id == currentMedia.id
+                ) {
                     val updatedItem = currentMedia.copy(isFavorite = resultIsFav)
                     updatedMedia[currentIndex] = updatedItem
                     _media.value = updatedMedia
@@ -132,10 +128,8 @@ class MediaListService
         val exif = mediaExifService.exif
 
         fun fetchExif() {
-            activeMedia.value?.let {
-                scope.launch {
-                    mediaExifService.fetchExifDetails(it)
-                }
+            scope.launch {
+                activeMedia.firstOrNull()?.let { mediaExifService.fetchExifDetails(it) }
             }
         }
 
@@ -143,18 +137,14 @@ class MediaListService
         val comments = mediaCommentService.comments
 
         fun fetchComments() {
-            activeMedia.value?.let {
-                scope.launch {
-                    mediaCommentService.fetchCommentDetails(it)
-                }
+            scope.launch {
+                activeMedia.firstOrNull()?.let { mediaCommentService.fetchCommentDetails(it) }
             }
         }
 
         fun addComment(comment: String) {
-            activeMedia.value?.let {
-                scope.launch {
-                    mediaCommentService.addComment(it, comment)
-                }
+            scope.launch {
+                activeMedia.firstOrNull()?.let { mediaCommentService.addComment(it, comment) }
             }
         }
 
@@ -162,14 +152,19 @@ class MediaListService
             media: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
         ) {
+            _category.value = null
+
             media
                 .onEach { _media.value = it }
                 .launchIn(scope)
 
             activeMedia
                 .filterNotNull()
-                .onEach { loadCategory(it.categoryId) }
-                .launchIn(scope)
+                .onEach { it ->
+                    if (it.categoryId != category.value?.id) {
+                        loadCategory(it.categoryId)
+                    }
+                }.launchIn(scope)
 
             slideshowDurationInMillis
                 .onEach { _slideshowJob.setIntervalMillis(it) }
@@ -180,6 +175,7 @@ class MediaListService
             if (category.value?.id == categoryId) return
 
             _category.value = null
+
             scope.launch {
                 categoryRepository
                     .getCategory(categoryId)
@@ -187,12 +183,15 @@ class MediaListService
             }
         }
 
-        private fun moveNext() = flow<Unit> {
-            val nextIndex = activeIndex.value + 1
-            if (nextIndex < _media.value.size) {
-                setActiveIndex(nextIndex)
-            } else {
-                stopSlideshow()
+        private fun moveNext() =
+            flow<Unit> {
+                val activeIndex = _media.value.indexOfFirst { it.id == activeId.value }
+                val nextIndex = activeIndex + 1
+
+                if (nextIndex < _media.value.size) {
+                    setActiveId(_media.value[nextIndex].id)
+                } else {
+                    stopSlideshow()
+                }
             }
-        }
     }

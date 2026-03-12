@@ -28,6 +28,11 @@ abstract class BaseCategoryViewModel(
     private var categoryJob: Job? = null
     private var mediaJob: Job? = null
 
+    fun clear() {
+        _category.value = null
+        _media.value = emptyList()
+    }
+
     fun loadCategory(categoryId: Uuid) {
         if (category.value?.id == categoryId) {
             return

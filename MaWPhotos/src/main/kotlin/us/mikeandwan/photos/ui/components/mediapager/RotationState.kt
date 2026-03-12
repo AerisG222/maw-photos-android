@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import kotlin.uuid.Uuid
 
 class RotationState(
     val activeRotation: Float,
@@ -11,26 +12,32 @@ class RotationState(
 )
 
 @Composable
-fun rememberRotation(activeIndex: Int): RotationState {
-    val rotationDictionary = rememberSaveable { HashMap<Int, Float>() }
+fun rememberRotation(activeId: Uuid?): RotationState {
+    val rotationDictionary = rememberSaveable { HashMap<Uuid, Float>() }
     val (activeRotation, setActiveRotation) = rememberSaveable { mutableFloatStateOf(0f) }
 
-    fun getRotationForIndex(index: Int): Float =
-        when (rotationDictionary.containsKey(index)) {
-            true -> rotationDictionary[index]!!
-            false -> 0f
+    fun getRotationForIndex(id: Uuid?): Float =
+        if (id == null) {
+            0f
+        } else {
+            when (rotationDictionary.containsKey(id)) {
+                true -> rotationDictionary[id]!!
+                false -> 0f
+            }
         }
 
     fun updateRotation(deg: Float) {
-        val currRotation = getRotationForIndex(activeIndex)
+        val currRotation = getRotationForIndex(activeId)
         val newRotation = currRotation + deg
 
-        rotationDictionary[activeIndex] = newRotation
-        setActiveRotation(newRotation)
+        if (activeId != null) {
+            rotationDictionary[activeId] = newRotation
+            setActiveRotation(newRotation)
+        }
     }
 
-    LaunchedEffect(activeIndex) {
-        setActiveRotation(getRotationForIndex(activeIndex))
+    LaunchedEffect(activeId) {
+        setActiveRotation(getRotationForIndex(activeId))
     }
 
     return RotationState(

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.media3.datasource.HttpDataSource
 import coil3.compose.AsyncImage
+import kotlin.uuid.Uuid
 import net.engawapg.lib.zoomable.ScrollGesturePropagation
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
@@ -26,28 +27,28 @@ import us.mikeandwan.photos.ui.shared.getMediaUrl
 @Composable
 fun MediaPager(
     media: List<Media>,
-    activeIndex: Int,
+    activeId: Uuid,
     activeRotation: Float = 0f,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
-    setActiveIndex: (Int) -> Unit,
+    setActiveId: (Uuid) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(
         pageCount = { media.size },
-        initialPage = activeIndex,
+        initialPage = media.indexOfFirst { it.id == activeId },
     )
     val zoomState = rememberZoomState()
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (page >= 0) {
-                setActiveIndex(page)
+            if (page >= 0 && page < media.size) {
+                setActiveId(media[page].id)
             }
         }
     }
 
-    LaunchedEffect(activeIndex) {
-        pagerState.animateScrollToPage(activeIndex)
+    LaunchedEffect(activeId) {
+        pagerState.animateScrollToPage(media.indexOfFirst { it.id == activeId })
     }
 
     HorizontalPager(

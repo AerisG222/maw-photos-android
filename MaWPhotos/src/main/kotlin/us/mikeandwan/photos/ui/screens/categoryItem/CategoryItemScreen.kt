@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.datasource.HttpDataSource
 import java.io.File
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.mediapager.ButtonBar
@@ -26,7 +27,7 @@ import us.mikeandwan.photos.ui.shared.shareMedia
 fun CategoryItemScreen(
     uiState: CategoryItemUiState,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
-    onSetActiveIndex: (Int) -> Unit,
+    onSetActiveId: (Uuid) -> Unit,
     onToggleSlideshow: () -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleDetails: () -> Unit,
@@ -44,7 +45,7 @@ fun CategoryItemScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
-    val rotationState = rememberRotation(uiState.activeIndex)
+    val rotationState = rememberRotation(uiState.activeId)
 
     val exifState = rememberExifState(
         exif = uiState.exif,
@@ -61,7 +62,7 @@ fun CategoryItemScreen(
         showDetails = uiState.showDetailSheet,
         topRightContent = {
             OverlayPositionCount(
-                position = uiState.activeIndex + 1,
+                position = uiState.media.indexOfFirst { it.id == uiState.activeId } + 1,
                 count = uiState.media.size,
             )
         },
@@ -101,12 +102,14 @@ fun CategoryItemScreen(
         },
         modifier = modifier,
     ) {
+        if (uiState.activeId == null || uiState.activeId == Uuid.NIL) return@ItemPagerScaffold
+
         MediaPager(
             uiState.media,
-            uiState.activeIndex,
+            activeId = uiState.activeId,
             rotationState.activeRotation,
             videoPlayerDataSourceFactory,
-            setActiveIndex = onSetActiveIndex,
+            setActiveId = onSetActiveId,
         )
     }
 }

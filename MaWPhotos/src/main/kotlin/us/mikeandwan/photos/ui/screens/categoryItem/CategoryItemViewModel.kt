@@ -3,6 +3,7 @@ package us.mikeandwan.photos.ui.screens.categoryItem
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.HttpDataSource
+import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import javax.inject.Inject
@@ -10,13 +11,11 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
@@ -32,8 +31,7 @@ import us.mikeandwan.photos.ui.screens.category.BaseCategoryViewModel
 data class CategoryItemUiState(
     val category: Category? = null,
     val media: List<Media> = emptyList(),
-    val activeId: Uuid = Uuid.NIL,
-    val activeIndex: Int = -1,
+    val activeId: Uuid? = Uuid.NIL,
     val activeMedia: Media? = null,
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
@@ -58,9 +56,6 @@ class CategoryItemViewModel
         private val _uiState = MutableStateFlow(CategoryItemUiState())
         val uiState = _uiState.asStateFlow()
 
-        private val initialMediaId = MutableStateFlow(Uuid.NIL)
-        private val initialMediaIdWasSet = MutableStateFlow(false)
-
         init {
             val slideshowDurationInMillisFlow = mediaPreferenceRepository
                 .getSlideshowIntervalSeconds()
@@ -76,43 +71,42 @@ class CategoryItemViewModel
                 slideshowDurationInMillisFlow,
             )
 
-            viewModelScope.launch {
-                combine(
-                    media,
-                    initialMediaId,
-                    initialMediaIdWasSet,
-                ) { media, id, wasSet ->
-                    if (wasSet || media.isEmpty() || id == Uuid.NIL) return@combine
-
-                    mediaListService.setActiveId(id)
-                    initialMediaIdWasSet.value = true
-                }.collect { }
-            }
-
             combine(
                 mediaListService.category,
                 mediaListService.activeMedia,
                 mediaListService.activeId,
-                mediaListService.activeIndex,
                 mediaListService.isSlideshowPlaying,
                 mediaListService.showDetailSheet,
                 authGuard.status,
                 mediaListService.exif,
                 mediaListService.comments,
-                media
-            ) { args: Array<Any?> ->
+                media,
+            ) {
+                category,
+                activeMedia,
+                activeId,
+                isSlideshowPlaying,
+                showDetailSheet,
+                isAuthorized,
+                exif,
+                comments,
+                media,
+                ->
                 CategoryItemUiState(
-                    category = args[0] as? Category,
-                    activeMedia = args[1] as? Media,
-                    activeId = args[2] as Uuid,
-                    activeIndex = args[3] as Int,
-                    isSlideshowPlaying = args[4] as Boolean,
-                    showDetailSheet = args[5] as Boolean,
-                    isAuthorized = args[6] !is GuardStatus.Failed,
-                    exif = args[7] as? JsonElement,
-                    comments = @Suppress("UNCHECKED_CAST") (args[8] as List<Comment>),
-                    media = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>),
-                    isLoading = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>).isEmpty() || (args[2] as Uuid) == Uuid.NIL
+                    category = category,
+                    activeMedia = activeMedia,
+                    activeId = activeId,
+                    isSlideshowPlaying = isSlideshowPlaying,
+                    showDetailSheet = showDetailSheet,
+                    isAuthorized = isAuthorized != GuardStatus.Failed,
+                    exif = exif,
+                    comments = comments,
+                    media = media,
+                    isLoading =
+                        category == null ||
+                            activeMedia == null ||
+                            activeId == null ||
+                            media.isEmpty(),
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
@@ -123,14 +117,17 @@ class CategoryItemViewModel
             categoryId: Uuid,
             mediaId: Uuid,
         ) {
+            clear()
+            _uiState.value = CategoryItemUiState()
+
             loadCategory(categoryId)
             loadMedia(categoryId)
 
-            initialMediaId.value = mediaId
+            mediaListService.setActiveId(mediaId)
         }
 
-        fun setActiveIndex(index: Int) {
-            mediaListService.setActiveIndex(index)
+        fun setActiveId(id: Uuid) {
+            mediaListService.setActiveId(id)
         }
 
         fun toggleSlideshow() {

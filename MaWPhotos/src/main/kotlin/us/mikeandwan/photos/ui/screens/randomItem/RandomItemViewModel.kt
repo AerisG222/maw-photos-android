@@ -58,9 +58,6 @@ class RandomItemViewModel
         private val _uiState = MutableStateFlow(RandomItemUiState())
         val uiState = _uiState.asStateFlow()
 
-        private val initialMediaId = MutableStateFlow(Uuid.NIL)
-        private val initialMediaIdWasSet = MutableStateFlow(false)
-
         init {
             val slideshowDurationInMillisFlow = randomPreferenceRepository
                 .getSlideshowIntervalSeconds()
@@ -76,30 +73,16 @@ class RandomItemViewModel
                 slideshowDurationInMillisFlow,
             )
 
-            viewModelScope.launch {
-                combine(
-                    media,
-                    initialMediaId,
-                    initialMediaIdWasSet,
-                ) { media, id, wasSet ->
-                    if (wasSet || media.isEmpty() || id == Uuid.NIL) return@combine
-
-                    mediaListService.setActiveId(id)
-                    initialMediaIdWasSet.value = true
-                }.collect { }
-            }
-
             combine(
                 mediaListService.category,
                 mediaListService.activeMedia,
                 mediaListService.activeId,
-                mediaListService.activeIndex,
                 mediaListService.isSlideshowPlaying,
                 mediaListService.showDetailSheet,
                 authGuard.status,
                 mediaListService.exif,
                 mediaListService.comments,
-                media
+                media,
             ) { args: Array<Any?> ->
                 RandomItemUiState(
                     category = args[0] as? Category,
@@ -112,7 +95,9 @@ class RandomItemViewModel
                     exif = args[7] as? JsonElement,
                     comments = @Suppress("UNCHECKED_CAST") (args[8] as List<Comment>),
                     media = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>),
-                    isLoading = @Suppress("UNCHECKED_CAST") (args[9] as List<Media>).isEmpty() || (args[2] as Uuid) == Uuid.NIL
+                    isLoading =
+                        @Suppress("UNCHECKED_CAST")
+                        (args[9] as List<Media>).isEmpty() || (args[2] as Uuid) == Uuid.NIL,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
@@ -120,11 +105,11 @@ class RandomItemViewModel
         }
 
         fun initState(id: Uuid) {
-            initialMediaId.value = id
+            mediaListService.setActiveId(id)
         }
 
-        fun setActiveIndex(index: Int) {
-            mediaListService.setActiveIndex(index)
+        fun setActiveId(id: Uuid) {
+            mediaListService.setActiveId(id)
         }
 
         fun toggleSlideshow() {

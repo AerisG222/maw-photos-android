@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.datasource.HttpDataSource
 import java.io.File
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.ui.components.loading.Loading
@@ -30,7 +31,7 @@ fun RandomItemScreen(
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
     onNavigateToYear: (Int) -> Unit,
     onNavigateToCategory: (Category) -> Unit,
-    onSetActiveIndex: (Int) -> Unit,
+    onSetActiveId: (Uuid) -> Unit,
     onToggleSlideshow: () -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleDetails: () -> Unit,
@@ -48,7 +49,7 @@ fun RandomItemScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
-    val rotationState = rememberRotation(uiState.activeIndex)
+    val rotationState = rememberRotation(uiState.activeId)
 
     val exifState = rememberExifState(
         exif = uiState.exif,
@@ -116,10 +117,10 @@ fun RandomItemScreen(
     ) {
         MediaPager(
             uiState.media,
-            uiState.activeIndex,
+            uiState.activeId,
             rotationState.activeRotation,
             videoPlayerDataSourceFactory,
-            setActiveIndex = onSetActiveIndex,
+            setActiveId = onSetActiveId,
         )
     }
 }
