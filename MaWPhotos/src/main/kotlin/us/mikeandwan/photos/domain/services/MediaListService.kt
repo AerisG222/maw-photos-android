@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.domain.services
 
 import android.graphics.drawable.Drawable
+import com.hoc081098.flowext.combine
 import java.io.File
 import javax.inject.Inject
 import kotlin.uuid.Uuid
@@ -10,7 +11,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -29,13 +29,27 @@ import us.mikeandwan.photos.domain.models.Media
 
 sealed class MediaListAction {
     data object Reset : MediaListAction()
-    data class SetActiveId(val id: Uuid) : MediaListAction()
+
+    data class SetActiveId(
+        val id: Uuid,
+    ) : MediaListAction()
+
     data object ToggleSlideshow : MediaListAction()
+
     data object ToggleShowDetails : MediaListAction()
-    data class SetIsFavorite(val isFavorite: Boolean) : MediaListAction()
+
+    data class SetIsFavorite(
+        val isFavorite: Boolean,
+    ) : MediaListAction()
+
     data object FetchExif : MediaListAction()
+
     data object FetchComments : MediaListAction()
-    data class AddComment(val comment: String) : MediaListAction()
+
+    data class AddComment(
+        val comment: String,
+    ) : MediaListAction()
+
     data class SaveFileToShare(
         val drawable: Drawable,
         val filename: String,
@@ -74,39 +88,33 @@ class MediaListService
         private val mediaExifService: MediaExifService,
     ) {
         private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
-        private val _media = MutableStateFlow<List<Media>>(emptyList())
-
-        private val _slideshowJob = PeriodicJob { moveNext() }
-
-        private val _resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
-
-        private val _showDetailSheet = MutableStateFlow(false)
-
-        private val _category = MutableStateFlow<Category?>(null)
-
-        private val _activeId = MutableStateFlow<Uuid?>(null)
+        private val category = MutableStateFlow<Category?>(null)
+        private val media = MutableStateFlow<List<Media>>(emptyList())
+        private val activeId = MutableStateFlow<Uuid?>(null)
+        private val slideshowJob = PeriodicJob { moveNext() }
+        private val resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
+        private val showDetailSheet = MutableStateFlow(false)
 
         val state: StateFlow<MediaListState> =
             combine(
-                _category,
-                _media,
-                _activeId,
-                _slideshowJob.isRunning,
-                _showDetailSheet,
+                category,
+                media,
+                activeId,
+                slideshowJob.isRunning,
+                showDetailSheet,
                 mediaExifService.exif,
                 mediaCommentService.comments,
-            ) { args: Array<Any?> ->
-                val category = args[0] as? Category
-                @Suppress("UNCHECKED_CAST")
-                val media = args[1] as List<Media>
-                val activeId = args[2] as? Uuid
-                val isSlideshowPlaying = args[3] as Boolean
-                val showDetailSheet = args[4] as Boolean
-                val exif = args[5] as? JsonElement
-                @Suppress("UNCHECKED_CAST")
-                val comments = args[6] as List<Comment>
-
+            ) {
+                category,
+                media,
+                activeId,
+                isSlideshowPlaying,
+                showDetailSheet,
+                exif,
+                comments,
+                ->
                 val activeIndex = media.indexOfFirst { it.id == activeId }
+
                 MediaListState(
                     category = category,
                     media = media,
@@ -122,34 +130,59 @@ class MediaListService
 
         fun onAction(action: MediaListAction) {
             when (action) {
-                is MediaListAction.Reset -> reset()
-                is MediaListAction.SetActiveId -> setActiveId(action.id)
-                is MediaListAction.ToggleSlideshow -> toggleSlideshow()
-                is MediaListAction.ToggleShowDetails -> toggleShowDetails()
-                is MediaListAction.SetIsFavorite -> setIsFavorite(action.isFavorite)
-                is MediaListAction.FetchExif -> fetchExif()
-                is MediaListAction.FetchComments -> fetchComments()
-                is MediaListAction.AddComment -> addComment(action.comment)
-                is MediaListAction.SaveFileToShare ->
+                is MediaListAction.Reset -> {
+                    reset()
+                }
+
+                is MediaListAction.SetActiveId -> {
+                    setActiveId(action.id)
+                }
+
+                is MediaListAction.ToggleSlideshow -> {
+                    toggleSlideshow()
+                }
+
+                is MediaListAction.ToggleShowDetails -> {
+                    toggleShowDetails()
+                }
+
+                is MediaListAction.SetIsFavorite -> {
+                    setIsFavorite(action.isFavorite)
+                }
+
+                is MediaListAction.FetchExif -> {
+                    fetchExif()
+                }
+
+                is MediaListAction.FetchComments -> {
+                    fetchComments()
+                }
+
+                is MediaListAction.AddComment -> {
+                    addComment(action.comment)
+                }
+
+                is MediaListAction.SaveFileToShare -> {
                     saveFileToShare(action.drawable, action.filename, action.onComplete)
+                }
             }
         }
 
         private fun reset() {
-            _slideshowJob.stop()
-            _category.value = null
-            _media.value = emptyList()
-            _activeId.value = null
-            _showDetailSheet.value = false
-            _resumeSlideshowAfterShowingDetails.value = false
+            slideshowJob.stop()
+            category.value = null
+            media.value = emptyList()
+            activeId.value = null
+            showDetailSheet.value = false
+            resumeSlideshowAfterShowingDetails.value = false
         }
 
         private fun setActiveId(id: Uuid) {
-            _activeId.update { id }
+            activeId.update { id }
         }
 
         private fun toggleSlideshow() {
-            if (_slideshowJob.isRunning.value) {
+            if (slideshowJob.isRunning.value) {
                 stopSlideshow()
             } else {
                 startSlideshow()
@@ -157,24 +190,24 @@ class MediaListService
         }
 
         private fun startSlideshow() {
-            _slideshowJob.start()
+            slideshowJob.start()
         }
 
         private fun stopSlideshow() {
-            _slideshowJob.stop()
+            slideshowJob.stop()
         }
 
         private fun toggleShowDetails() {
-            if (_showDetailSheet.value) {
-                if (_resumeSlideshowAfterShowingDetails.value) {
-                    _slideshowJob.start()
+            if (showDetailSheet.value) {
+                if (resumeSlideshowAfterShowingDetails.value) {
+                    slideshowJob.start()
                 }
             } else {
-                _resumeSlideshowAfterShowingDetails.value = _slideshowJob.isRunning.value
-                _slideshowJob.stop()
+                resumeSlideshowAfterShowingDetails.value = slideshowJob.isRunning.value
+                slideshowJob.stop()
             }
 
-            _showDetailSheet.value = !_showDetailSheet.value
+            showDetailSheet.value = !showDetailSheet.value
         }
 
         private fun saveFileToShare(
@@ -196,7 +229,7 @@ class MediaListService
                 val resultIsFav = mediaFavoriteService.setIsFavorite(currentMedia, isFavorite)
 
                 // Update the media list safely
-                val updatedMedia = _media.value.toMutableList()
+                val updatedMedia = media.value.toMutableList()
                 val currentIndex = updatedMedia.indexOfFirst { it.id == currentMedia.id }
 
                 if (
@@ -206,7 +239,7 @@ class MediaListService
                 ) {
                     val updatedItem = currentMedia.copy(isFavorite = resultIsFav)
                     updatedMedia[currentIndex] = updatedItem
-                    _media.value = updatedMedia
+                    media.value = updatedMedia
                     categoryRepository.tryUpdateCache(updatedItem)
                 }
             }
@@ -233,48 +266,48 @@ class MediaListService
         }
 
         fun initialize(
-            media: StateFlow<List<Media>>,
+            sourceMedia: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
         ) {
-            _category.value = null
+            category.value = null
 
-            media
-                .onEach { _media.value = it }
+            sourceMedia
+                .onEach { media.value = it }
                 .launchIn(scope)
 
             state
                 .map { it.activeMedia }
                 .filterNotNull()
                 .onEach { activeMedia ->
-                    if (activeMedia.categoryId != _category.value?.id) {
+                    if (activeMedia.categoryId != category.value?.id) {
                         loadCategory(activeMedia.categoryId)
                     }
                 }.launchIn(scope)
 
             slideshowDurationInMillis
-                .onEach { _slideshowJob.setIntervalMillis(it) }
+                .onEach { slideshowJob.setIntervalMillis(it) }
                 .launchIn(scope)
         }
 
         private fun loadCategory(categoryId: Uuid) {
-            if (_category.value?.id == categoryId) return
+            if (category.value?.id == categoryId) return
 
-            _category.value = null
+            category.value = null
 
             scope.launch {
                 categoryRepository
                     .getCategory(categoryId)
-                    .collect { _category.value = it }
+                    .collect { category.value = it }
             }
         }
 
         private fun moveNext() =
             flow<Unit> {
-                val activeIndex = _media.value.indexOfFirst { it.id == _activeId.value }
+                val activeIndex = media.value.indexOfFirst { it.id == activeId.value }
                 val nextIndex = activeIndex + 1
 
-                if (nextIndex < _media.value.size) {
-                    setActiveId(_media.value[nextIndex].id)
+                if (nextIndex < media.value.size) {
+                    setActiveId(media.value[nextIndex].id)
                 } else {
                     stopSlideshow()
                 }
