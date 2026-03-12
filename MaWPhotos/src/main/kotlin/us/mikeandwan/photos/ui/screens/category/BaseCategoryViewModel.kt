@@ -28,7 +28,7 @@ abstract class BaseCategoryViewModel(
     private var categoryJob: Job? = null
     private var mediaJob: Job? = null
 
-    fun clear() {
+    fun reset() {
         _category.value = null
         _media.value = emptyList()
     }

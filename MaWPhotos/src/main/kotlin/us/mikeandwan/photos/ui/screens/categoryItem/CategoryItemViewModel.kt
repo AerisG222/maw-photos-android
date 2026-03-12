@@ -101,7 +101,7 @@ class CategoryItemViewModel
             mediaId: Uuid,
         ) {
             mediaListService.onAction(MediaListAction.Reset)
-            clear()
+            reset()
             _uiState.update { CategoryItemUiState() }
 
             loadCategory(categoryId)

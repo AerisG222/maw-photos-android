@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.ui.screens.randomItem
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -33,6 +34,10 @@ private fun RandomItemRoute(
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
+
+    DisposableEffect(Unit) {
+        onDispose { vm.reset() }
+    }
 
     LaunchedEffect(mediaId) {
         vm.initState(mediaId)

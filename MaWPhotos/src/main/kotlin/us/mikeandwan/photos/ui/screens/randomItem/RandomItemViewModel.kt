@@ -100,6 +100,10 @@ class RandomItemViewModel
             }.launchIn(viewModelScope)
         }
 
+        fun reset() {
+            setActiveId(Uuid.NIL)
+        }
+
         fun initState(id: Uuid) {
             mediaListService.onAction(MediaListAction.SetActiveId(id))
         }

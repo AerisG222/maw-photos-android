@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.ui.screens.categoryItem
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -37,6 +38,10 @@ private fun CategoryItemRoute(
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
+
+    DisposableEffect(Unit) {
+        onDispose { vm.reset() }
+    }
 
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Category)
