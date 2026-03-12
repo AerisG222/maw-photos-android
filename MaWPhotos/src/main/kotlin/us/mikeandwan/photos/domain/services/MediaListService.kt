@@ -37,7 +37,16 @@ data class MediaListState(
     val showDetailSheet: Boolean = false,
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
-)
+) {
+    val isLoading: Boolean
+        get() = category == null || media.isEmpty() || activeId == null || activeMedia == null
+
+    val hasPrevious: Boolean
+        get() = activeIndex > 0
+
+    val hasNext: Boolean
+        get() = activeIndex >= 0 && activeIndex < media.size - 1
+}
 
 class MediaListService
     @Inject

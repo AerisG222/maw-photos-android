@@ -38,6 +38,8 @@ data class CategoryItemUiState(
     val exif: kotlinx.serialization.json.JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val isLoading: Boolean = true,
+    val hasPrevious: Boolean = false,
+    val hasNext: Boolean = false,
 )
 
 @HiltViewModel
@@ -84,11 +86,9 @@ class CategoryItemViewModel
                     isAuthorized = authStatus != GuardStatus.Failed,
                     exif = mediaListState.exif,
                     comments = mediaListState.comments,
-                    isLoading =
-                        mediaListState.category == null ||
-                            mediaListState.activeMedia == null ||
-                            mediaListState.activeId == null ||
-                            mediaListState.media.isEmpty(),
+                    isLoading = mediaListState.isLoading,
+                    hasPrevious = mediaListState.hasPrevious,
+                    hasNext = mediaListState.hasNext,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }

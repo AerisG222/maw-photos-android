@@ -40,6 +40,8 @@ data class RandomItemUiState(
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val isLoading: Boolean = true,
+    val hasPrevious: Boolean = false,
+    val hasNext: Boolean = false,
 )
 
 @HiltViewModel
@@ -87,8 +89,9 @@ class RandomItemViewModel
                     isAuthorized = authStatus != GuardStatus.Failed,
                     exif = mediaListState.exif,
                     comments = mediaListState.comments,
-                    isLoading =
-                        mediaListState.media.isEmpty() || mediaListState.activeId == null,
+                    isLoading = mediaListState.isLoading,
+                    hasPrevious = mediaListState.hasPrevious,
+                    hasNext = mediaListState.hasNext,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
