@@ -144,8 +144,7 @@ class CategoryRepository
                     .getCategoriesForYear(year)
                     .map { dbList ->
                         dbList.map { dbCat -> dbCat.toDomainCategory() }
-                    }
-                    .distinctUntilChanged()
+                    }.distinctUntilChanged()
 
                 if (cat.first().isEmpty()) {
                     emit(emptyList())
@@ -321,6 +320,7 @@ class CategoryRepository
                 this.effectiveDate,
                 this.modified,
                 this.isFavorite,
+                this.mediaTypes,
             )
 
         suspend fun prepareMediaFilesForDatabase(

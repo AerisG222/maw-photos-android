@@ -17,4 +17,5 @@ data class Category(
     val modified: Instant,
     val isFavorite: Boolean,
     val teaser: Media,
+    val mediaTypes: List<String>,
 )

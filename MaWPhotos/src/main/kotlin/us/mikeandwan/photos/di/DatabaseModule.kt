@@ -18,6 +18,8 @@ import us.mikeandwan.photos.database.ScaleDao
 import us.mikeandwan.photos.database.SearchHistoryDao
 import us.mikeandwan.photos.database.SearchPreferenceDao
 import us.mikeandwan.photos.database.YearDao
+import us.mikeandwan.photos.database.migrations.MIGRATION_10_11
+import us.mikeandwan.photos.database.migrations.MIGRATION_11_12
 import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
 import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
 import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
@@ -27,7 +29,6 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_6_7
 import us.mikeandwan.photos.database.migrations.MIGRATION_7_8
 import us.mikeandwan.photos.database.migrations.MIGRATION_8_9
 import us.mikeandwan.photos.database.migrations.MIGRATION_9_10
-import us.mikeandwan.photos.database.migrations.MIGRATION_10_11
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
 
 @Module
@@ -54,6 +55,7 @@ object DatabaseModule {
                 MIGRATION_8_9,
                 MIGRATION_9_10,
                 MIGRATION_10_11,
+                MIGRATION_11_12,
             ).build()
 
     @Provides

@@ -61,4 +61,10 @@ class Converters {
 
     @TypeConverter
     fun fromLocalDate(v: LocalDate?): String? = v?.format(LocalDate.Formats.ISO)
+
+    @TypeConverter
+    fun fromStringList(value: List<String>?): String? = value?.joinToString(",")
+
+    @TypeConverter
+    fun toStringList(value: String?): List<String>? = value?.split(",")?.filter { it.isNotBlank() }
 }

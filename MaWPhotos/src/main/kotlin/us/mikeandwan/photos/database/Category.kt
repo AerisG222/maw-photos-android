@@ -23,4 +23,5 @@ data class Category(
     @ColumnInfo(name = "effective_date") val effectiveDate: LocalDate,
     @ColumnInfo(name = "modified") val modified: Instant,
     @ColumnInfo(name = "is_favorite") val isFavorite: Boolean,
+    @ColumnInfo(name = "media_types") val mediaTypes: List<String>,
 )

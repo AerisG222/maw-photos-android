@@ -27,6 +27,7 @@ import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
@@ -146,6 +147,7 @@ fun SearchScreenResultsPreview() {
                     modified = now,
                     isFavorite = false,
                     teaser = emptyList(),
+                    mediaTypes = listOf(MediaType.Photo)
                 ),
             ),
             displayType = CategoryDisplayType.Grid,

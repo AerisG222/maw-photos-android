@@ -17,7 +17,7 @@ fun Media.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Media> =
     MediaGridItem(
         this.id,
         this.findTeaserImage(useLargeTeaser).path,
-        this.type == MediaType.Video,
+        listOf(this.type),
         this,
     )
 
@@ -37,7 +37,7 @@ fun Category.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> =
     MediaGridItem(
         this.id,
         this.findTeaserImage(useLargeTeaser).path,
-        false,
+        this.mediaTypes,
         this,
     )
 

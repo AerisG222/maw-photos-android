@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.models.MediaType
 
 @Composable
 fun <T> MediaGridImage(
@@ -39,9 +40,23 @@ fun <T> MediaGridImage(
             modifier = Modifier.matchParentSize(),
         )
 
-        if (item.showVideoBadge) {
+        if (item.mediaTypes.contains(MediaType.Video)) {
             AsyncImage(
-                model = R.drawable.mdi_video,
+                model = R.drawable.ic_round_play_circle,
+                contentDescription = stringResource(
+                    id = R.string.li_category_thumbnail_description,
+                ),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(2.dp)
+                    .size(16.dp),
+            )
+        }
+
+        if (item.mediaTypes.contains(MediaType.Photo)) {
+            AsyncImage(
+                model = R.drawable.ic_round_camera,
                 contentDescription = stringResource(
                     id = R.string.li_category_thumbnail_description,
                 ),

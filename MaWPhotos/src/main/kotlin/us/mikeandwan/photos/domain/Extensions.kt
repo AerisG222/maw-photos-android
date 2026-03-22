@@ -24,6 +24,7 @@ fun us.mikeandwan.photos.database.CategoryDetail.toDomainCategory(): Category =
         this.category.modified,
         this.category.isFavorite,
         this.mediaFiles.map { it.toDomainMediaFile() },
+        this.category.mediaTypes.map { getMediaType(it) },
     )
 
 fun us.mikeandwan.photos.database.MediaFileAndScale.toDomainMediaFile(): MediaFile =
@@ -82,6 +83,7 @@ fun us.mikeandwan.photos.api.Category.toDomainCategory(): Category =
         this.modified,
         this.isFavorite,
         this.teaser.files.map { it.toDomainMediaFile() },
+        this.mediaTypes.map { getMediaType(it) },
     )
 
 fun us.mikeandwan.photos.api.Media.toDomainMedia(): Media =
