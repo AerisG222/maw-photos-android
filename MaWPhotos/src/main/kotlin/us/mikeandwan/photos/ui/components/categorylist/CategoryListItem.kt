@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -31,6 +33,14 @@ fun CategoryListItem(
     onSelectCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    @Composable
+    fun getMediaTypeIconAlpha(hasType: Boolean): Float =
+        if (hasType) {
+            1f
+        } else {
+            0.2f
+        }
+
     Row(
         modifier
             .fillMaxWidth()
@@ -51,6 +61,26 @@ fun CategoryListItem(
             )
         }
 
+        AsyncImage(
+            model = R.drawable.ic_round_camera,
+            contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .padding(start = 2.dp, end = 4.dp)
+                .size(24.dp)
+                .alpha(getMediaTypeIconAlpha(category.mediaTypes.contains(MediaType.Photo))),
+        )
+
+        AsyncImage(
+            model = R.drawable.ic_round_play_circle,
+            contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .size(24.dp)
+                .alpha(getMediaTypeIconAlpha(category.mediaTypes.contains(MediaType.Video))),
+        )
+
         if (showYear) {
             Text(
                 style = MaterialTheme.typography.titleMedium,
@@ -67,27 +97,5 @@ fun CategoryListItem(
                 .padding(8.dp)
                 .weight(1f),
         )
-
-        if (category.mediaTypes.contains(MediaType.Video)) {
-            AsyncImage(
-                model = R.drawable.ic_round_play_circle,
-                contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outline),
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(20.dp),
-            )
-        }
-
-        if (category.mediaTypes.contains(MediaType.Photo)) {
-            AsyncImage(
-                model = R.drawable.ic_round_camera,
-                contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outline),
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(20.dp),
-            )
-        }
     }
 }
