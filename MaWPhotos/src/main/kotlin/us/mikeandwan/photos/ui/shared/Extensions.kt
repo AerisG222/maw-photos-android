@@ -13,11 +13,14 @@ import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 
-fun Media.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Media> =
+fun Media.toMediaGridItem(
+    useLargeTeaser: Boolean,
+    showMediaTypeIndicator: Boolean = true,
+): MediaGridItem<Media> =
     MediaGridItem(
         this.id,
         this.findTeaserImage(useLargeTeaser).path,
-        listOf(this.type),
+        if (showMediaTypeIndicator) listOf(this.type) else emptyList(),
         this,
     )
 
@@ -33,11 +36,14 @@ fun Media.getMediaUrl(): String {
     return ""
 }
 
-fun Category.toMediaGridItem(useLargeTeaser: Boolean): MediaGridItem<Category> =
+fun Category.toMediaGridItem(
+    useLargeTeaser: Boolean,
+    showMediaTypeIndicator: Boolean = true,
+): MediaGridItem<Category> =
     MediaGridItem(
         this.id,
         this.findTeaserImage(useLargeTeaser).path,
-        this.mediaTypes,
+        if (showMediaTypeIndicator) this.mediaTypes else emptyList(),
         this,
     )
 

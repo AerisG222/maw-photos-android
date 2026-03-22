@@ -54,6 +54,7 @@ fun us.mikeandwan.photos.database.CategoryPreference.toDomainCategoryPreference(
     CategoryPreference(
         this.displayType,
         this.gridThumbnailSize,
+        this.showMediaTypeIndicator,
     )
 
 fun us.mikeandwan.photos.database.NotificationPreference.toDomainNotificationPreference(): NotificationPreference =
@@ -66,12 +67,14 @@ fun us.mikeandwan.photos.database.MediaPreference.toDomainPhotoPreference(): Med
     MediaPreference(
         this.slideshowIntervalSeconds,
         this.gridThumbnailSize,
+        this.showMediaTypeIndicator,
     )
 
 fun us.mikeandwan.photos.database.RandomPreference.toDomainRandomPreference(): RandomPreference =
     RandomPreference(
         this.slideshowIntervalSeconds,
         this.gridThumbnailSize,
+        this.showMediaTypeIndicator,
     )
 
 fun us.mikeandwan.photos.api.Category.toDomainCategory(): Category =
@@ -132,6 +135,7 @@ fun us.mikeandwan.photos.database.SearchPreference.toDomainSearchPreference(): S
         this.recentQueryCount,
         this.displayType,
         this.gridThumbnailSize,
+        this.showMediaTypeIndicator,
     )
 
 fun us.mikeandwan.photos.api.ApiResult.Error.isUnauthorized(): Boolean =

@@ -28,13 +28,17 @@ data class SettingsUiState(
     val notificationDoVibrate: Boolean = true,
     val categoryDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val categoryThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val categoryShowMediaTypeIndicator: Boolean = true,
     val photoSlideshowInterval: Int = 3,
     val photoThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val photoShowMediaTypeIndicator: Boolean = true,
     val randomSlideshowInterval: Int = 3,
     val randomThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val randomShowMediaTypeIndicator: Boolean = true,
     val searchQueryCount: Int = 20,
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val searchShowMediaTypeIndicator: Boolean = true,
     val isDeveloperMode: Boolean = false,
     val developerLogs: List<DeveloperLog> = emptyList(),
 )
@@ -60,13 +64,17 @@ class SettingsViewModel
                 notificationPreferenceRepository.getDoVibrate(),
                 categoryPreferenceRepository.getCategoryDisplayType(),
                 categoryPreferenceRepository.getCategoryGridItemSize(),
+                categoryPreferenceRepository.getCategoryPreference(),
                 mediaPreferenceRepository.getSlideshowIntervalSeconds(),
                 mediaPreferenceRepository.getPhotoGridItemSize(),
+                mediaPreferenceRepository.getMediaPreference(),
                 randomPreferenceRepository.getSlideshowIntervalSeconds(),
                 randomPreferenceRepository.getPhotoGridItemSize(),
+                randomPreferenceRepository.getRandomPreferences(),
                 searchPreferenceRepository.getSearchesToSaveCount(),
                 searchPreferenceRepository.getSearchDisplayType(),
                 searchPreferenceRepository.getSearchGridItemSize(),
+                searchPreferenceRepository.getSearchPreference(),
                 errorRepository.isDeveloperMode,
                 errorRepository.developerLogs,
             ) { args: Array<Any?> ->
@@ -75,15 +83,19 @@ class SettingsViewModel
                     notificationDoVibrate = args[1] as Boolean,
                     categoryDisplayType = args[2] as CategoryDisplayType,
                     categoryThumbnailSize = args[3] as GridThumbnailSize,
-                    photoSlideshowInterval = args[4] as Int,
-                    photoThumbnailSize = args[5] as GridThumbnailSize,
-                    randomSlideshowInterval = args[6] as Int,
-                    randomThumbnailSize = args[7] as GridThumbnailSize,
-                    searchQueryCount = args[8] as Int,
-                    searchDisplayType = args[9] as CategoryDisplayType,
-                    searchThumbnailSize = args[10] as GridThumbnailSize,
-                    isDeveloperMode = args[11] as Boolean,
-                    developerLogs = args[12] as List<DeveloperLog>,
+                    categoryShowMediaTypeIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference).showMediaTypeIndicator,
+                    photoSlideshowInterval = args[5] as Int,
+                    photoThumbnailSize = args[6] as GridThumbnailSize,
+                    photoShowMediaTypeIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference).showMediaTypeIndicator,
+                    randomSlideshowInterval = args[8] as Int,
+                    randomThumbnailSize = args[9] as GridThumbnailSize,
+                    randomShowMediaTypeIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference).showMediaTypeIndicator,
+                    searchQueryCount = args[11] as Int,
+                    searchDisplayType = args[12] as CategoryDisplayType,
+                    searchThumbnailSize = args[13] as GridThumbnailSize,
+                    searchShowMediaTypeIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference).showMediaTypeIndicator,
+                    isDeveloperMode = args[15] as Boolean,
+                    developerLogs = args[16] as List<DeveloperLog>,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
@@ -114,6 +126,12 @@ class SettingsViewModel
             }
         }
 
+        fun setCategoryShowMediaTypeIndicator(show: Boolean) {
+            viewModelScope.launch {
+                categoryPreferenceRepository.setShowMediaTypeIndicator(show)
+            }
+        }
+
         fun setPhotoSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
                 mediaPreferenceRepository.setSlideshowIntervalSeconds(slideshowInterval)
@@ -126,6 +144,12 @@ class SettingsViewModel
             }
         }
 
+        fun setPhotoShowMediaTypeIndicator(show: Boolean) {
+            viewModelScope.launch {
+                mediaPreferenceRepository.setShowMediaTypeIndicator(show)
+            }
+        }
+
         fun setRandomSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
                 randomPreferenceRepository.setSlideshowIntervalSeconds(slideshowInterval)
@@ -135,6 +159,12 @@ class SettingsViewModel
         fun setRandomThumbnailSize(randomThumbnailSize: GridThumbnailSize) {
             viewModelScope.launch {
                 randomPreferenceRepository.setPhotoGridItemSize(randomThumbnailSize)
+            }
+        }
+
+        fun setRandomShowMediaTypeIndicator(show: Boolean) {
+            viewModelScope.launch {
+                randomPreferenceRepository.setShowMediaTypeIndicator(show)
             }
         }
 
@@ -153,6 +183,12 @@ class SettingsViewModel
         fun setSearchThumbnailSize(searchThumbnailSize: GridThumbnailSize) {
             viewModelScope.launch {
                 searchPreferenceRepository.setSearchGridItemSize(searchThumbnailSize)
+            }
+        }
+
+        fun setSearchShowMediaTypeIndicator(show: Boolean) {
+            viewModelScope.launch {
+                searchPreferenceRepository.setShowMediaTypeIndicator(show)
             }
         }
 

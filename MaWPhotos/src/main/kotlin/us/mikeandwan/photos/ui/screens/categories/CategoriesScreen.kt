@@ -33,7 +33,8 @@ fun CategoriesScreen(
     val gridState = rememberMediaGridState(
         gridItems = uiState.categories.map {
             it.toMediaGridItem(
-                uiState.preferences.gridThumbnailSize == GridThumbnailSize.Large,
+                useLargeTeaser = uiState.preferences.gridThumbnailSize == GridThumbnailSize.Large,
+                showMediaTypeIndicator = uiState.preferences.showMediaTypeIndicator,
             )
         },
         thumbnailSize = uiState.preferences.gridThumbnailSize,

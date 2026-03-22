@@ -10,4 +10,5 @@ data class RandomPreference(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "slideshow_interval_seconds") val slideshowIntervalSeconds: Int,
     @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize,
+    @ColumnInfo(name = "show_media_type_indicator", defaultValue = "1") val showMediaTypeIndicator: Boolean,
 )

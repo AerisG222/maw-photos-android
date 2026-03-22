@@ -26,12 +26,21 @@ class MediaPreferenceRepository
                 .getPhotoPreference(PREFERENCE_ID)
                 .map { it.gridThumbnailSize }
 
+        fun getMediaPreference() =
+            dao
+                .getPhotoPreference(PREFERENCE_ID)
+                .map { it.toDomainPhotoPreference() }
+
         suspend fun setSlideshowIntervalSeconds(seconds: Int) {
             setPreference { it.copy(slideshowIntervalSeconds = seconds) }
         }
 
         suspend fun setPhotoGridItemSize(size: GridThumbnailSize) {
             setPreference { it.copy(gridThumbnailSize = size) }
+        }
+
+        suspend fun setShowMediaTypeIndicator(show: Boolean) {
+            setPreference { it.copy(showMediaTypeIndicator = show) }
         }
 
         private fun getPhotoPreferences() =
@@ -44,6 +53,7 @@ class MediaPreferenceRepository
                 PREFERENCE_ID,
                 pref.slideshowIntervalSeconds,
                 pref.gridThumbnailSize,
+                pref.showMediaTypeIndicator,
             )
 
             dao.setPhotoPreference(dbPref)

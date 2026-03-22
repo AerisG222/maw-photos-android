@@ -16,7 +16,7 @@ class RandomPreferenceRepository
             private const val PREFERENCE_ID = 1
         }
 
-        private fun getRandomPreferences() =
+        fun getRandomPreferences() =
             dao
                 .getRandomPreference(PREFERENCE_ID)
                 .map { it.toDomainRandomPreference() }
@@ -39,11 +39,16 @@ class RandomPreferenceRepository
             setPreference { it.copy(gridThumbnailSize = size) }
         }
 
+        suspend fun setShowMediaTypeIndicator(show: Boolean) {
+            setPreference { it.copy(showMediaTypeIndicator = show) }
+        }
+
         private suspend fun setRandomPreferences(pref: RandomPreference) {
             val dbPref = us.mikeandwan.photos.database.RandomPreference(
                 PREFERENCE_ID,
                 pref.slideshowIntervalSeconds,
                 pref.gridThumbnailSize,
+                pref.showMediaTypeIndicator,
             )
 
             dao.setRandomPreference(dbPref)

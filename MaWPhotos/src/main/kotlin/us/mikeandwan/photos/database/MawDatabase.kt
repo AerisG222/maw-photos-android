@@ -18,7 +18,7 @@ import androidx.room.TypeConverters
         SearchPreference::class,
         Year::class,
     ],
-    version = 12,
+    version = 14,
 )
 @TypeConverters(
     Converters::class,

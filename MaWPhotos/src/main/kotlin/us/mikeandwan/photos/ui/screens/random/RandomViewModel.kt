@@ -17,6 +17,7 @@ import us.mikeandwan.photos.domain.models.Media
 data class RandomUiState(
     val media: List<Media> = emptyList(),
     val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val showMediaTypeIndicator: Boolean = true,
     val isAuthorized: Boolean = true,
 )
 
@@ -33,11 +34,13 @@ class RandomViewModel
         val uiState = combine(
             media,
             randomPreferenceRepository.getPhotoGridItemSize(),
+            randomPreferenceRepository.getRandomPreferences(),
             authGuard.status.map { it !is GuardStatus.Failed }
-        ) { media, thumbSize, isAuth ->
+        ) { media, thumbSize, randomPref, isAuth ->
             RandomUiState(
                 media = media,
                 thumbnailSize = thumbSize,
+                showMediaTypeIndicator = randomPref.showMediaTypeIndicator,
                 isAuthorized = isAuth
             )
         }.stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState())

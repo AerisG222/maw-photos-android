@@ -5,4 +5,5 @@ data class SearchPreference(
     val recentQueryCountToSave: Int,
     val displayType: CategoryDisplayType,
     val gridThumbnailSize: GridThumbnailSize,
+    val showMediaTypeIndicator: Boolean,
 )

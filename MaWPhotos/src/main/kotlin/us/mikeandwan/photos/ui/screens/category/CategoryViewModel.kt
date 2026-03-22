@@ -45,7 +45,6 @@ class CategoryViewModel
         val uiState = _uiState.asStateFlow()
 
         init {
-            // Move side effects out of the 'combine' block
             authGuard.status
                 .onEach { if (it is GuardStatus.NotInitialized) authGuard.initializeGuard() }
                 .launchIn(viewModelScope)
@@ -61,8 +60,14 @@ class CategoryViewModel
             val gridItemsFlow = combine(
                 media,
                 gridItemThumbnailSizeFlow,
-            ) { mediaList, thumbnailSize ->
-                mediaList.map { it.toMediaGridItem(thumbnailSize == GridThumbnailSize.Large) }
+                mediaPreferenceRepository.getMediaPreference(),
+            ) { mediaList, thumbnailSize, mediaPref ->
+                mediaList.map {
+                    it.toMediaGridItem(
+                        useLargeTeaser = thumbnailSize == GridThumbnailSize.Large,
+                        showMediaTypeIndicator = mediaPref.showMediaTypeIndicator,
+                    )
+                }
             }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
             combine(
@@ -77,8 +82,14 @@ class CategoryViewModel
                 var isLoading = true
 
                 when {
-                    authStatus is GuardStatus.Failed -> isAuthorized = false
-                    categoriesStatus is GuardStatus.Failed -> isError = true
+                    authStatus is GuardStatus.Failed -> {
+                        isAuthorized = false
+                    }
+
+                    categoriesStatus is GuardStatus.Failed -> {
+                        isError = true
+                    }
+
                     authStatus is GuardStatus.Passed && categoriesStatus is GuardStatus.Passed -> {
                         if (category != null) {
                             isLoading = false
@@ -92,7 +103,7 @@ class CategoryViewModel
                     gridItemThumbnailSize = gridItemThumbnailSize,
                     isLoading = isLoading,
                     isAuthorized = isAuthorized,
-                    isError = isError
+                    isError = isError,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }

@@ -40,11 +40,16 @@ class CategoryPreferenceRepository
             setPreference { it.copy(gridThumbnailSize = size) }
         }
 
+        suspend fun setShowMediaTypeIndicator(show: Boolean) {
+            setPreference { it.copy(showMediaTypeIndicator = show) }
+        }
+
         private suspend fun setCategoryPreference(pref: CategoryPreference) {
             val dbPref = us.mikeandwan.photos.database.CategoryPreference(
                 PREFERENCE_ID,
                 pref.displayType,
                 pref.gridThumbnailSize,
+                pref.showMediaTypeIndicator,
             )
 
             dao.setCategoryPreference(dbPref)

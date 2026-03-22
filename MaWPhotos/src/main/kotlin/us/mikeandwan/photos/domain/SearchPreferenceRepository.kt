@@ -32,6 +32,11 @@ class SearchPreferenceRepository
                 .getSearchPreference(PREFERENCE_ID)
                 .map { it.displayType }
 
+        fun getSearchPreference() =
+            dao
+                .getSearchPreference(PREFERENCE_ID)
+                .map { it.toDomainSearchPreference() }
+
         suspend fun setSearchesToSaveCount(count: Int) {
             setPreference { it.copy(recentQueryCountToSave = count) }
         }
@@ -42,6 +47,10 @@ class SearchPreferenceRepository
 
         suspend fun setSearchGridItemSize(size: GridThumbnailSize) {
             setPreference { it.copy(gridThumbnailSize = size) }
+        }
+
+        suspend fun setShowMediaTypeIndicator(show: Boolean) {
+            setPreference { it.copy(showMediaTypeIndicator = show) }
         }
 
         private fun getSearchPreferences() =
@@ -55,6 +64,7 @@ class SearchPreferenceRepository
                 pref.recentQueryCountToSave,
                 pref.displayType,
                 pref.gridThumbnailSize,
+                pref.showMediaTypeIndicator,
             )
 
             dao.setSearchPreference(dbPref)

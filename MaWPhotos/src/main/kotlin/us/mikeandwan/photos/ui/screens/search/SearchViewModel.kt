@@ -25,6 +25,7 @@ data class SearchUiState(
     val hasMore: Boolean = false,
     val displayType: CategoryDisplayType = CategoryDisplayType.Unspecified,
     val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val showMediaTypeIndicator: Boolean = true,
     val isAuthorized: Boolean = true,
     val activeTerm: String = "",
 )
@@ -46,14 +47,16 @@ class SearchViewModel
                 searchRepository.hasMoreResults,
                 searchPreferenceRepository.getSearchDisplayType(),
                 searchPreferenceRepository.getSearchGridItemSize(),
+                searchPreferenceRepository.getSearchPreference(),
                 authGuard.status,
                 searchRepository.activeSearchTerm,
-            ) { results, hasMore, displayType, thumbSize, authStatus, activeTerm ->
+            ) { results, hasMore, displayType, thumbSize, searchPref, authStatus, activeTerm ->
                 SearchUiState(
                     results = results,
                     hasMore = hasMore,
                     displayType = displayType,
                     thumbnailSize = thumbSize,
+                    showMediaTypeIndicator = searchPref.showMediaTypeIndicator,
                     isAuthorized = authStatus !is GuardStatus.Failed,
                     activeTerm = activeTerm,
                 )

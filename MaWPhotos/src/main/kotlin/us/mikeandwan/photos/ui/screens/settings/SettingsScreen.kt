@@ -53,13 +53,17 @@ fun SettingsScreen(
     onNotificationDoVibrateChange: (Boolean) -> Unit,
     onCategoryDisplayTypeChange: (CategoryDisplayType) -> Unit,
     onCategoryThumbnailSizeChange: (GridThumbnailSize) -> Unit,
+    onCategoryShowMediaTypeIndicatorChange: (Boolean) -> Unit,
     onPhotoSlideshowIntervalChange: (Int) -> Unit,
     onPhotoThumbnailSizeChange: (GridThumbnailSize) -> Unit,
+    onPhotoShowMediaTypeIndicatorChange: (Boolean) -> Unit,
     onRandomSlideshowIntervalChange: (Int) -> Unit,
     onRandomThumbnailSizeChange: (GridThumbnailSize) -> Unit,
+    onRandomShowMediaTypeIndicatorChange: (Boolean) -> Unit,
     onSearchQueryCountChange: (Int) -> Unit,
     onSearchDisplayTypeChange: (CategoryDisplayType) -> Unit,
     onSearchThumbnailSizeChange: (GridThumbnailSize) -> Unit,
+    onSearchShowMediaTypeIndicatorChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
     onLogout: () -> Unit,
@@ -116,6 +120,11 @@ fun SettingsScreen(
                 onCategoryThumbnailSizeChange(enumValueOf(it))
             },
         )
+        SwitchPreference(
+            labelStringId = R.string.pref_show_media_type_indicator,
+            isChecked = uiState.categoryShowMediaTypeIndicator,
+            onChange = onCategoryShowMediaTypeIndicatorChange,
+        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -139,6 +148,11 @@ fun SettingsScreen(
                 onPhotoThumbnailSizeChange(enumValueOf(it))
             },
         )
+        SwitchPreference(
+            labelStringId = R.string.pref_show_media_type_indicator,
+            isChecked = uiState.photoShowMediaTypeIndicator,
+            onChange = onPhotoShowMediaTypeIndicatorChange,
+        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -161,6 +175,11 @@ fun SettingsScreen(
             onSelect = {
                 onRandomThumbnailSizeChange(enumValueOf(it))
             },
+        )
+        SwitchPreference(
+            labelStringId = R.string.pref_show_media_type_indicator,
+            isChecked = uiState.randomShowMediaTypeIndicator,
+            onChange = onRandomShowMediaTypeIndicatorChange,
         )
         HorizontalDivider(
             modifier = dividerModifier,
@@ -192,6 +211,11 @@ fun SettingsScreen(
             onSelect = {
                 onSearchThumbnailSizeChange(enumValueOf(it))
             },
+        )
+        SwitchPreference(
+            labelStringId = R.string.pref_show_media_type_indicator,
+            isChecked = uiState.searchShowMediaTypeIndicator,
+            onChange = onSearchShowMediaTypeIndicatorChange,
         )
         HorizontalDivider(
             modifier = dividerModifier,
@@ -344,13 +368,17 @@ fun SettingsScreenPreview() {
         onNotificationDoVibrateChange = {},
         onCategoryDisplayTypeChange = {},
         onCategoryThumbnailSizeChange = {},
+        onCategoryShowMediaTypeIndicatorChange = {},
         onPhotoSlideshowIntervalChange = {},
         onPhotoThumbnailSizeChange = {},
+        onPhotoShowMediaTypeIndicatorChange = {},
         onRandomSlideshowIntervalChange = {},
         onRandomThumbnailSizeChange = {},
+        onRandomShowMediaTypeIndicatorChange = {},
         onSearchQueryCountChange = {},
         onSearchDisplayTypeChange = {},
         onSearchThumbnailSizeChange = {},
+        onSearchShowMediaTypeIndicatorChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},
         onLogout = {},

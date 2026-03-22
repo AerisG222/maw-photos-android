@@ -17,7 +17,12 @@ fun RandomScreen(
     modifier: Modifier = Modifier,
 ) {
     val gridState = rememberMediaGridState(
-        uiState.media.map { it.toMediaGridItem(uiState.thumbnailSize == GridThumbnailSize.Large) },
+        uiState.media.map {
+            it.toMediaGridItem(
+                useLargeTeaser = uiState.thumbnailSize == GridThumbnailSize.Large,
+                showMediaTypeIndicator = uiState.showMediaTypeIndicator,
+            )
+        },
         uiState.thumbnailSize,
         onMediaClicked,
     )

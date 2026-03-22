@@ -75,7 +75,8 @@ fun SearchScreen(
                     val gridState = rememberMediaGridState(
                         gridItems = uiState.results.map {
                             it.toMediaGridItem(
-                                uiState.thumbnailSize == GridThumbnailSize.Large,
+                                useLargeTeaser = uiState.thumbnailSize == GridThumbnailSize.Large,
+                                showMediaTypeIndicator = uiState.showMediaTypeIndicator,
                             )
                         },
                         thumbnailSize = uiState.thumbnailSize,
