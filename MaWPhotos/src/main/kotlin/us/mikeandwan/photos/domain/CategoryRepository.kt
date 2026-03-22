@@ -13,7 +13,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -146,10 +145,16 @@ class CategoryRepository
                         dbList.map { dbCat -> dbCat.toDomainCategory() }
                     }.distinctUntilChanged()
 
-                if (cat.first().isEmpty()) {
+                val initialCategories = cat.first()
+
+                if (initialCategories.isEmpty()) {
                     emit(emptyList())
                     loadCategories(year)
                         .collect { }
+                } else if (initialCategories.any { it.mediaTypes.isEmpty() }) {
+                    scope.launch {
+                        loadCategories(year).collect { }
+                    }
                 }
 
                 emitAll(cat)
@@ -162,10 +167,15 @@ class CategoryRepository
                     .map { dbCat -> dbCat?.toDomainCategory() }
                     .distinctUntilChanged()
 
-                if (cat.first() == null) {
+                val initialCategory = cat.first()
+
+                if (initialCategory == null) {
                     loadCategory(categoryId)
-                        .filterNotNull()
                         .collect { }
+                } else if (initialCategory.mediaTypes.isEmpty()) {
+                    scope.launch {
+                        loadCategory(categoryId).collect { }
+                    }
                 }
 
                 emitAll(cat)
