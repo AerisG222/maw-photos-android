@@ -1,5 +1,8 @@
 # Release Notes
 
+## v9.4 : 03/22/2026
+- allow showing media type badges throughout the app to help you find the photos / videos you are looking for
+
 ## v9.3 : 03/12/2026
 - bug fixes
 
