@@ -35,6 +35,6 @@ fun RandomScreen(
 fun RandomScreenPreview() {
     RandomScreen(
         uiState = RandomUiState(isAuthorized = true),
-        onMediaClicked = {}
+        onMediaClicked = {},
     )
 }

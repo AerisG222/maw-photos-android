@@ -15,7 +15,7 @@ import us.mikeandwan.photos.R
 @Composable
 fun Heading(
     stringId: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier

@@ -18,7 +18,7 @@ import us.mikeandwan.photos.domain.models.UserStatus
 
 data class InactiveUserUiState(
     val userStatus: UserStatus = UserStatus.Unknown,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
 )
 
 @HiltViewModel

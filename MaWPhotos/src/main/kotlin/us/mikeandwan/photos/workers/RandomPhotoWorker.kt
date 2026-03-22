@@ -22,13 +22,12 @@ class RandomPhotoWorker
             const val WORK_NAME = "RandomPhotoWidgetWorker"
         }
 
-        override suspend fun doWork(): Result {
-            return try {
+        override suspend fun doWork(): Result =
+            try {
                 widgetRandomPhotoService.fetchAndRefreshAllWidgets(applicationContext)
                 Result.success()
             } catch (e: Exception) {
                 errorRepository.logError("RandomPhotoWorker: Exception in doWork", e)
                 Result.failure()
             }
-        }
     }

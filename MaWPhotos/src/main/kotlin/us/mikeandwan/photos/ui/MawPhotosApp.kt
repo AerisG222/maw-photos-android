@@ -204,7 +204,9 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                     },
                 ) { innerPadding ->
                     NavDisplay(
-                        modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
                         entries = navigationState.toEntries(entryProvider),
                         onBack = { appActions.back() },
                         sceneStrategy = remember { DialogSceneStrategy() },

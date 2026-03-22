@@ -21,6 +21,7 @@ class RandomPhotoWidgetReceiver : GlanceAppWidgetReceiver() {
     @InstallIn(SingletonComponent::class)
     interface RandomPhotoWidgetReceiverEntryPoint {
         fun widgetRandomPhotoService(): WidgetRandomPhotoService
+
         fun errorRepository(): ErrorRepository
     }
 

@@ -35,13 +35,13 @@ class RandomViewModel
             media,
             randomPreferenceRepository.getPhotoGridItemSize(),
             randomPreferenceRepository.getRandomPreferences(),
-            authGuard.status.map { it !is GuardStatus.Failed }
+            authGuard.status.map { it !is GuardStatus.Failed },
         ) { media, thumbSize, randomPref, isAuth ->
             RandomUiState(
                 media = media,
                 thumbnailSize = thumbSize,
                 showMediaTypeIndicator = randomPref.showMediaTypeIndicator,
-                isAuthorized = isAuth
+                isAuthorized = isAuth,
             )
         }.stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState())
 

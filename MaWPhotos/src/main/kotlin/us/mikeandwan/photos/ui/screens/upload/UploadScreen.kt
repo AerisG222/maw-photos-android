@@ -55,6 +55,6 @@ fun UploadScreen(
 @Composable
 fun UploadScreenEmptyPreview() {
     UploadScreen(
-        uiState = UploadUiState(filesToUpload = emptyList(), isLoading = false)
+        uiState = UploadUiState(filesToUpload = emptyList(), isLoading = false),
     )
 }

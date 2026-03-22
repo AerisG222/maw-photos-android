@@ -148,7 +148,7 @@ fun SearchScreenResultsPreview() {
                     modified = now,
                     isFavorite = false,
                     teaser = emptyList(),
-                    mediaTypes = listOf(MediaType.Photo)
+                    mediaTypes = listOf(MediaType.Photo),
                 ),
             ),
             displayType = CategoryDisplayType.Grid,

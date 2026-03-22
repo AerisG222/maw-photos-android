@@ -33,7 +33,7 @@ fun CategoryScreen(
 fun CategoryScreenPreview() {
     CategoryScreen(
         uiState = CategoryUiState(isLoading = false),
-        onMediaClicked = {}
+        onMediaClicked = {},
     )
 }
 
@@ -42,6 +42,6 @@ fun CategoryScreenPreview() {
 fun CategoryScreenLoadingPreview() {
     CategoryScreen(
         uiState = CategoryUiState(isLoading = true),
-        onMediaClicked = {}
+        onMediaClicked = {},
     )
 }

@@ -20,7 +20,8 @@ class ApiErrorHandler
                 return error.toExternalCallStatus()
             }
 
-            val detailedLog = "API Error: ${error.exception?.message ?: "Unknown error"}\nCode: ${error.errorCode}\nMessage: ${error.error}"
+            val detailedLog =
+                "API Error: ${error.exception?.message ?: "Unknown error"}\nCode: ${error.errorCode}\nMessage: ${error.error}"
             errorRepository.logError(detailedLog, error.exception)
 
             if (error.isUnauthorized()) {

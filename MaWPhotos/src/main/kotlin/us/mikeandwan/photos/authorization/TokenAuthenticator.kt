@@ -12,7 +12,10 @@ class TokenAuthenticator(
     private val authService: AuthService,
     private val credManager: CredentialsManager,
 ) : Authenticator {
-    override fun authenticate(route: Route?, response: Response): Request? {
+    override fun authenticate(
+        route: Route?,
+        response: Response,
+    ): Request? {
         // Only retry once per request to avoid infinite 401 loops
         if (response.priorResponse != null) {
             return null
@@ -39,7 +42,8 @@ class TokenAuthenticator(
                 }
 
                 Timber.d("Authenticator: Retrying ${response.request.url} with fresh token.")
-                response.request.newBuilder()
+                response.request
+                    .newBuilder()
                     .header("Authorization", "Bearer $newAccessToken")
                     .build()
             } catch (e: Exception) {

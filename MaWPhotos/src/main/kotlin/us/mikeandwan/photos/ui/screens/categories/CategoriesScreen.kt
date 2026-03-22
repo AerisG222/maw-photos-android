@@ -71,7 +71,7 @@ fun CategoriesScreenPreview() {
     CategoriesScreen(
         uiState = CategoriesUiState(isLoading = false),
         onRefresh = {},
-        onNavigateToCategory = {}
+        onNavigateToCategory = {},
     )
 }
 
@@ -81,6 +81,6 @@ fun CategoriesScreenLoadingPreview() {
     CategoriesScreen(
         uiState = CategoriesUiState(isLoading = true),
         onRefresh = {},
-        onNavigateToCategory = {}
+        onNavigateToCategory = {},
     )
 }

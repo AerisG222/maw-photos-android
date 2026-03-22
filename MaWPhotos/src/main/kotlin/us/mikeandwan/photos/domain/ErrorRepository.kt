@@ -2,13 +2,13 @@ package us.mikeandwan.photos.domain
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import timber.log.Timber
 import us.mikeandwan.photos.database.DeveloperLog
 import us.mikeandwan.photos.database.DeveloperLogDao

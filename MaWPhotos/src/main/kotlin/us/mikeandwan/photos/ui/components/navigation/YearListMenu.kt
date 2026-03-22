@@ -21,7 +21,7 @@ fun YearListMenu(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.secondaryContainer)
+            .background(color = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         itemsIndexed(
             years,

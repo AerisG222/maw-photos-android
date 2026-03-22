@@ -26,7 +26,7 @@ class AboutViewModel
         private val application: Application,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(
-            AboutUiState(version = "v${BuildConfig.VERSION_NAME}")
+            AboutUiState(version = "v${BuildConfig.VERSION_NAME}"),
         )
         val uiState = _uiState.asStateFlow()
 

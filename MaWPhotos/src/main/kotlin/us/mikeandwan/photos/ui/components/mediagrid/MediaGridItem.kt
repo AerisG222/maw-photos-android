@@ -1,7 +1,7 @@
 package us.mikeandwan.photos.ui.components.mediagrid
 
-import us.mikeandwan.photos.domain.models.MediaType
 import kotlin.uuid.Uuid
+import us.mikeandwan.photos.domain.models.MediaType
 
 data class MediaGridItem<T>(
     val id: Uuid,

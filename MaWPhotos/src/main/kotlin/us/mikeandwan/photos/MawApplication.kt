@@ -31,9 +31,7 @@ class MawApplication :
     @Inject
     lateinit var imageLoader: ImageLoader
 
-    override fun newImageLoader(context: android.content.Context): ImageLoader {
-        return imageLoader
-    }
+    override fun newImageLoader(context: android.content.Context): ImageLoader = imageLoader
 
     override fun onCreate() {
         super.onCreate()

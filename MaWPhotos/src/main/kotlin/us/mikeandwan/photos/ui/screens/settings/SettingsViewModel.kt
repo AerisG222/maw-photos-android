@@ -83,17 +83,21 @@ class SettingsViewModel
                     notificationDoVibrate = args[1] as Boolean,
                     categoryDisplayType = args[2] as CategoryDisplayType,
                     categoryThumbnailSize = args[3] as GridThumbnailSize,
-                    categoryShowMediaTypeIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference).showMediaTypeIndicator,
+                    categoryShowMediaTypeIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference)
+                        .showMediaTypeIndicator,
                     photoSlideshowInterval = args[5] as Int,
                     photoThumbnailSize = args[6] as GridThumbnailSize,
-                    photoShowMediaTypeIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference).showMediaTypeIndicator,
+                    photoShowMediaTypeIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
+                        .showMediaTypeIndicator,
                     randomSlideshowInterval = args[8] as Int,
                     randomThumbnailSize = args[9] as GridThumbnailSize,
-                    randomShowMediaTypeIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference).showMediaTypeIndicator,
+                    randomShowMediaTypeIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
+                        .showMediaTypeIndicator,
                     searchQueryCount = args[11] as Int,
                     searchDisplayType = args[12] as CategoryDisplayType,
                     searchThumbnailSize = args[13] as GridThumbnailSize,
-                    searchShowMediaTypeIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference).showMediaTypeIndicator,
+                    searchShowMediaTypeIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
+                        .showMediaTypeIndicator,
                     isDeveloperMode = args[15] as Boolean,
                     developerLogs = args[16] as List<DeveloperLog>,
                 )
@@ -194,7 +198,12 @@ class SettingsViewModel
 
         fun toggleDeveloperMode(code: String) {
             if (errorRepository.toggleDeveloperMode(code)) {
-                val msg = if (errorRepository.isDeveloperMode.value) "Developer mode enabled" else "Developer mode disabled"
+                val msg = if (errorRepository.isDeveloperMode.value) {
+                    "Developer mode enabled"
+                } else {
+                    "Developer mode disabled"
+                }
+
                 errorRepository.showError(msg)
             } else {
                 errorRepository.showError("Invalid developer code")

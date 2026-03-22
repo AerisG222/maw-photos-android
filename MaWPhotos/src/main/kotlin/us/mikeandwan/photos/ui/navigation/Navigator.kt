@@ -37,8 +37,7 @@ class Navigator(
     fun routeShouldNeverHaveChildren(route: NavKey) =
         // this helps handle the case for handling send intents and more generally insuring
         // that none of these routes track children
-        when (route)
-        {
+        when (route) {
             is AboutNavKey -> true
             is InactiveUserNavKey -> true
             is LoginNavKey -> true

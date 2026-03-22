@@ -10,7 +10,6 @@ import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 
 fun Media.toMediaGridItem(
