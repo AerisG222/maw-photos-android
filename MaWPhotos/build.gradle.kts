@@ -162,6 +162,8 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.google.hilt.testing)
+    testImplementation(libs.mockk)
+    testImplementation(libs.jetbrains.coroutines.test)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
