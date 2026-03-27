@@ -3,11 +3,8 @@ package us.mikeandwan.photos.domain.services
 import android.graphics.drawable.Drawable
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,7 +13,6 @@ import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
-import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
 import kotlin.uuid.Uuid
