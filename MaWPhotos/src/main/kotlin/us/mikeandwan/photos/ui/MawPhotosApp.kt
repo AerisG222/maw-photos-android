@@ -209,7 +209,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             .fillMaxSize(),
                         entries = navigationState.toEntries(entryProvider),
                         onBack = { appActions.back() },
-                        sceneStrategy = remember { DialogSceneStrategy() },
+                        sceneStrategies = listOf(remember { DialogSceneStrategy() }),
                     )
                 }
             }
