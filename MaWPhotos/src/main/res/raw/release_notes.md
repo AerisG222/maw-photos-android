@@ -1,5 +1,9 @@
 # Release Notes
 
+## v9.5 : 04/26/2026
+- add support for showing category and year for photo in widget
+- update dependencies
+
 ## v9.4 : 03/22/2026
 - allow showing media type badges throughout the app to help you find the photos / videos you are looking for
 
