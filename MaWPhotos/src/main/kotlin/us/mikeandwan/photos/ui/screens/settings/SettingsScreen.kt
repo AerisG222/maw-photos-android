@@ -60,6 +60,7 @@ fun SettingsScreen(
     onRandomSlideshowIntervalChange: (Int) -> Unit,
     onRandomThumbnailSizeChange: (GridThumbnailSize) -> Unit,
     onRandomShowMediaTypeIndicatorChange: (Boolean) -> Unit,
+    onRandomShowWidgetInfoChange: (Boolean) -> Unit,
     onSearchQueryCountChange: (Int) -> Unit,
     onSearchDisplayTypeChange: (CategoryDisplayType) -> Unit,
     onSearchThumbnailSizeChange: (GridThumbnailSize) -> Unit,
@@ -180,6 +181,11 @@ fun SettingsScreen(
             labelStringId = R.string.pref_show_media_type_indicator,
             isChecked = uiState.randomShowMediaTypeIndicator,
             onChange = onRandomShowMediaTypeIndicatorChange,
+        )
+        SwitchPreference(
+            labelStringId = R.string.pref_show_widget_info,
+            isChecked = uiState.randomShowWidgetInfo,
+            onChange = onRandomShowWidgetInfoChange,
         )
         HorizontalDivider(
             modifier = dividerModifier,
@@ -375,6 +381,7 @@ fun SettingsScreenPreview() {
         onRandomSlideshowIntervalChange = {},
         onRandomThumbnailSizeChange = {},
         onRandomShowMediaTypeIndicatorChange = {},
+        onRandomShowWidgetInfoChange = {},
         onSearchQueryCountChange = {},
         onSearchDisplayTypeChange = {},
         onSearchThumbnailSizeChange = {},

@@ -76,6 +76,7 @@ private fun SettingsRoute(vm: SettingsViewModel = hiltViewModel()) {
         onRandomSlideshowIntervalChange = { vm.setRandomSlideshowInterval(it) },
         onRandomThumbnailSizeChange = { vm.setRandomThumbnailSize(it) },
         onRandomShowMediaTypeIndicatorChange = { vm.setRandomShowMediaTypeIndicator(it) },
+        onRandomShowWidgetInfoChange = { vm.setRandomShowWidgetInfo(it, context) },
         onSearchQueryCountChange = { vm.setSearchQueryCount(it) },
         onSearchDisplayTypeChange = { vm.setSearchDisplayType(it) },
         onSearchThumbnailSizeChange = { vm.setSearchThumbnailSize(it) },

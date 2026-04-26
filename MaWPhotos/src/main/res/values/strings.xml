@@ -106,6 +106,7 @@
     <string name="pref_search_result_display_header">Search Result Display</string>
     <string name="pref_advanced_display_header">Advanced</string>
     <string name="pref_show_media_type_indicator">Show Media Type Badge</string>
+    <string name="pref_show_widget_info">Show Metadata on Widget</string>
 
     <string name="cancel">Cancel</string>
 </resources>

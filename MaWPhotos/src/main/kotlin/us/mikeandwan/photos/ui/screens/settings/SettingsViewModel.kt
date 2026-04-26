@@ -35,6 +35,7 @@ data class SettingsUiState(
     val randomSlideshowInterval: Int = 3,
     val randomThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val randomShowMediaTypeIndicator: Boolean = true,
+    val randomShowWidgetInfo: Boolean = true,
     val searchQueryCount: Int = 20,
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
@@ -53,6 +54,7 @@ class SettingsViewModel
         private val mediaPreferenceRepository: MediaPreferenceRepository,
         private val randomPreferenceRepository: RandomPreferenceRepository,
         private val searchPreferenceRepository: SearchPreferenceRepository,
+        private val widgetRandomPhotoService: us.mikeandwan.photos.domain.services.WidgetRandomPhotoService,
         private val errorRepository: ErrorRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
@@ -93,6 +95,8 @@ class SettingsViewModel
                     randomThumbnailSize = args[9] as GridThumbnailSize,
                     randomShowMediaTypeIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
                         .showMediaTypeIndicator,
+                    randomShowWidgetInfo = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
+                        .showWidgetInfo,
                     searchQueryCount = args[11] as Int,
                     searchDisplayType = args[12] as CategoryDisplayType,
                     searchThumbnailSize = args[13] as GridThumbnailSize,
@@ -169,6 +173,16 @@ class SettingsViewModel
         fun setRandomShowMediaTypeIndicator(show: Boolean) {
             viewModelScope.launch {
                 randomPreferenceRepository.setShowMediaTypeIndicator(show)
+            }
+        }
+
+        fun setRandomShowWidgetInfo(
+            show: Boolean,
+            context: Context,
+        ) {
+            viewModelScope.launch {
+                randomPreferenceRepository.setShowWidgetInfo(show)
+                widgetRandomPhotoService.updateShowInfo(context, show)
             }
         }
 

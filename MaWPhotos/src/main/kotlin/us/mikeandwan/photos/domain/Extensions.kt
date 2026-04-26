@@ -75,6 +75,7 @@ fun us.mikeandwan.photos.database.RandomPreference.toDomainRandomPreference(): R
         this.slideshowIntervalSeconds,
         this.gridThumbnailSize,
         this.showMediaTypeIndicator,
+        this.showWidgetInfo,
     )
 
 fun us.mikeandwan.photos.api.Category.toDomainCategory(): Category =

@@ -22,6 +22,7 @@ import us.mikeandwan.photos.database.migrations.MIGRATION_10_11
 import us.mikeandwan.photos.database.migrations.MIGRATION_11_12
 import us.mikeandwan.photos.database.migrations.MIGRATION_12_13
 import us.mikeandwan.photos.database.migrations.MIGRATION_13_14
+import us.mikeandwan.photos.database.migrations.MIGRATION_14_15
 import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
 import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
 import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
@@ -60,6 +61,7 @@ object DatabaseModule {
                 MIGRATION_11_12,
                 MIGRATION_12_13,
                 MIGRATION_13_14,
+                MIGRATION_14_15,
             ).build()
 
     @Provides

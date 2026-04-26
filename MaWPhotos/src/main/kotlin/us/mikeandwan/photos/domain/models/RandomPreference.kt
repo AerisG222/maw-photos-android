@@ -4,4 +4,5 @@ data class RandomPreference(
     val slideshowIntervalSeconds: Int = 3,
     val gridThumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
     val showMediaTypeIndicator: Boolean = true,
+    val showWidgetInfo: Boolean = true,
 )

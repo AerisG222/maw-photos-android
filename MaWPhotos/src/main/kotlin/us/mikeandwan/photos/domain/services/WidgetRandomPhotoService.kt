@@ -14,8 +14,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.first
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
+import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.ui.widgets.RandomPhotoWidget
@@ -25,6 +27,8 @@ class WidgetRandomPhotoService
     @Inject
     constructor(
         private val randomMediaRepository: RandomMediaRepository,
+        private val categoryRepository: CategoryRepository,
+        private val randomPreferenceRepository: RandomPreferenceRepository,
         private val imageLoader: ImageLoader,
         private val errorRepository: ErrorRepository,
     ) {
@@ -40,14 +44,14 @@ class WidgetRandomPhotoService
                     return
                 }
 
-                val file = fetchRandomPhoto(context)
-                if (file == null) {
+                val photoData = fetchRandomPhoto(context)
+                if (photoData == null) {
                     errorRepository.logError("WidgetRandomPhotoService: Failed to fetch random photo for refresh all")
                     return
                 }
 
                 glanceIds.forEach { glanceId ->
-                    fetchAndRefreshWidget(context, glanceId)
+                    updateWidgetState(context, glanceId, photoData)
                 }
             } catch (e: Exception) {
                 errorRepository.logError("WidgetRandomPhotoService: Exception in fetchAndRefreshAllWidgets", e)
@@ -61,15 +65,15 @@ class WidgetRandomPhotoService
             try {
                 errorRepository.logInfo("calling fetchAndRefreshWidget for widget $glanceId")
 
-                val file = fetchRandomPhoto(context)
-                if (file == null) {
+                val photoData = fetchRandomPhoto(context)
+                if (photoData == null) {
                     errorRepository.logError(
                         "WidgetRandomPhotoService: Failed to fetch random photo for widget $glanceId",
                     )
                     return
                 }
 
-                updateWidgetState(context, glanceId, file)
+                updateWidgetState(context, glanceId, photoData)
             } catch (e: Exception) {
                 errorRepository.logError(
                     "WidgetRandomPhotoService: Exception in fetchAndRefreshWidget for $glanceId",
@@ -78,16 +82,38 @@ class WidgetRandomPhotoService
             }
         }
 
+        suspend fun updateShowInfo(
+            context: Context,
+            showInfo: Boolean,
+        ) {
+            try {
+                val manager = GlanceAppWidgetManager(context)
+                val glanceIds = manager.getGlanceIds(RandomPhotoWidget::class.java)
+
+                glanceIds.forEach { glanceId ->
+                    updateAppWidgetState(context, glanceId) { prefs ->
+                        prefs[RandomPhotoWidget.SHOW_INFO_KEY] = showInfo
+                    }
+                    RandomPhotoWidget().update(context, glanceId)
+                }
+            } catch (e: Exception) {
+                errorRepository.logError("WidgetRandomPhotoService: Failed to update showInfo for widgets", e)
+            }
+        }
+
         private suspend fun updateWidgetState(
             context: Context,
             glanceId: GlanceId,
-            file: File,
+            photoData: PhotoData,
         ) {
             try {
-                errorRepository.logInfo("setting widget id $glanceId to use image ${file.absolutePath}")
+                errorRepository.logInfo("setting widget id $glanceId to use image ${photoData.file.absolutePath}")
 
                 updateAppWidgetState(context, glanceId) { prefs ->
-                    prefs[RandomPhotoWidget.IMAGE_URL_KEY] = file.absolutePath
+                    prefs[RandomPhotoWidget.IMAGE_URL_KEY] = photoData.file.absolutePath
+                    prefs[RandomPhotoWidget.CATEGORY_NAME_KEY] = photoData.categoryName
+                    prefs[RandomPhotoWidget.CATEGORY_YEAR_KEY] = photoData.categoryYear
+                    prefs[RandomPhotoWidget.SHOW_INFO_KEY] = photoData.showInfo
                 }
 
                 RandomPhotoWidget().update(context, glanceId)
@@ -98,7 +124,7 @@ class WidgetRandomPhotoService
             }
         }
 
-        private suspend fun fetchRandomPhoto(context: Context): File? {
+        private suspend fun fetchRandomPhoto(context: Context): PhotoData? {
             return try {
                 val result = randomMediaRepository
                     .fetch(1)
@@ -116,6 +142,15 @@ class WidgetRandomPhotoService
                     )
                     return null
                 }
+
+                val category = categoryRepository
+                    .getCategory(media.categoryId)
+                    .first { it != null } ?: run {
+                    errorRepository.logError("WidgetRandomPhotoService: Failed to fetch category ${media.categoryId}")
+                    return null
+                }
+
+                val prefs = randomPreferenceRepository.getRandomPreferences().first()
 
                 val mediaFile = media.files.firstOrNull { it.scale.code == "full-hd" }
                     ?: media.files.firstOrNull()
@@ -163,7 +198,12 @@ class WidgetRandomPhotoService
                         "does file exist after cleanup pass: ${file.exists()}",
                     )
 
-                    file
+                    PhotoData(
+                        file = file,
+                        categoryName = category.name,
+                        categoryYear = category.year,
+                        showInfo = prefs.showWidgetInfo,
+                    )
                 } else {
                     errorRepository.logError("WidgetRandomPhotoService: Image loading failed for ${mediaFile.path}")
                     null
@@ -173,4 +213,11 @@ class WidgetRandomPhotoService
                 null
             }
         }
+
+        private data class PhotoData(
+            val file: File,
+            val categoryName: String,
+            val categoryYear: Int,
+            val showInfo: Boolean,
+        )
     }

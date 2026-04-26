@@ -130,7 +130,16 @@ object DomainModule {
     @Singleton
     fun provideWidgetRandomPhotoService(
         randomMediaRepository: RandomMediaRepository,
+        categoryRepository: CategoryRepository,
+        randomPreferenceRepository: RandomPreferenceRepository,
         imageLoader: ImageLoader,
         errorRepository: ErrorRepository,
-    ): WidgetRandomPhotoService = WidgetRandomPhotoService(randomMediaRepository, imageLoader, errorRepository)
+    ): WidgetRandomPhotoService =
+        WidgetRandomPhotoService(
+            randomMediaRepository,
+            categoryRepository,
+            randomPreferenceRepository,
+            imageLoader,
+            errorRepository,
+        )
 }

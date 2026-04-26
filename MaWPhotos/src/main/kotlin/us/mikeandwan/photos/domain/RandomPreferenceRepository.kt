@@ -43,12 +43,17 @@ class RandomPreferenceRepository
             setPreference { it.copy(showMediaTypeIndicator = show) }
         }
 
+        suspend fun setShowWidgetInfo(show: Boolean) {
+            setPreference { it.copy(showWidgetInfo = show) }
+        }
+
         private suspend fun setRandomPreferences(pref: RandomPreference) {
             val dbPref = us.mikeandwan.photos.database.RandomPreference(
                 PREFERENCE_ID,
                 pref.slideshowIntervalSeconds,
                 pref.gridThumbnailSize,
                 pref.showMediaTypeIndicator,
+                pref.showWidgetInfo,
             )
 
             dao.setRandomPreference(dbPref)
