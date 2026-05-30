@@ -9,58 +9,40 @@ import kotlinx.datetime.format
 
 class Converters {
     @TypeConverter
-    fun toCalendar(l: Long?): Calendar? {
-        val cal = Calendar.getInstance()
-
-        cal.timeInMillis = l!!
-
-        return cal
-    }
-
-    @TypeConverter
-    fun fromCalendar(cal: Calendar?): Long? = cal?.timeInMillis
-
-    @TypeConverter
-    fun toInstant(l: Long?): Instant? {
-        if (l == null) {
-            return null
+    fun toCalendar(value: Long?): Calendar? =
+        value?.let {
+            Calendar.getInstance().apply { timeInMillis = it }
         }
 
-        return Instant.fromEpochMilliseconds(l)
-    }
+    @TypeConverter
+    fun fromCalendar(calendar: Calendar?): Long? = calendar?.timeInMillis
 
     @TypeConverter
-    fun fromInstant(i: Instant?): Long? {
-        if (i == null) {
-            return null
+    fun toInstant(value: Long?): Instant? =
+        value?.let {
+            Instant.fromEpochMilliseconds(it)
         }
 
-        return i.toEpochMilliseconds()
-    }
+    @TypeConverter
+    fun fromInstant(instant: Instant?): Long? = instant?.toEpochMilliseconds()
 
     @TypeConverter
-    fun toUuid(v: String?): Uuid? {
-        if (v == null) {
-            return null
+    fun toUuid(value: String?): Uuid? =
+        value?.let {
+            Uuid.parse(it)
         }
 
-        return Uuid.parse(v)
-    }
+    @TypeConverter
+    fun fromUuid(uuid: Uuid?): String? = uuid?.toHexDashString()
 
     @TypeConverter
-    fun fromUuid(v: Uuid?): String? = v?.toHexDashString()
-
-    @TypeConverter
-    fun toLocalDate(v: String?): LocalDate? {
-        if (v == null) {
-            return null
+    fun toLocalDate(value: String?): LocalDate? =
+        value?.let {
+            LocalDate.parse(it, LocalDate.Formats.ISO)
         }
 
-        return LocalDate.parse(v, LocalDate.Formats.ISO)
-    }
-
     @TypeConverter
-    fun fromLocalDate(v: LocalDate?): String? = v?.format(LocalDate.Formats.ISO)
+    fun fromLocalDate(localDate: LocalDate?): String? = localDate?.format(LocalDate.Formats.ISO)
 
     @TypeConverter
     fun fromStringList(value: List<String>?): String? = value?.joinToString(",")

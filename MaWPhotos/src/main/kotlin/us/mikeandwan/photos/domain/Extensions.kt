@@ -1,6 +1,20 @@
 package us.mikeandwan.photos.domain
 
 import java.net.HttpURLConnection
+import us.mikeandwan.photos.api.ApiResult
+import us.mikeandwan.photos.api.Category as ApiCategory
+import us.mikeandwan.photos.api.Comment as ApiComment
+import us.mikeandwan.photos.api.Media as ApiMedia
+import us.mikeandwan.photos.api.MediaFile as ApiMediaFile
+import us.mikeandwan.photos.database.CategoryDetail as DbCategoryDetail
+import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
+import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
+import us.mikeandwan.photos.database.MediaPreference as DbMediaPreference
+import us.mikeandwan.photos.database.NotificationPreference as DbNotificationPreference
+import us.mikeandwan.photos.database.RandomPreference as DbRandomPreference
+import us.mikeandwan.photos.database.Scale as DbScale
+import us.mikeandwan.photos.database.SearchHistory as DbSearchHistory
+import us.mikeandwan.photos.database.SearchPreference as DbSearchPreference
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.Comment
@@ -15,26 +29,26 @@ import us.mikeandwan.photos.domain.models.Scale
 import us.mikeandwan.photos.domain.models.SearchHistory
 import us.mikeandwan.photos.domain.models.SearchPreference
 
-fun us.mikeandwan.photos.database.CategoryDetail.toDomainCategory(): Category =
+fun DbCategoryDetail.toDomainCategory(): Category =
     Category(
-        this.category.id,
-        this.category.year,
-        this.category.name,
-        this.category.effectiveDate,
-        this.category.modified,
-        this.category.isFavorite,
-        this.mediaFiles.map { it.toDomainMediaFile() },
-        this.category.mediaTypes.map { getMediaType(it) },
+        id = category.id,
+        year = category.year,
+        name = category.name,
+        effectiveDate = category.effectiveDate,
+        modified = category.modified,
+        isFavorite = category.isFavorite,
+        teaser = mediaFiles.map { it.toDomainMediaFile() },
+        mediaTypes = category.mediaTypes.map { getMediaType(it) },
     )
 
-fun us.mikeandwan.photos.database.MediaFileAndScale.toDomainMediaFile(): MediaFile =
+fun DbMediaFileAndScale.toDomainMediaFile(): MediaFile =
     MediaFile(
-        this.scale.toDomainScale(),
-        getMediaFileType(this.mediaFile.type),
-        this.mediaFile.path,
+        scale = scale.toDomainScale(),
+        type = getMediaFileType(mediaFile.type),
+        path = mediaFile.path,
     )
 
-fun getMediaFileType(type: String): MediaFileType =
+private fun getMediaFileType(type: String): MediaFileType =
     when (type) {
         "photo" -> MediaFileType.Photo
         "video" -> MediaFileType.Video
@@ -42,109 +56,109 @@ fun getMediaFileType(type: String): MediaFileType =
         else -> throw IllegalArgumentException("Unknown media file type: $type")
     }
 
-fun us.mikeandwan.photos.database.Scale.toDomainScale(): Scale =
+fun DbScale.toDomainScale(): Scale =
     Scale(
-        this.code,
-        this.width,
-        this.height,
-        this.fillsDimensions,
+        code = code,
+        width = width,
+        height = height,
+        fillsDimensions = fillsDimensions,
     )
 
-fun us.mikeandwan.photos.database.CategoryPreference.toDomainCategoryPreference(): CategoryPreference =
+fun DbCategoryPreference.toDomainCategoryPreference(): CategoryPreference =
     CategoryPreference(
-        this.displayType,
-        this.gridThumbnailSize,
-        this.showMediaTypeIndicator,
+        displayType = displayType,
+        gridThumbnailSize = gridThumbnailSize,
+        showMediaTypeIndicator = showMediaTypeIndicator,
     )
 
-fun us.mikeandwan.photos.database.NotificationPreference.toDomainNotificationPreference(): NotificationPreference =
+fun DbNotificationPreference.toDomainNotificationPreference(): NotificationPreference =
     NotificationPreference(
-        this.doNotify,
-        this.doVibrate,
+        doNotify = doNotify,
+        doVibrate = doVibrate,
     )
 
-fun us.mikeandwan.photos.database.MediaPreference.toDomainPhotoPreference(): MediaPreference =
+fun DbMediaPreference.toDomainPhotoPreference(): MediaPreference =
     MediaPreference(
-        this.slideshowIntervalSeconds,
-        this.gridThumbnailSize,
-        this.showMediaTypeIndicator,
+        slideshowIntervalSeconds = slideshowIntervalSeconds,
+        gridThumbnailSize = gridThumbnailSize,
+        showMediaTypeIndicator = showMediaTypeIndicator,
     )
 
-fun us.mikeandwan.photos.database.RandomPreference.toDomainRandomPreference(): RandomPreference =
+fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =
     RandomPreference(
-        this.slideshowIntervalSeconds,
-        this.gridThumbnailSize,
-        this.showMediaTypeIndicator,
-        this.showWidgetInfo,
+        slideshowIntervalSeconds = slideshowIntervalSeconds,
+        gridThumbnailSize = gridThumbnailSize,
+        showMediaTypeIndicator = showMediaTypeIndicator,
+        showWidgetInfo = showWidgetInfo,
     )
 
-fun us.mikeandwan.photos.api.Category.toDomainCategory(): Category =
+fun ApiCategory.toDomainCategory(): Category =
     Category(
-        this.id,
-        this.effectiveDate.year,
-        this.name,
-        this.effectiveDate,
-        this.modified,
-        this.isFavorite,
-        this.teaser.files.map { it.toDomainMediaFile() },
-        this.mediaTypes.map { getMediaType(it) },
+        id = id,
+        year = effectiveDate.year,
+        name = name,
+        effectiveDate = effectiveDate,
+        modified = modified,
+        isFavorite = isFavorite,
+        teaser = teaser.files.map { it.toDomainMediaFile() },
+        mediaTypes = mediaTypes.map { getMediaType(it) },
     )
 
-fun us.mikeandwan.photos.api.Media.toDomainMedia(): Media =
+fun ApiMedia.toDomainMedia(): Media =
     Media(
-        this.id,
-        this.categoryId,
-        getMediaType(this.type),
-        this.isFavorite,
-        this.files.map { it.toDomainMediaFile() },
+        id = id,
+        categoryId = categoryId,
+        type = getMediaType(type),
+        isFavorite = isFavorite,
+        files = files.map { it.toDomainMediaFile() },
     )
 
 // todo: we fake this here as we really only use the code - we try to reduce payload size by excluding scale info,
 // but very inconvenient to have to query our db for this and trying not to settle for a static lookup...
-fun us.mikeandwan.photos.api.MediaFile.toDomainMediaFile(): MediaFile =
+fun ApiMediaFile.toDomainMediaFile(): MediaFile =
     MediaFile(
-        Scale(this.scale, 0, 0, false),
-        getMediaFileType(this.type),
-        this.path,
+        scale = Scale(scale, 0, 0, false),
+        type = getMediaFileType(type),
+        path = path,
     )
 
-fun getMediaType(type: String): MediaType =
+private fun getMediaType(type: String): MediaType =
     when (type) {
         "photo" -> MediaType.Photo
         "video" -> MediaType.Video
         else -> throw IllegalArgumentException("Unknown media type: $type")
     }
 
-fun us.mikeandwan.photos.api.Comment.toDomainComment(): Comment =
+fun ApiComment.toDomainComment(): Comment =
     Comment(
-        this.commentId,
-        this.created,
-        this.createdBy,
-        this.modified,
-        this.body,
+        commentId = commentId,
+        created = created,
+        createdBy = createdBy,
+        modified = modified,
+        body = body,
     )
 
-fun us.mikeandwan.photos.database.SearchHistory.toDomainSearchHistory(): SearchHistory =
+fun DbSearchHistory.toDomainSearchHistory(): SearchHistory =
     SearchHistory(
-        this.term,
-        this.searchDate,
+        term = term,
+        searchDate = searchDate,
     )
 
-fun us.mikeandwan.photos.database.SearchPreference.toDomainSearchPreference(): SearchPreference =
+fun DbSearchPreference.toDomainSearchPreference(): SearchPreference =
     SearchPreference(
-        this.id,
-        this.recentQueryCount,
-        this.displayType,
-        this.gridThumbnailSize,
-        this.showMediaTypeIndicator,
+        id = id,
+        recentQueryCountToSave = recentQueryCount,
+        displayType = displayType,
+        gridThumbnailSize = gridThumbnailSize,
+        showMediaTypeIndicator = showMediaTypeIndicator,
     )
 
-fun us.mikeandwan.photos.api.ApiResult.Error.isUnauthorized(): Boolean =
-    this.errorCode == HttpURLConnection.HTTP_UNAUTHORIZED
+fun ApiResult.Error.isUnauthorized(): Boolean =
+    errorCode == HttpURLConnection.HTTP_UNAUTHORIZED
 
-fun Category.findTeaserImage(largerSize: Boolean): MediaFile = findTeaserImage(this.teaser, largerSize)
+fun Category.findTeaserImage(largerSize: Boolean): MediaFile = findTeaserImage(teaser, largerSize)
 
-fun Media.findTeaserImage(largerSize: Boolean): MediaFile = findTeaserImage(this.files, largerSize)
+fun Media.findTeaserImage(largerSize: Boolean): MediaFile = findTeaserImage(files, largerSize)
 
 fun findTeaserImage(
     files: List<MediaFile>,
@@ -157,8 +171,8 @@ fun findTeaserImage(
             it.scale.code == code
     }
         ?: MediaFile(
-            Scale(code, 0, 0, false),
-            MediaFileType.Photo,
-            "",
+            scale = Scale(code, 0, 0, false),
+            type = MediaFileType.Photo,
+            path = "",
         )
 }
