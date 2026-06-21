@@ -3,6 +3,7 @@ package us.mikeandwan.photos.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSerializable
@@ -82,7 +83,16 @@ fun NavigationState.toEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): Snap
         )
     }
 
-    return stacksInUse
-        .flatMap { decoratedEntries[it] ?: emptyList() }
-        .toMutableStateList()
+    // Use a stable remembered list so NavDisplay doesn't see a new object on every recomposition.
+    // A new object each time would cause NavDisplay to recompose its entire content on any state
+    // change in MawPhotosApp, creating a recomposition cascade that starves the event queue.
+    val result = remember { mutableStateListOf<NavEntry<NavKey>>() }
+    val newEntries = stacksInUse.flatMap { decoratedEntries[it] ?: emptyList() }
+
+    if (result.size != newEntries.size || result.indices.any { result[it] !== newEntries[it] }) {
+        result.clear()
+        result.addAll(newEntries)
+    }
+
+    return result
 }

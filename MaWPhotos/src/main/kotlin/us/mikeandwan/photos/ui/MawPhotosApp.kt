@@ -104,11 +104,6 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
         coroutineScope = coroutineScope,
     )
 
-    LaunchedEffect(Unit) {
-        val activity = context as? Activity
-        vm.handleIntent(activity?.intent)
-    }
-
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         val activity = context as? Activity
         vm.handleIntent(activity?.intent)

@@ -9,6 +9,7 @@ import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
+import com.github.awxkee.avifcoil.decoder.HeifDecoder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -82,6 +83,7 @@ object NetworkModule {
             .Builder(application)
             .crossfade(true)
             .components {
+                add(HeifDecoder.Factory())
                 add(
                     OkHttpNetworkFetcherFactory(
                         callFactory = {

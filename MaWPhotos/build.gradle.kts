@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-    compileSdk = 36
+    compileSdk = 37
     namespace = "us.mikeandwan.photos"
 
     defaultConfig {
@@ -22,7 +22,7 @@ android {
         )
         applicationId = "us.mikeandwan.pictures"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 93
         versionName = "9.5"
 
@@ -105,6 +105,14 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+// Force kotlin-metadata-jvm to match the Kotlin version so Hilt's bundled (older) version
+// doesn't reject the metadata format produced by the current Kotlin compiler.
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlin:kotlin-metadata-jvm:${libs.versions.kotlin.get()}")
+    }
+}
+
 dependencies {
     implementation(libs.androidx.profileinstaller)
 
@@ -116,7 +124,7 @@ dependencies {
     implementation(libs.jetbrains.kotlinx.datetime)
 
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.compose.material)
@@ -146,6 +154,7 @@ dependencies {
     ksp(libs.google.hilt.android.compiler)
 
     implementation(libs.auth0)
+    implementation(libs.avif.coder.coil)
     implementation(libs.coil)
     implementation(libs.coil.okhttp)
     implementation(libs.compose.ratingbar)

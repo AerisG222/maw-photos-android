@@ -39,8 +39,11 @@ fun MediaPager(
     )
     val zoomState = rememberZoomState()
 
+    // Use settledPage so this only fires after a page fully lands, not during the animation.
+    // currentPage emits intermediate values during programmatic animations, which would call
+    // setActiveId mid-animation and restart LaunchedEffect(activeId), creating a feedback loop.
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
+        snapshotFlow { pagerState.settledPage }.collect { page ->
             if (page >= 0 && page < media.size) {
                 setActiveId(media[page].id)
             }
@@ -48,7 +51,10 @@ fun MediaPager(
     }
 
     LaunchedEffect(activeId) {
-        pagerState.animateScrollToPage(media.indexOfFirst { it.id == activeId })
+        val targetIndex = media.indexOfFirst { it.id == activeId }
+        if (targetIndex >= 0 && targetIndex != pagerState.currentPage && !pagerState.isScrollInProgress) {
+            pagerState.animateScrollToPage(targetIndex)
+        }
     }
 
     HorizontalPager(

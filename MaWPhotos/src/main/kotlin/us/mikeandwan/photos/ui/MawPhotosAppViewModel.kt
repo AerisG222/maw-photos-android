@@ -47,7 +47,6 @@ import us.mikeandwan.photos.domain.models.ErrorMessage
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
-import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
 import us.mikeandwan.photos.workers.UploadWorker
@@ -155,11 +154,14 @@ class MawPhotosAppViewModel
             closeDrawer()
         }
 
+        private var lastHandledIntent: Intent? = null
+
         fun handleIntent(intent: Intent?) {
-            if (intent == null) {
-                navigate(CategoriesNavKey(null))
+            if (intent == null || intent == lastHandledIntent) {
                 return
             }
+
+            lastHandledIntent = intent
 
             when (intent.action) {
                 Intent.ACTION_SEND -> {
