@@ -6,6 +6,7 @@ ADB="${SDK}/platform-tools/adb"
 DNS_SERVER_IP=127.0.0.1
 
 DEVICES=(
+  "Pixel_9a_API_37"
   "Pixel_8a_API_35"
   "Pixel_7a_API_34"
   "Pixel_2XL_API_26"
