@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,11 +41,15 @@ class CategoriesLoadedGuard
                 // No local data — fetch from the network and collect the result.
                 categoryRepository.getUpdatedCategories().collect { result ->
                     when (result) {
-                        is ExternalCallStatus.Success -> _status.update { GuardStatus.Passed }
+                        is ExternalCallStatus.Success -> {
+                            _status.update { GuardStatus.Passed }
+                        }
+
                         is ExternalCallStatus.Error -> {
                             errorRepository.showError("Unable to load categories")
                             _status.update { GuardStatus.Failed }
                         }
+
                         else -> { }
                     }
                 }
