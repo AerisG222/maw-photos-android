@@ -154,7 +154,6 @@ dependencies {
     ksp(libs.google.hilt.android.compiler)
 
     implementation(libs.auth0)
-    implementation(libs.avif.coder.coil)
     implementation(libs.coil)
     implementation(libs.coil.okhttp)
     implementation(libs.compose.ratingbar)
