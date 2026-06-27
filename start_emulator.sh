@@ -10,6 +10,7 @@ DEVICES=(
   "Pixel_8a_API_35"
   "Pixel_7a_API_34"
   "Pixel_2XL_API_26"
+  "Pixel_Tablet"
 )
 
 select DEVICE in "${DEVICES[@]}"
@@ -18,6 +19,8 @@ do
         1) break;;
         2) break;;
         3) break;;
+        4) break;;
+        5) break;;
         *) echo "invalid!";;
     esac
 done
