@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Generate Baseline Profile for MaWPhotos" type="AndroidBaselineProfileRunConfigurationType" factoryName="Android Baseline Profile Configuration Factory">
     <module name="maw-photos-android.MaWPhotos" />

@@ -1,4 +1,4 @@
-package com.example.baselineprofile
+package us.mikeandwan.photos.baselineprofile
 
 import androidx.benchmark.macro.BaselineProfileMode
 import androidx.benchmark.macro.CompilationMode
@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
  * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
  * with this Gradle task:
  * ```
- * ./gradlew :mawphotos:baselineprofile:connectedBenchmarkReleaseAndroidTest
+ * ./gradlew :baselineprofile:connectedDevelopmentReleaseAndroidTest
  * ```
  *
  * You should run the benchmarks on a physical device, not an Android emulator, because the

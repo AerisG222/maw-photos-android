@@ -1,10 +1,12 @@
-package com.example.baselineprofile
+package us.mikeandwan.photos.baselineprofile
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.StaleObjectException
+import androidx.test.uiautomator.Until
 import java.lang.Thread.sleep
 import org.junit.Rule
 import org.junit.Test
@@ -20,7 +22,7 @@ import org.junit.runner.RunWith
  * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
  * the equivalent `generateBaselineProfile` gradle task:
  * ```
- * ./gradlew :MaWPhotos:generateReleaseBaselineProfile
+ * ./gradlew :MaWPhotos:generateDevelopmentReleaseBaselineProfile
  * ```
  * The run configuration runs the Gradle task and applies filtering to run only the generators.
  *
@@ -56,12 +58,16 @@ class BaselineProfileGenerator {
             startActivityAndWait()
             device.waitForIdle()
 
-            // when running this, first establish a logged in session so the tests will work
-            val loginButton = device.findObject(By.text("Login"))
+            // When running this, first establish a logged in session so the tests will work.
+            // If the app is already on the main screen, the "Login" button won't be found.
+            val loginButton = device.wait(Until.findObject(By.text("Login")), 5000)
             if (loginButton != null) {
-                // If the app has a login screen, we can log in to ensure the app is ready for the user.
-                loginButton.click()
-                device.waitForIdle()
+                try {
+                    loginButton.click()
+                    device.waitForIdle()
+                } catch (e: StaleObjectException) {
+                    // Ignore if the button disappeared (e.g., app transitioned automatically)
+                }
             }
 
             // scroll down list of categories
