@@ -5,6 +5,7 @@ import android.widget.FrameLayout
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -32,20 +33,22 @@ fun VideoPlayer(
     }
 
     val context = LocalContext.current
-    val exoPlayer = ExoPlayer
-        .Builder(context)
-        .setMediaSourceFactory(
-            DefaultMediaSourceFactory(context)
-                .setDataSourceFactory(videoPlayerHttpDataSourceFactory),
-        ).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
-        .build()
-        .apply {
-            setMediaItem(MediaItem.fromUri(activeMedia.getMediaUrl()))
-            prepare()
-            // playWhenReady = true
-        }
+    val exoPlayer = remember(activeMedia.id) {
+        ExoPlayer
+            .Builder(context)
+            .setMediaSourceFactory(
+                DefaultMediaSourceFactory(context)
+                    .setDataSourceFactory(videoPlayerHttpDataSourceFactory),
+            ).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
+            .build()
+            .apply {
+                setMediaItem(MediaItem.fromUri(activeMedia.getMediaUrl()))
+                prepare()
+                // playWhenReady = true
+            }
+    }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(exoPlayer) {
         onDispose {
             exoPlayer.release()
         }
