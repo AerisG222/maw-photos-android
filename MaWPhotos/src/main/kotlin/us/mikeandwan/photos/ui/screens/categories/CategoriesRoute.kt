@@ -41,12 +41,6 @@ private fun CategoriesRoute(
         vm.setYear(initialYear)
     }
 
-    LaunchedEffect(uiState.isAuthorized) {
-        if (!uiState.isAuthorized) {
-            appActions.navigateToLogin()
-        }
-    }
-
     LaunchedEffect(uiState.invalidYearMostRecent) {
         uiState.invalidYearMostRecent?.let {
             appActions.navigateToCategories(it)

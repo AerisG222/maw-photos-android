@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.SearchRepository
-import us.mikeandwan.photos.domain.guards.AuthGuard
-import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
@@ -26,7 +24,6 @@ data class SearchUiState(
     val displayType: CategoryDisplayType = CategoryDisplayType.Unspecified,
     val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val showMediaTypeIndicator: Boolean = true,
-    val isAuthorized: Boolean = true,
     val activeTerm: String = "",
 )
 
@@ -34,7 +31,6 @@ data class SearchUiState(
 class SearchViewModel
     @Inject
     constructor(
-        authGuard: AuthGuard,
         private val searchRepository: SearchRepository,
         searchPreferenceRepository: SearchPreferenceRepository,
     ) : ViewModel() {
@@ -48,16 +44,14 @@ class SearchViewModel
                 searchPreferenceRepository.getSearchDisplayType(),
                 searchPreferenceRepository.getSearchGridItemSize(),
                 searchPreferenceRepository.getSearchPreference(),
-                authGuard.status,
                 searchRepository.activeSearchTerm,
-            ) { results, hasMore, displayType, thumbSize, searchPref, authStatus, activeTerm ->
+            ) { results, hasMore, displayType, thumbSize, searchPref, activeTerm ->
                 SearchUiState(
                     results = results,
                     hasMore = hasMore,
                     displayType = displayType,
                     thumbnailSize = thumbSize,
                     showMediaTypeIndicator = searchPref.showMediaTypeIndicator,
-                    isAuthorized = authStatus !is GuardStatus.Failed,
                     activeTerm = activeTerm,
                 )
             }.onEach { newState ->

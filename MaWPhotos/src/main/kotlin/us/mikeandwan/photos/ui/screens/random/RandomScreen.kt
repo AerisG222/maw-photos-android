@@ -34,7 +34,7 @@ fun RandomScreen(
 @Composable
 fun RandomScreenPreview() {
     RandomScreen(
-        uiState = RandomUiState(isAuthorized = true),
+        uiState = RandomUiState(),
         onMediaClicked = {},
     )
 }

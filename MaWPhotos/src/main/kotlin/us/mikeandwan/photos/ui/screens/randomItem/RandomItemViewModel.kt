@@ -19,8 +19,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
-import us.mikeandwan.photos.domain.guards.AuthGuard
-import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.Media
@@ -36,7 +34,6 @@ data class RandomItemUiState(
     val activeMedia: Media? = null,
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
-    val isAuthorized: Boolean = true,
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val isLoading: Boolean = true,
@@ -51,7 +48,6 @@ data class RandomItemUiState(
 class RandomItemViewModel
     @Inject
     constructor(
-        authGuard: AuthGuard,
         randomMediaRepository: RandomMediaRepository,
         randomPreferenceRepository: RandomPreferenceRepository,
         val videoPlayerDataSourceFactory: HttpDataSource.Factory,
@@ -79,8 +75,8 @@ class RandomItemViewModel
 
             combine(
                 mediaListService.state,
-                authGuard.status,
-            ) { mediaListState, authStatus ->
+            ) { stateList ->
+                val mediaListState = stateList[0]
                 RandomItemUiState(
                     category = mediaListState.category,
                     media = mediaListState.media,
@@ -88,7 +84,6 @@ class RandomItemViewModel
                     activeMedia = mediaListState.activeMedia,
                     isSlideshowPlaying = mediaListState.isSlideshowPlaying,
                     showDetailSheet = mediaListState.showDetailSheet,
-                    isAuthorized = authStatus != GuardStatus.Failed,
                     exif = mediaListState.exif,
                     comments = mediaListState.comments,
                     isLoading = mediaListState.isLoading,

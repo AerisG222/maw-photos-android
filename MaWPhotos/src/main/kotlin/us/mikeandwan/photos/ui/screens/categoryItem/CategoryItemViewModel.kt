@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
-import us.mikeandwan.photos.domain.guards.AuthGuard
-import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.Media
@@ -35,7 +33,6 @@ data class CategoryItemUiState(
     val activeMedia: Media? = null,
     val isSlideshowPlaying: Boolean = false,
     val showDetailSheet: Boolean = false,
-    val isAuthorized: Boolean = true,
     val exif: kotlinx.serialization.json.JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val isLoading: Boolean = true,
@@ -47,7 +44,6 @@ data class CategoryItemUiState(
 class CategoryItemViewModel
     @Inject
     constructor(
-        authGuard: AuthGuard,
         categoryRepository: CategoryRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
         val videoPlayerDataSourceFactory: HttpDataSource.Factory,
@@ -75,8 +71,8 @@ class CategoryItemViewModel
 
             combine(
                 mediaListService.state,
-                authGuard.status,
-            ) { mediaListState, authStatus ->
+            ) { stateList ->
+                val mediaListState = stateList[0]
                 CategoryItemUiState(
                     category = mediaListState.category,
                     media = mediaListState.media,
@@ -84,7 +80,6 @@ class CategoryItemViewModel
                     activeMedia = mediaListState.activeMedia,
                     isSlideshowPlaying = mediaListState.isSlideshowPlaying,
                     showDetailSheet = mediaListState.showDetailSheet,
-                    isAuthorized = authStatus != GuardStatus.Failed,
                     exif = mediaListState.exif,
                     comments = mediaListState.comments,
                     isLoading = mediaListState.isLoading,

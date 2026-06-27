@@ -42,12 +42,6 @@ private fun CategoryRoute(
         vm.initState(categoryId)
     }
 
-    LaunchedEffect(uiState.isAuthorized) {
-        if (!uiState.isAuthorized) {
-            appActions.navigateToLogin()
-        }
-    }
-
     LaunchedEffect(uiState.isLoading) {
         if (uiState.isLoading) {
             appActions.updateTopBar(

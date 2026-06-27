@@ -43,12 +43,6 @@ private fun RandomItemRoute(
         vm.initState(mediaId)
     }
 
-    LaunchedEffect(uiState.isAuthorized) {
-        if (!uiState.isAuthorized) {
-            appActions.navigateToLogin()
-        }
-    }
-
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Random)
         appActions.updateTopBar(

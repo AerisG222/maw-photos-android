@@ -28,12 +28,6 @@ private fun RandomRoute(vm: RandomViewModel = hiltViewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val appActions = LocalMawAppActions.current
 
-    LaunchedEffect(uiState.isAuthorized) {
-        if (!uiState.isAuthorized) {
-            appActions.navigateToLogin()
-        }
-    }
-
     LaunchedEffect(Unit) {
         appActions.setNavArea(NavigationArea.Random)
         appActions.updateTopBar(

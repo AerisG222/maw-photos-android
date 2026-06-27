@@ -26,7 +26,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -35,7 +34,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.AuthStatus
 import us.mikeandwan.photos.domain.CategoryRepository
@@ -48,7 +46,6 @@ import us.mikeandwan.photos.domain.models.ErrorMessage
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
-import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
 import us.mikeandwan.photos.workers.UploadWorker
 
@@ -178,19 +175,11 @@ class MawPhotosAppViewModel
                 else -> {
                     handleIntentJob?.cancel()
                     handleIntentJob = viewModelScope.launch {
-                        combine(
-                            userStatus,
-                            authenticationStatus,
-                        ) { userStatus, authStatus ->
-                            if (userStatus is UserStatus.Unknown && authStatus is AuthStatus.Authorized) {
-                                queryUserStatus()
-                            }
-
-                            if (userStatus is UserStatus.Inactive) {
-                                Timber.w("YO INACTIVE!")
-                                navigate(InactiveUserNavKey)
-                            }
-                        }.collect { }
+                        if (userStatus.value is UserStatus.Unknown &&
+                            authenticationStatus.value is AuthStatus.Authorized
+                        ) {
+                            queryUserStatus()
+                        }
                     }
                 }
             }

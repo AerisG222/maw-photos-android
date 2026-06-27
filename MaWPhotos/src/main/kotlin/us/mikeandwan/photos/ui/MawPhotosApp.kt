@@ -32,6 +32,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
+import us.mikeandwan.photos.authorization.AuthStatus
+import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.navigation.NavigationRail
 import us.mikeandwan.photos.ui.components.topbar.TopBar
 import us.mikeandwan.photos.ui.navigation.Navigator
@@ -95,6 +97,8 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val topBarState by vm.topBarState.collectAsStateWithLifecycle()
     val enableDrawerGestures by vm.enableDrawerGestures.collectAsStateWithLifecycle()
     val activeYear by vm.activeYear.collectAsStateWithLifecycle()
+    val authStatus by vm.authenticationStatus.collectAsStateWithLifecycle()
+    val userStatus by vm.userStatus.collectAsStateWithLifecycle()
 
     val appActions = rememberMawAppActions(
         vm = vm,
@@ -107,6 +111,16 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         val activity = context as? Activity
         vm.handleIntent(activity?.intent)
+    }
+
+    LaunchedEffect(authStatus, userStatus, navigationState.topLevelRoute) {
+        val currentRoute = navigationState.topLevelRoute
+
+        if (authStatus is AuthStatus.RequiresAuthorization && currentRoute != LoginNavKey) {
+            appActions.navigateToLogin()
+        } else if (userStatus is UserStatus.Inactive && currentRoute != InactiveUserNavKey) {
+            appActions.navigateToInactiveUser()
+        }
     }
 
     LaunchedEffect(Unit) {

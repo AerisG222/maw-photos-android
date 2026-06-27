@@ -14,9 +14,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
-import us.mikeandwan.photos.domain.guards.AuthGuard
-import us.mikeandwan.photos.domain.guards.CategoriesLoadedGuard
-import us.mikeandwan.photos.domain.guards.GuardStatus
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
@@ -28,7 +25,6 @@ data class CategoryUiState(
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
     val gridItemThumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
     val isLoading: Boolean = true,
-    val isAuthorized: Boolean = true,
     val isError: Boolean = false,
 )
 
@@ -36,8 +32,6 @@ data class CategoryUiState(
 class CategoryViewModel
     @Inject
     constructor(
-        private val authGuard: AuthGuard,
-        private val categoriesLoadedGuard: CategoriesLoadedGuard,
         categoryRepository: CategoryRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
     ) : BaseCategoryViewModel(categoryRepository) {
@@ -45,14 +39,6 @@ class CategoryViewModel
         val uiState = _uiState.asStateFlow()
 
         init {
-            authGuard.status
-                .onEach { if (it is GuardStatus.NotInitialized) authGuard.initializeGuard() }
-                .launchIn(viewModelScope)
-
-            categoriesLoadedGuard.status
-                .onEach { if (it is GuardStatus.NotInitialized) categoriesLoadedGuard.initializeGuard() }
-                .launchIn(viewModelScope)
-
             val gridItemThumbnailSizeFlow = mediaPreferenceRepository
                 .getPhotoGridItemSize()
                 .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Unspecified)
@@ -71,30 +57,15 @@ class CategoryViewModel
             }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
             combine(
-                authGuard.status,
-                categoriesLoadedGuard.status,
                 category,
                 gridItemsFlow,
                 gridItemThumbnailSizeFlow,
-            ) { authStatus, categoriesStatus, category, gridItems, gridItemThumbnailSize ->
-                var isAuthorized = true
+            ) { category, gridItems, gridItemThumbnailSize ->
                 var isError = false
                 var isLoading = true
 
-                when {
-                    authStatus is GuardStatus.Failed -> {
-                        isAuthorized = false
-                    }
-
-                    categoriesStatus is GuardStatus.Failed -> {
-                        isError = true
-                    }
-
-                    authStatus is GuardStatus.Passed && categoriesStatus is GuardStatus.Passed -> {
-                        if (category != null) {
-                            isLoading = false
-                        }
-                    }
+                if (category != null) {
+                    isLoading = false
                 }
 
                 CategoryUiState(
@@ -102,7 +73,6 @@ class CategoryViewModel
                     gridItems = gridItems,
                     gridItemThumbnailSize = gridItemThumbnailSize,
                     isLoading = isLoading,
-                    isAuthorized = isAuthorized,
                     isError = isError,
                 )
             }.onEach { newState ->

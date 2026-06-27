@@ -51,12 +51,6 @@ private fun CategoryItemRoute(
         vm.initState(categoryId, mediaId)
     }
 
-    LaunchedEffect(uiState.isAuthorized) {
-        if (!uiState.isAuthorized) {
-            appActions.navigateToLogin()
-        }
-    }
-
     LaunchedEffect(uiState.category, categoryId) {
         uiState.category?.let {
             if (it.id == categoryId) {
