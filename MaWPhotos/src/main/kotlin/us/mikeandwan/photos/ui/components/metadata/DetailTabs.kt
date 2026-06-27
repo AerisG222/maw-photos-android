@@ -5,17 +5,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.R
@@ -41,8 +42,26 @@ fun DetailTabs(
     val (commentMediaId, setCommentMediaId) = remember { mutableStateOf(Uuid.NIL) }
     val (exifMediaId, setExifMediaId) = remember { mutableStateOf(Uuid.NIL) }
 
-    val bgActive = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-    val bgInactive = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+    LaunchedEffect(activeMedia.id, pagerState.currentPage) {
+        when (pagerState.currentPage) {
+            TabIndex.COMMENT -> {
+                if (activeMedia.id != commentMediaId) {
+                    setCommentMediaId(activeMedia.id)
+                    commentState.fetchComments()
+                }
+            }
+
+            TabIndex.EXIF -> {
+                if (activeMedia.id != exifMediaId) {
+                    setExifMediaId(activeMedia.id)
+                    exifState.fetchExif()
+                }
+            }
+        }
+    }
+
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(modifier = modifier.fillMaxSize()) {
         SecondaryTabRow(
@@ -57,14 +76,14 @@ fun DetailTabs(
                     }
                 },
                 icon = {
-                    AsyncImage(
-                        model = R.drawable.ic_comment_white,
+                    Icon(
+                        painter = painterResource(R.drawable.ic_comment_white),
                         contentDescription = "Comment",
                         modifier = Modifier.size(32.dp),
-                        colorFilter = if (pagerState.currentPage == TabIndex.COMMENT) {
-                            bgActive
+                        tint = if (pagerState.currentPage == TabIndex.COMMENT) {
+                            activeColor
                         } else {
-                            bgInactive
+                            inactiveColor
                         },
                     )
                 },
@@ -79,14 +98,14 @@ fun DetailTabs(
                         }
                     },
                     icon = {
-                        AsyncImage(
-                            model = R.drawable.ic_tune,
+                        Icon(
+                            painter = painterResource(R.drawable.ic_tune),
                             contentDescription = "Exif",
                             modifier = Modifier.size(32.dp),
-                            colorFilter = if (pagerState.currentPage == TabIndex.EXIF) {
-                                bgActive
+                            tint = if (pagerState.currentPage == TabIndex.EXIF) {
+                                activeColor
                             } else {
-                                bgInactive
+                                inactiveColor
                             },
                         )
                     },
@@ -100,24 +119,30 @@ fun DetailTabs(
             pageContent = {
                 when (it) {
                     TabIndex.COMMENT -> {
-                        if (activeMedia.id != commentMediaId) {
-                            setCommentMediaId(activeMedia.id)
-                            commentState.fetchComments()
-                        }
-
                         CommentScreen(commentState, modifier = Modifier.fillMaxSize())
                     }
 
                     TabIndex.EXIF -> {
-                        if (activeMedia.id != exifMediaId) {
-                            setExifMediaId(activeMedia.id)
-                            exifState.fetchExif()
-                        }
-
                         ExifScreen(exifState, modifier = Modifier.fillMaxSize())
                     }
                 }
             },
         )
     }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun DetailTabsPreview() {
+    DetailTabs(
+        activeMedia = Media(
+            id = Uuid.random(),
+            categoryId = Uuid.random(),
+            type = us.mikeandwan.photos.domain.models.MediaType.Photo,
+            isFavorite = false,
+            files = emptyList()
+        ),
+        exifState = ExifState(null) {},
+        commentState = CommentState(emptyList(), {}, {})
+    )
 }

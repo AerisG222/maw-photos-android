@@ -1,25 +1,26 @@
 package us.mikeandwan.photos.ui.components.categorylist
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlin.uuid.Uuid
+import kotlinx.datetime.LocalDate
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.Category
@@ -46,34 +47,32 @@ fun CategoryListItem(
             .clickable { onSelectCategory(category) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box {
-            AsyncImage(
-                model = category.findTeaserImage(false).path,
-                contentDescription = category.name,
-                placeholder = painterResource(id = R.drawable.ic_placeholder),
-                error = painterResource(id = R.drawable.ic_broken_image),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .height(60.dp)
-                    .width(60.dp)
-                    .padding(2.dp),
-            )
-        }
-
         AsyncImage(
-            model = R.drawable.ic_round_camera,
+            model = category.findTeaserImage(largerSize = false).path,
+            contentDescription = category.name,
+            placeholder = painterResource(id = R.drawable.ic_placeholder),
+            error = painterResource(id = R.drawable.ic_broken_image),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .height(60.dp)
+                .width(60.dp)
+                .padding(2.dp),
+        )
+
+        Icon(
+            painter = painterResource(id = R.drawable.ic_round_camera),
             contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .padding(start = 2.dp, end = 4.dp)
                 .size(24.dp)
                 .alpha(getMediaTypeIconAlpha(category.mediaTypes.contains(MediaType.Photo))),
         )
 
-        AsyncImage(
-            model = R.drawable.ic_round_play_circle,
+        Icon(
+            painter = painterResource(id = R.drawable.ic_round_play_circle),
             contentDescription = stringResource(id = R.string.li_category_thumbnail_description),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .padding(end = 4.dp)
                 .size(24.dp)
@@ -97,4 +96,23 @@ fun CategoryListItem(
                 .weight(1f),
         )
     }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+private fun CategoryListItemPreview() {
+    CategoryListItem(
+        category = Category(
+            id = Uuid.random(),
+            name = "Test Category",
+            year = 2024,
+            isFavorite = false,
+            effectiveDate = LocalDate(2024, 1, 1),
+            modified = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+            teaser = emptyList(),
+            mediaTypes = listOf(MediaType.Photo, MediaType.Video),
+        ),
+        showYear = true,
+        onSelectCategory = {},
+    )
 }

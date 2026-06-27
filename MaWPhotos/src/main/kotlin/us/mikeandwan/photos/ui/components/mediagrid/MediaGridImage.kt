@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,12 +56,12 @@ fun <T> MediaGridImage(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (item.mediaTypes.contains(MediaType.Video)) {
-                AsyncImage(
-                    model = R.drawable.ic_round_play_circle,
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_round_play_circle),
                     contentDescription = stringResource(
                         id = R.string.li_category_thumbnail_description,
                     ),
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(4.dp, 4.dp, 0.dp, 4.dp)
                         .size(16.dp),
@@ -69,12 +69,12 @@ fun <T> MediaGridImage(
             }
 
             if (item.mediaTypes.contains(MediaType.Photo)) {
-                AsyncImage(
-                    model = R.drawable.ic_round_camera,
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_round_camera),
                     contentDescription = stringResource(
                         id = R.string.li_category_thumbnail_description,
                     ),
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(4.dp, 4.dp, 0.dp, 4.dp)
                         .size(16.dp),
@@ -82,4 +82,19 @@ fun <T> MediaGridImage(
             }
         }
     }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun MediaGridImagePreview() {
+    MediaGridImage(
+        item = MediaGridItem(
+            id = kotlin.uuid.Uuid.random(),
+            url = "",
+            mediaTypes = listOf(MediaType.Photo, MediaType.Video),
+            data = Unit,
+        ),
+        size = 120.dp,
+        onSelectImage = {},
+    )
 }

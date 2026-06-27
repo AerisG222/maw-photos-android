@@ -1,13 +1,12 @@
 package us.mikeandwan.photos.ui.components.topbar
 
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -16,10 +15,10 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
 
 data class TopBarState(
@@ -80,29 +79,59 @@ fun TopBar(
         },
         navigationIcon = {
             if (state.showAppIcon) {
-                AsyncImage(
-                    model = R.drawable.ic_launch,
-                    contentDescription = stringResource(R.string.application_menu_icon_description),
-                    alignment = Alignment.Center,
-                    modifier = Modifier
-                        .height(56.dp)
-                        .width(56.dp)
-                        .padding(8.dp)
-                        .clickable { onExpandNavMenu() },
-                )
+                IconButton(onClick = onExpandNavMenu) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_launch),
+                        contentDescription = stringResource(R.string.application_menu_icon_description),
+                        tint = Color.Unspecified,
+                    )
+                }
             } else {
-                AsyncImage(
-                    model = R.drawable.ic_arrow_back,
-                    contentDescription = stringResource(R.string.navigate_back_icon_description),
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                    alignment = Alignment.Center,
-                    modifier = Modifier
-                        .height(56.dp)
-                        .width(56.dp)
-                        .padding(8.dp)
-                        .clickable { onBackClicked() },
-                )
+                IconButton(onClick = onBackClicked) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_arrow_back),
+                        contentDescription = stringResource(R.string.navigate_back_icon_description),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         },
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun TopBarPreview() {
+    MaterialTheme {
+        TopBar(
+            scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
+            state = TopBarState(
+                showAppIcon = true,
+                title = "Test Title",
+                tinyVerticalTitlePrefix = "2024",
+            ),
+            onExpandNavMenu = {},
+            onBackClicked = {},
+            onSearch = {},
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun TopBarBackPreview() {
+    MaterialTheme {
+        TopBar(
+            scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
+            state = TopBarState(
+                showAppIcon = false,
+                title = "Back Title",
+            ),
+            onExpandNavMenu = {},
+            onBackClicked = {},
+            onSearch = {},
+        )
+    }
 }
