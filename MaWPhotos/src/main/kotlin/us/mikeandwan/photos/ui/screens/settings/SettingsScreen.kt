@@ -67,6 +67,7 @@ fun SettingsScreen(
     onSearchShowMediaTypeIndicatorChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
+    onClearCache: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -231,12 +232,38 @@ fun SettingsScreen(
         // --- ADVANCED ----
         Heading(stringId = R.string.pref_advanced_display_header)
         Row(
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
         ) {
+            OutlinedButton(
+                onClick = onClearCache,
+                colors = ButtonColors(
+                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.onSurface,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+            ) {
+                AsyncImage(
+                    model = R.drawable.ic_broken_image,
+                    contentDescription = stringResource(id = R.string.clear_cache),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier
+                        .padding(4.dp, 4.dp, 12.dp, 4.dp)
+                        .height(24.dp)
+                        .width(24.dp),
+                )
+
+                Text(
+                    text = stringResource(id = R.string.clear_cache),
+                    modifier = Modifier.padding(0.dp, 4.dp, 4.dp, 4.dp),
+                )
+            }
+
             OutlinedButton(
                 onClick = onLogout,
                 colors = ButtonColors(
@@ -388,6 +415,7 @@ fun SettingsScreenPreview() {
         onSearchShowMediaTypeIndicatorChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},
+        onClearCache = {},
         onLogout = {},
     )
 }

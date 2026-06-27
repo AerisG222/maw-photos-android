@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Environment
 import android.webkit.MimeTypeMap
+import coil3.ImageLoader
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ class FileStorageRepository
     @Inject
     constructor(
         private val context: Context,
+        private val imageLoader: ImageLoader,
     ) {
         companion object {
             private val mimeTypeMap = MimeTypeMap.getSingleton()!!
@@ -67,6 +69,13 @@ class FileStorageRepository
                 getShareDirectory()
                     ?.walkBottomUp()
                     ?.forEach { it.delete() }
+            }
+        }
+
+        suspend fun clearImageCache() {
+            withContext(Dispatchers.IO) {
+                imageLoader.memoryCache?.clear()
+                imageLoader.diskCache?.clear()
             }
         }
 

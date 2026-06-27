@@ -16,6 +16,7 @@ import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.database.DeveloperLog
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.ErrorRepository
+import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
@@ -55,6 +56,7 @@ class SettingsViewModel
         private val randomPreferenceRepository: RandomPreferenceRepository,
         private val searchPreferenceRepository: SearchPreferenceRepository,
         private val widgetRandomPhotoService: us.mikeandwan.photos.domain.services.WidgetRandomPhotoService,
+        private val fileStorageRepository: FileStorageRepository,
         private val errorRepository: ErrorRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
@@ -227,6 +229,13 @@ class SettingsViewModel
         fun clearLogs() {
             viewModelScope.launch {
                 errorRepository.clearLogs()
+            }
+        }
+
+        fun clearCache() {
+            viewModelScope.launch {
+                fileStorageRepository.clearImageCache()
+                errorRepository.showError("Cache cleared")
             }
         }
 

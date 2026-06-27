@@ -83,6 +83,7 @@ private fun SettingsRoute(vm: SettingsViewModel = hiltViewModel()) {
         onSearchShowMediaTypeIndicatorChange = { vm.setSearchShowMediaTypeIndicator(it) },
         onToggleDeveloperMode = { vm.toggleDeveloperMode(it) },
         onClearLogs = { vm.clearLogs() },
+        onClearCache = { vm.clearCache() },
         onLogout = {
             vm.logout(context)
             appActions.navigateToLogin()

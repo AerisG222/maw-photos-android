@@ -83,6 +83,7 @@
     <string name="settings_icon_description">Settings</string>
 
     <!-- settings -->
+    <string name="clear_cache">Clear Cache</string>
     <string name="fragment_settings_log_out">Log Out</string>
 
     <!-- year menu -->
