@@ -95,7 +95,7 @@ fun LoginScreen(
                     AsyncImage(
                         model = R.drawable.ic_login,
                         contentDescription = stringResource(
-                            id = R.string.fragment_settings_log_out,
+                            id = R.string.activity_login_login_button_text,
                         ),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSecondary),
                         modifier = Modifier
