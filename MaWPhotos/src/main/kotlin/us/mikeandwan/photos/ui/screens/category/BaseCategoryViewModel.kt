@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui.screens.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -45,7 +46,7 @@ abstract class BaseCategoryViewModel(
         categoryJob?.cancel()
         categoryJob = viewModelScope.launch {
             if (BuildConfig.DEBUG) {
-                delay(500)
+                delay(500.milliseconds)
             }
 
             categoryRepository
@@ -62,7 +63,7 @@ abstract class BaseCategoryViewModel(
         mediaJob?.cancel()
         mediaJob = viewModelScope.launch {
             if (BuildConfig.DEBUG) {
-                delay(1000)
+                delay(1000.milliseconds)
             }
 
             categoryRepository

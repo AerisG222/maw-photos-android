@@ -3,6 +3,7 @@ package us.mikeandwan.photos.domain
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,7 @@ class ErrorRepository
 
         suspend fun showThenClearError(message: String) {
             _error.update { ErrorMessage.Display(message) }
-            delay(3000)
+            delay(3000.milliseconds)
             _error.update { ErrorMessage.DoNotDisplay }
         }
 

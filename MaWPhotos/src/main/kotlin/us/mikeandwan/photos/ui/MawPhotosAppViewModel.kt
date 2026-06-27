@@ -19,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -26,7 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -88,8 +89,8 @@ class MawPhotosAppViewModel
         val navigationEvents = _navigationEvents.receiveAsFlow()
 
         val errorsToDisplay = errorRepository.error
-            .filter { it is ErrorMessage.Display }
-            .map { it as ErrorMessage.Display }
+            .filterIsInstance<ErrorMessage.Display>()
+            .map { it }
 
         val recentSearchTerms = searchRepository
             .getSearchHistory()
@@ -272,7 +273,7 @@ class MawPhotosAppViewModel
         private fun bootstrapAppData() {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    val loaded = withTimeoutOrNull(10_000) {
+                    val loaded = withTimeoutOrNull(10_000.milliseconds) {
                         configRepository.getScales().first { it.isNotEmpty() }
                     }
 

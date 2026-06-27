@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.domain
 
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,7 +48,7 @@ class PeriodicJob<T>(
                     if (run) {
                         job = launch {
                             while (isActive) {
-                                delay(interval)
+                                delay(interval.milliseconds)
                                 func().collect { }
                             }
                         }

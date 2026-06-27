@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -150,12 +151,12 @@ class CategoriesViewModel
                     .onEach {
                         when (it) {
                             is ExternalCallStatus.Loading -> {
-                                delay(10)
+                                delay(10.milliseconds)
                                 _isRefreshing.update { true }
                             }
 
                             is ExternalCallStatus.Success -> {
-                                delay(10)
+                                delay(10.milliseconds)
                                 _isRefreshing.update { false }
 
                                 val msg = when (it.result.count()) {
@@ -168,7 +169,7 @@ class CategoriesViewModel
                             }
 
                             is ExternalCallStatus.Error -> {
-                                delay(10)
+                                delay(10.milliseconds)
                                 _isRefreshing.update { false }
 
                                 Timber.e(it.message)

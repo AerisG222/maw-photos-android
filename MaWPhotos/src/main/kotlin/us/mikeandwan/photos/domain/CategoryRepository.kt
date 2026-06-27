@@ -4,6 +4,7 @@ import androidx.collection.LruCache
 import androidx.room.withTransaction
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
@@ -59,7 +60,7 @@ class CategoryRepository
                     .collectLatest { years ->
                         try {
                             years.forEach { year ->
-                                delay(2000)
+                                delay(2000.milliseconds)
 
                                 loadCategories(year)
                                     .collect { status ->

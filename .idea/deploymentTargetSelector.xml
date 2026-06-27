@@ -2,17 +2,6 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="MaWPhotos">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-03-04T22:47:18.184323206Z">
-          <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/mmorano/.android/avd/Pixel_7a_API_34.avd" />
-            </handle>
-          </Target>
-        </DropdownSelection>
-        <DialogSelection />
-      </SelectionState>
       <SelectionState runConfigName="Generate Baseline Profile for MaWPhotos">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
@@ -22,8 +11,15 @@
       <SelectionState runConfigName="StartupBenchmarks">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="main">
+      <SelectionState runConfigName="MaWPhotos">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-03-04T22:47:18.184323206Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/mmorano/.android/avd/Pixel_7a_API_34.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
         <DialogSelection />
       </SelectionState>
     </selectionStates>

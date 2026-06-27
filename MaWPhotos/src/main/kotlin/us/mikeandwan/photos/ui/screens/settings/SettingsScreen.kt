@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -77,7 +78,7 @@ fun SettingsScreen(
     val searchCountList = listOf("5", "10", "20", "30", "50")
     val dividerModifier = Modifier.padding(vertical = 8.dp)
     var showDeveloperModeDialog by remember { mutableStateOf(false) }
-    var iconClickCount by remember { mutableStateOf(0) }
+    var iconClickCount by remember { mutableIntStateOf(0) }
     val tangerine = remember { FontFamily(Font(R.font.tangerine)) }
 
     Column(
