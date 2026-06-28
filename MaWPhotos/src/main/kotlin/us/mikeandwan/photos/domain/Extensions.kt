@@ -2,19 +2,6 @@ package us.mikeandwan.photos.domain
 
 import java.net.HttpURLConnection
 import us.mikeandwan.photos.api.ApiResult
-import us.mikeandwan.photos.api.Category as ApiCategory
-import us.mikeandwan.photos.api.Comment as ApiComment
-import us.mikeandwan.photos.api.Media as ApiMedia
-import us.mikeandwan.photos.api.MediaFile as ApiMediaFile
-import us.mikeandwan.photos.database.CategoryDetail as DbCategoryDetail
-import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
-import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
-import us.mikeandwan.photos.database.MediaPreference as DbMediaPreference
-import us.mikeandwan.photos.database.NotificationPreference as DbNotificationPreference
-import us.mikeandwan.photos.database.RandomPreference as DbRandomPreference
-import us.mikeandwan.photos.database.Scale as DbScale
-import us.mikeandwan.photos.database.SearchHistory as DbSearchHistory
-import us.mikeandwan.photos.database.SearchPreference as DbSearchPreference
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.Comment
@@ -28,6 +15,19 @@ import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.models.Scale
 import us.mikeandwan.photos.domain.models.SearchHistory
 import us.mikeandwan.photos.domain.models.SearchPreference
+import us.mikeandwan.photos.api.Category as ApiCategory
+import us.mikeandwan.photos.api.Comment as ApiComment
+import us.mikeandwan.photos.api.Media as ApiMedia
+import us.mikeandwan.photos.api.MediaFile as ApiMediaFile
+import us.mikeandwan.photos.database.CategoryDetail as DbCategoryDetail
+import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
+import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
+import us.mikeandwan.photos.database.MediaPreference as DbMediaPreference
+import us.mikeandwan.photos.database.NotificationPreference as DbNotificationPreference
+import us.mikeandwan.photos.database.RandomPreference as DbRandomPreference
+import us.mikeandwan.photos.database.Scale as DbScale
+import us.mikeandwan.photos.database.SearchHistory as DbSearchHistory
+import us.mikeandwan.photos.database.SearchPreference as DbSearchPreference
 
 fun DbCategoryDetail.toDomainCategory(): Category =
     Category(
@@ -153,8 +153,7 @@ fun DbSearchPreference.toDomainSearchPreference(): SearchPreference =
         showMediaTypeIndicator = showMediaTypeIndicator,
     )
 
-fun ApiResult.Error.isUnauthorized(): Boolean =
-    errorCode == HttpURLConnection.HTTP_UNAUTHORIZED
+fun ApiResult.Error.isUnauthorized(): Boolean = errorCode == HttpURLConnection.HTTP_UNAUTHORIZED
 
 fun Category.findTeaserImage(largerSize: Boolean): MediaFile = findTeaserImage(teaser, largerSize)
 

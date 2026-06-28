@@ -80,8 +80,7 @@ object DomainModule {
     fun provideFileStorageRepository(
         application: Application,
         imageLoader: ImageLoader,
-    ): FileStorageRepository =
-        FileStorageRepository(application, imageLoader)
+    ): FileStorageRepository = FileStorageRepository(application, imageLoader)
 
     @Provides
     @Singleton

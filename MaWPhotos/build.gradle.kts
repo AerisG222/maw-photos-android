@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.androidx.room)
+    alias(libs.plugins.spotless)
 }
 
 android {
@@ -84,7 +85,6 @@ android {
             // baselineProfile.automaticGenerationDuringBuild = true
         }
     }
-
 }
 
 kotlin {
@@ -179,4 +179,34 @@ dependencies {
 
 hilt {
     enableAggregatingTask = true
+}
+
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktlint(libs.versions.ktlint.get())
+        trimTrailingWhitespace()
+        leadingTabsToSpaces(4)
+        endWithNewline()
+    }
+
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint(libs.versions.ktlint.get())
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    format("xml") {
+        target("src/**/*.xml")
+        trimTrailingWhitespace()
+        leadingTabsToSpaces(4)
+        endWithNewline()
+    }
+
+    format("misc") {
+        target("*.md", ".gitignore")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }

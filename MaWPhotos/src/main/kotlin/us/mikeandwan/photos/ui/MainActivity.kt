@@ -14,7 +14,7 @@ import us.mikeandwan.photos.Constants
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val requestLocalNetworkPermission = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission(),
     ) { /* granted or denied — best-effort for dev connectivity */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {

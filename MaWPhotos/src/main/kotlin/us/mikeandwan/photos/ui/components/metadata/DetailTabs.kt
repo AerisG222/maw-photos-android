@@ -140,9 +140,9 @@ private fun DetailTabsPreview() {
             categoryId = Uuid.random(),
             type = us.mikeandwan.photos.domain.models.MediaType.Photo,
             isFavorite = false,
-            files = emptyList()
+            files = emptyList(),
         ),
         exifState = ExifState(null) {},
-        commentState = CommentState(emptyList(), {}, {})
+        commentState = CommentState(emptyList(), {}, {}),
     )
 }
