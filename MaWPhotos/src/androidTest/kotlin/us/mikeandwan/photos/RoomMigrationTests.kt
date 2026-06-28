@@ -1,6 +1,5 @@
 import androidx.room.Room.databaseBuilder
 import androidx.room.testing.MigrationTestHelper
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.platform.app.InstrumentationRegistry
 import java.io.IOException
 import org.junit.Rule
@@ -14,8 +13,7 @@ class RoomMigrationTests {
     @get:Rule
     val helper: MigrationTestHelper = MigrationTestHelper(
         InstrumentationRegistry.getInstrumentation(),
-        MawDatabase::class.java.canonicalName,
-        FrameworkSQLiteOpenHelperFactory(),
+        MawDatabase::class.java,
     )
 
     @Test
