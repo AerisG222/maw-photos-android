@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+        Local Network Protection (Android 15+/SDK 35+) gates connections to private network
+        addresses behind this permission. Both flavors need it: development reaches the dev
+        backend / emulator host (10.0.2.2), and production reaches media.mikeandwan.us, which
+        resolves to a private LAN IP (192.168.x.x) when on the home wifi via split-horizon DNS.
+        Requested at runtime in MainActivity (gated by Constants.REQUEST_LOCAL_NETWORK_PERMISSION).
+    -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
