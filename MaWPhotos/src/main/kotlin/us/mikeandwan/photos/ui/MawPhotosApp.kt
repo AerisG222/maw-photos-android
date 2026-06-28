@@ -24,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -195,7 +196,24 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                 Scaffold(
                     modifier = Modifier
                         .semantics { testTagsAsResourceId = true }
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        // The drawer's built-in scrim only consumes taps (to close it), so swipe
+                        // gestures fall through to the content below and drive pager / back
+                        // navigation. While the drawer is open, swallow all pointer input on the
+                        // content so the drawer behaves as a true modal.
+                        .then(
+                            if (drawerState.isOpen) {
+                                Modifier.pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            awaitPointerEvent().changes.forEach { it.consume() }
+                                        }
+                                    }
+                                }
+                            } else {
+                                Modifier
+                            },
+                        ),
                     topBar = {
                         if (topBarState.show) {
                             TopBar(
