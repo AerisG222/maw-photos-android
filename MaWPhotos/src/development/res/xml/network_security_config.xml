@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    The development flavor talks to the internal/dev backend, which is served with a custom CA.
+    Trust that CA as a normal base-config anchor (alongside the system CAs) so it applies to ALL
+    development build types rather than only debuggable ones. This is what lets the baseline
+    profile build (nonMinifiedDevelopmentRelease - profileable but NOT debuggable) reach the dev
+    backend. This file overrides src/main/res/xml/network_security_config.xml for development
+    variants only; production builds keep main's debug-overrides and never trust this CA outside
+    of a debuggable build.
+-->
+<network-security-config>
+    <base-config>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/debug_cas" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

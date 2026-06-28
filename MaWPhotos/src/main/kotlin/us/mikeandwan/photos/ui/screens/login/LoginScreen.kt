@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -25,6 +26,11 @@ import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.ui.components.logo.Logo
 
+// Stable selector for UI automation (baseline profile generation); surfaced to UiAutomator via
+// `testTagsAsResourceId` enabled at the app root. Lets the generator detect the logged-out state.
+// Keep in sync with the matching literal in the :baselineprofile module's BaselineProfileGenerator.
+const val LOGIN_SCREEN_TAG = "loginScreen"
+
 @Composable
 fun LoginScreen(
     uiState: LoginUiState,
@@ -34,7 +40,9 @@ fun LoginScreen(
     val tangerine = FontFamily(Font(R.font.tangerine))
 
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .testTag(LOGIN_SCREEN_TAG),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         item {

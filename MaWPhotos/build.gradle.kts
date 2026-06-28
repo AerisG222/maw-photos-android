@@ -100,6 +100,20 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+// The androidx.baselineprofile plugin derives the `benchmarkRelease` and `nonMinifiedRelease`
+// build types from `release`, so they inherit the release signing config. Re-sign them with the
+// debug key: this lets a developer log in once on the emulator using a debug build and then run
+// baseline profile generation (which installs nonMinifiedRelease) as a same-signature update,
+// preserving the stored Auth0 session instead of forcing an uninstall that wipes it.
+androidComponents {
+    finalizeDsl { ext ->
+        val debugSigning = ext.signingConfigs.getByName("debug")
+        listOf("benchmarkRelease", "nonMinifiedRelease").forEach { name ->
+            ext.buildTypes.findByName(name)?.signingConfig = debugSigning
+        }
+    }
+}
+
 // Force kotlin-metadata-jvm to match the Kotlin version so Hilt's bundled (older) version
 // doesn't reject the metadata format produced by the current Kotlin compiler.
 configurations.all {

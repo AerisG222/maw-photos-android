@@ -1,39 +1,40 @@
 package us.mikeandwan.photos.baselineprofile
 
+import androidx.benchmark.macro.MacrobenchmarkScope
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.StaleObjectException
+import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.Until
-import java.lang.Thread.sleep
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * This test class generates a basic startup baseline profile for the target package.
+ * Generates a baseline profile for the target package.
  *
- * We recommend you start with this but add important user flows to the profile to improve their performance.
- * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
- * for more information.
- *
- * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
- * the equivalent `generateBaselineProfile` gradle task:
+ * The app requires an authenticated Auth0 session, and that login is an interactive browser flow
+ * that cannot be automated here. The workflow is therefore "log in once on the emulator, then
+ * generate": establish a session manually (see the project docs / build setup that re-signs the
+ * nonMinifiedRelease build with the debug key so the session survives generation), then run:
  * ```
  * ./gradlew :MaWPhotos:generateDevelopmentReleaseBaselineProfile
  * ```
- * The run configuration runs the Gradle task and applies filtering to run only the generators.
  *
- * Check [documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args)
- * for more information about available instrumentation arguments.
+ * This generator is defensive about auth state: if the app is logged out (login screen shown), it
+ * captures a startup-only profile instead of failing, since it cannot drive the browser login.
+ * When logged in, it walks the core browse journey (categories -> a category's media -> a single
+ * media item) using stable test tags rather than blind screen coordinates.
  *
- * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
+ * The tag strings below mirror the app's `testTag` constants (MEDIA_GRID_TAG, MEDIA_GRID_ITEM_TAG,
+ * LOGIN_SCREEN_TAG). They are duplicated as literals because this `com.android.test` module does
+ * not have the app module on its compile classpath, and must be kept in sync manually. They are
+ * surfaced to UiAutomator via `testTagsAsResourceId`, enabled at the app's Compose root.
  *
- * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
- *
- * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
+ * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are
+ * supported. The minimum required version of androidx.benchmark is 1.2.0.
  **/
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -50,57 +51,56 @@ class BaselineProfileGenerator {
             // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
             includeInStartupProfile = true,
         ) {
-            // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll through your most important UI.
-
-            // Start default activity for your app
             pressHome()
             startActivityAndWait()
             device.waitForIdle()
 
-            // When running this, first establish a logged in session so the tests will work.
-            // If the app is already on the main screen, the "Login" button won't be found.
-            val loginButton = device.wait(Until.findObject(By.text("Login")), 5000)
-            if (loginButton != null) {
-                try {
-                    loginButton.click()
-                    device.waitForIdle()
-                } catch (e: StaleObjectException) {
-                    // Ignore if the button disappeared (e.g., app transitioned automatically)
-                }
+            // If logged out, the app routes to the login screen. The Auth0 login is a browser flow
+            // we can't complete here, so capture a startup-only profile and stop.
+            val loggedOut = device.wait(Until.hasObject(By.res(LOGIN_SCREEN_TAG)), UI_TIMEOUT_MS) == true
+            if (loggedOut) {
+                return@collect
             }
 
-            // scroll down list of categories
-            device.drag(300, 900, 320, 200, 10)
+            // Logged in: exercise the core browse journey using stable selectors.
+            // 1. Categories grid: wait for it, then scroll.
+            scrollGrid()
+
+            // 2. Open the first category.
+            device.wait(Until.findObject(By.res(MEDIA_GRID_ITEM_TAG)), UI_TIMEOUT_MS)?.click()
             device.waitForIdle()
 
-            // click on a random category
-            device.click(300, 300)
-            device.waitForIdle()
-            sleep(250)
+            // 3. The selected category's media grid: scroll it.
+            scrollGrid()
 
-            // scroll down list of images
-            device.drag(300, 900, 320, 200, 10)
+            // 4. Open the first media item.
+            device.wait(Until.findObject(By.res(MEDIA_GRID_ITEM_TAG)), UI_TIMEOUT_MS)?.click()
             device.waitForIdle()
-            sleep(250)
 
-            // click on a random photo
-            device.click(300, 300)
-            device.waitForIdle()
-            sleep(250)
-
-            // go back to photo list
+            // 5. Back to the media grid, then back to the categories list.
             device.pressBack()
             device.waitForIdle()
-            sleep(250)
-
-            // go back to category list
             device.pressBack()
             device.waitForIdle()
-            sleep(250)
-
-            // Check UiAutomator documentation for more information how to interact with the app.
-            // https://d.android.com/training/testing/other-components/ui-automator
         }
+    }
+
+    private fun MacrobenchmarkScope.scrollGrid() {
+        device.wait(Until.findObject(By.res(MEDIA_GRID_TAG)), UI_TIMEOUT_MS)
+        device.findObject(By.res(MEDIA_GRID_TAG))?.apply {
+            // Keep the gesture away from the screen edges (system gesture insets).
+            setGestureMargin(device.displayWidth / 5)
+            fling(Direction.DOWN)
+        }
+        device.waitForIdle()
+    }
+
+    private companion object {
+        const val UI_TIMEOUT_MS = 10_000L
+
+        // Mirror the app's testTag constants (see class doc); keep in sync manually.
+        const val MEDIA_GRID_TAG = "mediaGrid"
+        const val MEDIA_GRID_ITEM_TAG = "mediaGridItem"
+        const val LOGIN_SCREEN_TAG = "loginScreen"
     }
 }

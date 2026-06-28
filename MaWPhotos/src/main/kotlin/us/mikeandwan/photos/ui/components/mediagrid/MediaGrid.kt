@@ -6,9 +6,16 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+
+// Stable selectors for UI automation (baseline profile generation). Surfaced to UiAutomator via
+// `testTagsAsResourceId` enabled at the app root. Keep in sync with the matching literals in the
+// :baselineprofile module's BaselineProfileGenerator.
+const val MEDIA_GRID_TAG = "mediaGrid"
+const val MEDIA_GRID_ITEM_TAG = "mediaGridItem"
 
 @Composable
 fun <T> MediaGrid(
@@ -20,7 +27,7 @@ fun <T> MediaGrid(
             columns = GridCells.Adaptive(minSize = state.size),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = modifier,
+            modifier = modifier.testTag(MEDIA_GRID_TAG),
         ) {
             items(
                 state.gridItems,
@@ -30,6 +37,7 @@ fun <T> MediaGrid(
                     item = it,
                     size = state.size,
                     onSelectImage = { item -> state.onSelectGridItem(item) },
+                    modifier = Modifier.testTag(MEDIA_GRID_ITEM_TAG),
                 )
             }
         }

@@ -21,9 +21,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -60,7 +63,7 @@ import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
 import us.mikeandwan.photos.ui.screens.upload.upload
 import us.mikeandwan.photos.ui.theme.MawPhotosTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val context = LocalContext.current
@@ -190,7 +193,9 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                 },
             ) {
                 Scaffold(
-                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                    modifier = Modifier
+                        .semantics { testTagsAsResourceId = true }
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
                         if (topBarState.show) {
                             TopBar(

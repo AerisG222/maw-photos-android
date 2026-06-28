@@ -4,4 +4,8 @@
     <!-- Android 17 (API 37) requires ACCESS_LOCAL_NETWORK to reach 10.0.2.2 (emulator host) -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
+    <!-- Only development builds talk to the dev backend served with a custom CA, so only they
+         reference the network security config (see src/development/res/xml). -->
+    <application android:networkSecurityConfig="@xml/network_security_config" />
+
 </manifest>
