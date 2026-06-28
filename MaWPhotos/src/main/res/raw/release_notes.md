@@ -1,7 +1,6 @@
 # Release Notes
 
 ## v9.6 : 06/28/2026
-
 - code cleanups and improvements (with help from claude)
 - regenerated baseline profile
 - update dependencies
