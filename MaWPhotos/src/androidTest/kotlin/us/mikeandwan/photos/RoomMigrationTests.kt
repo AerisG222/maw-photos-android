@@ -6,18 +6,10 @@ import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
 import us.mikeandwan.photos.database.MawDatabase
-import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
-import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
-import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
+import us.mikeandwan.photos.database.migrations.ALL_MIGRATIONS
 
 class RoomMigrationTests {
     private val testDb = "migration-test"
-
-    private val allMigrations = arrayOf(
-        MIGRATION_1_2,
-        MIGRATION_2_3,
-        MIGRATION_3_4,
-    )
 
     @get:Rule
     val helper: MigrationTestHelper = MigrationTestHelper(
@@ -40,7 +32,7 @@ class RoomMigrationTests {
             InstrumentationRegistry.getInstrumentation().targetContext,
             MawDatabase::class.java,
             testDb,
-        ).addMigrations(*allMigrations).build().apply {
+        ).addMigrations(*ALL_MIGRATIONS).build().apply {
             openHelper.writableDatabase.close()
         }
     }

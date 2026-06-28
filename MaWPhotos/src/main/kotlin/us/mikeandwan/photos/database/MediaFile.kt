@@ -3,6 +3,7 @@ package us.mikeandwan.photos.database
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import kotlin.uuid.Uuid
 
 @Entity(
@@ -11,6 +12,9 @@ import kotlin.uuid.Uuid
         "category_id",
         "scale_id",
         "type",
+    ],
+    indices = [
+        Index(value = ["scale_id"]),
     ],
     foreignKeys = [
         ForeignKey(

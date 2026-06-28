@@ -18,20 +18,7 @@ import us.mikeandwan.photos.database.ScaleDao
 import us.mikeandwan.photos.database.SearchHistoryDao
 import us.mikeandwan.photos.database.SearchPreferenceDao
 import us.mikeandwan.photos.database.YearDao
-import us.mikeandwan.photos.database.migrations.MIGRATION_10_11
-import us.mikeandwan.photos.database.migrations.MIGRATION_11_12
-import us.mikeandwan.photos.database.migrations.MIGRATION_12_13
-import us.mikeandwan.photos.database.migrations.MIGRATION_13_14
-import us.mikeandwan.photos.database.migrations.MIGRATION_14_15
-import us.mikeandwan.photos.database.migrations.MIGRATION_1_2
-import us.mikeandwan.photos.database.migrations.MIGRATION_2_3
-import us.mikeandwan.photos.database.migrations.MIGRATION_3_4
-import us.mikeandwan.photos.database.migrations.MIGRATION_4_5
-import us.mikeandwan.photos.database.migrations.MIGRATION_5_6
-import us.mikeandwan.photos.database.migrations.MIGRATION_6_7
-import us.mikeandwan.photos.database.migrations.MIGRATION_7_8
-import us.mikeandwan.photos.database.migrations.MIGRATION_8_9
-import us.mikeandwan.photos.database.migrations.MIGRATION_9_10
+import us.mikeandwan.photos.database.migrations.ALL_MIGRATIONS
 import us.mikeandwan.photos.database.migrations.MawDatabaseCreateCallback
 
 @Module
@@ -47,22 +34,8 @@ object DatabaseModule {
                 MawDatabase.DATABASE_NAME,
             ).addCallback(MawDatabaseCreateCallback())
             .enableMultiInstanceInvalidation()
-            .addMigrations(
-                MIGRATION_1_2,
-                MIGRATION_2_3,
-                MIGRATION_3_4,
-                MIGRATION_4_5,
-                MIGRATION_5_6,
-                MIGRATION_6_7,
-                MIGRATION_7_8,
-                MIGRATION_8_9,
-                MIGRATION_9_10,
-                MIGRATION_10_11,
-                MIGRATION_11_12,
-                MIGRATION_12_13,
-                MIGRATION_13_14,
-                MIGRATION_14_15,
-            ).build()
+            .addMigrations(*ALL_MIGRATIONS)
+            .build()
 
     @Provides
     fun provideCategoryPreferenceDao(mawDatabase: MawDatabase): CategoryPreferenceDao =
