@@ -1,3 +1,5 @@
+package us.mikeandwan.photos
+
 import androidx.room.Room.databaseBuilder
 import androidx.room.testing.MigrationTestHelper
 import androidx.test.platform.app.InstrumentationRegistry
