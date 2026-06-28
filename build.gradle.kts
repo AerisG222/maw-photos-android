@@ -16,7 +16,7 @@ subprojects {
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
             target("**/*.kt")
-            targetExclude("${layout.buildDirectory}/**/*.kt")
+            targetExclude("**/build/**/*.kt")
             // Use ktlint version from the version catalog (gradle/libs.versions.toml)
             ktlint(libs.versions.ktlint.get())
             trimTrailingWhitespace()
@@ -26,7 +26,7 @@ subprojects {
 
         kotlinGradle {
             target("**/*.gradle.kts")
-            targetExclude("${layout.buildDirectory}/**/*.kt")
+            targetExclude("**/build/**/*.gradle.kts")
             // Use ktlint for Kotlin Gradle files with the catalog version as well
             ktlint(libs.versions.ktlint.get())
             trimTrailingWhitespace()

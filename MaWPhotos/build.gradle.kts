@@ -37,13 +37,13 @@ android {
     // https://developer.android.com/training/data-storage/room/migrating-db-versions#kotlin_2
     sourceSets {
         // Adds exported schema location as test app assets.
-        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+        getByName("androidTest").assets.directories.add("$projectDir/schemas")
     }
 
     signingConfigs {
-        val homedir = System.getProperty("user.home")
+        val homeDir = System.getProperty("user.home")
         val keystoreProperties = Properties()
-        keystoreProperties.load(FileInputStream("$homedir/.gradle/gradle.properties"))
+        keystoreProperties.load(FileInputStream("$homeDir/.gradle/gradle.properties"))
 
         create("release") {
             storeFile = file(keystoreProperties["RELEASE_STORE_FILE"] as String)
@@ -53,7 +53,7 @@ android {
         }
     }
 
-    flavorDimensions += listOf("dev_or_prod")
+    flavorDimensions += "dev_or_prod"
 
     productFlavors {
         create("development") {
@@ -80,7 +80,7 @@ android {
                 "proguard-maw.pro",
             )
 
-            // lets run manually for now - before running, ensure there is an authenticated session
+            // run manually for now - before running, ensure there is an authenticated session
             // baselineProfile.automaticGenerationDuringBuild = true
         }
     }
@@ -173,7 +173,6 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.jetbrains.coroutines.test)
 
-    androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.espresso)
@@ -181,7 +180,6 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.google.hilt.testing)
 }
 
 hilt {

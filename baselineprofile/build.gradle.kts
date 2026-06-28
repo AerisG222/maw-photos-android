@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.android.test)
     alias(libs.plugins.androidx.baselineprofile)
@@ -8,17 +6,6 @@ plugins {
 android {
     namespace = "us.mikeandwan.photos.baselineprofile"
     compileSdk = 37
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
 
     defaultConfig {
         minSdk = 26
@@ -30,11 +17,15 @@ android {
 
     targetProjectPath = ":MaWPhotos"
 
-    flavorDimensions += listOf("dev_or_prod")
+    flavorDimensions += "dev_or_prod"
     productFlavors {
         create("development") { dimension = "dev_or_prod" }
         create("production") { dimension = "dev_or_prod" }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 // This is the configuration block for the Baseline Profile plugin.
