@@ -1,6 +1,9 @@
 package us.mikeandwan.photos.ui
 
 import android.app.Activity
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -62,6 +65,8 @@ import us.mikeandwan.photos.ui.screens.settings.SettingsNavKey
 import us.mikeandwan.photos.ui.screens.settings.settings
 import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
 import us.mikeandwan.photos.ui.screens.upload.upload
+import us.mikeandwan.photos.ui.shared.ACCESS_LOCAL_NETWORK_PERMISSION
+import us.mikeandwan.photos.ui.shared.isLocalNetworkPermitted
 import us.mikeandwan.photos.ui.theme.MawPhotosTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -115,6 +120,19 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         val activity = context as? Activity
         vm.handleIntent(activity?.intent)
+    }
+
+    // ACCESS_LOCAL_NETWORK is a runtime permission (Local Network Protection, Android 16+).
+    // The app's backend resolves to a private LAN address on the home wifi (split-horizon DNS),
+    // so request it on launch — without it those connections are blocked.
+    val localNetworkLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { /* nothing further to do: a granted permission unblocks subsequent network calls */ }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 36 && !context.isLocalNetworkPermitted()) {
+            localNetworkLauncher.launch(ACCESS_LOCAL_NETWORK_PERMISSION)
+        }
     }
 
     LaunchedEffect(authStatus, userStatus, navigationState.topLevelRoute) {

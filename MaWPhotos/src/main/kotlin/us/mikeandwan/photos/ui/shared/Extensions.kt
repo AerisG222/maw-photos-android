@@ -62,3 +62,18 @@ fun Context.areNotificationsPermitted(): Boolean {
     }
     return true
 }
+
+// android.permission.ACCESS_LOCAL_NETWORK is a runtime permission introduced with Local Network
+// Protection in Android 16 (API 36). Referenced as a string literal so this compiles against the
+// minSdk = 26 surface without a NewApi guard on the constant itself.
+const val ACCESS_LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
+
+fun Context.isLocalNetworkPermitted(): Boolean {
+    if (Build.VERSION.SDK_INT >= 36) {
+        return ContextCompat.checkSelfPermission(
+            this,
+            ACCESS_LOCAL_NETWORK_PERMISSION,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    return true
+}

@@ -7,7 +7,8 @@
         addresses behind this permission. Both flavors need it: development reaches the dev
         backend / emulator host (10.0.2.2), and production reaches media.mikeandwan.us, which
         resolves to a private LAN IP (192.168.x.x) when on the home wifi via split-horizon DNS.
-        Requested at runtime in MainActivity (gated by Constants.REQUEST_LOCAL_NETWORK_PERMISSION).
+        This is a runtime permission: it is requested on app launch in MawPhotosApp via
+        isLocalNetworkPermitted() / ACCESS_LOCAL_NETWORK_PERMISSION.
     -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
