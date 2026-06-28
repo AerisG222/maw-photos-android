@@ -1,5 +1,11 @@
 # Release Notes
 
+## v9.6 : 06/28/2026
+
+- code cleanups and improvements (with help from claude)
+- regenerated baseline profile
+- update dependencies
+
 ## v9.5 : 04/26/2026
 - add support for showing category and year for photo in widget
 - update dependencies
