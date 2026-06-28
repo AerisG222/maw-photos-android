@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApkSigningConfig
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -101,15 +102,22 @@ room {
 }
 
 // The androidx.baselineprofile plugin derives the `benchmarkRelease` and `nonMinifiedRelease`
-// build types from `release`, so they inherit the release signing config. Re-sign them with the
-// debug key: this lets a developer log in once on the emulator using a debug build and then run
-// baseline profile generation (which installs nonMinifiedRelease) as a same-signature update,
-// preserving the stored Auth0 session instead of forcing an uninstall that wipes it.
+// build types from `release`, so they inherit the release signing config. Re-sign ONLY the
+// development flavor's baseline-profile variants with the debug key: this lets a developer log in
+// to a debug build and have generation install over it as a same-signature update, preserving the
+// stored Auth0 session. Production baseline-profile builds keep the release signing so they remain
+// install-compatible with the shipped release app instead of colliding with it (which would fail
+// with INSTALL_FAILED_UPDATE_INCOMPATIBLE).
 androidComponents {
+    lateinit var debugSigning: ApkSigningConfig
     finalizeDsl { ext ->
-        val debugSigning = ext.signingConfigs.getByName("debug")
-        listOf("benchmarkRelease", "nonMinifiedRelease").forEach { name ->
-            ext.buildTypes.findByName(name)?.signingConfig = debugSigning
+        debugSigning = ext.signingConfigs.getByName("debug")
+    }
+    onVariants { variant ->
+        val isBaselineBuildType =
+            variant.buildType == "nonMinifiedRelease" || variant.buildType == "benchmarkRelease"
+        if (variant.flavorName == "development" && isBaselineBuildType) {
+            variant.signingConfig.setConfig(debugSigning)
         }
     }
 }
