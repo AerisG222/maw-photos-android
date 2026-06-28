@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.datetime.LocalDate
 import us.mikeandwan.photos.R
@@ -108,7 +109,7 @@ private fun CategoryListItemPreview() {
             year = 2024,
             isFavorite = false,
             effectiveDate = LocalDate(2024, 1, 1),
-            modified = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+            modified = Instant.fromEpochMilliseconds(0),
             teaser = emptyList(),
             mediaTypes = listOf(MediaType.Photo, MediaType.Video),
         ),

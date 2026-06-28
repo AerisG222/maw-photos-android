@@ -82,6 +82,9 @@ class SettingsViewModel
                 errorRepository.isDeveloperMode,
                 errorRepository.developerLogs,
             ) { args: Array<Any?> ->
+                @Suppress("UNCHECKED_CAST")
+                val developerLogs = args[16] as List<DeveloperLog>
+
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
                     notificationDoVibrate = args[1] as Boolean,
@@ -105,7 +108,7 @@ class SettingsViewModel
                     searchShowMediaTypeIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
                         .showMediaTypeIndicator,
                     isDeveloperMode = args[15] as Boolean,
-                    developerLogs = args[16] as List<DeveloperLog>,
+                    developerLogs = developerLogs,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
