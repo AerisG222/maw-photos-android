@@ -85,11 +85,6 @@ android {
         }
     }
 
-    packaging {
-        resources {
-            excludes += listOf("META-INF/LICENSE", "META-INF/NOTICE")
-        }
-    }
 }
 
 kotlin {
