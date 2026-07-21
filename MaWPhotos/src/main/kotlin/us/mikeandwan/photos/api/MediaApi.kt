@@ -6,6 +6,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 internal interface MediaApi {
@@ -24,7 +25,7 @@ internal interface MediaApi {
         @Path("mediaId") mediaId: Uuid,
     ): Response<List<Comment>>
 
-    @POST("media/{mediaId}/favorite")
+    @PUT("media/{mediaId}/favorite")
     suspend fun setFavorite(
         @Path("mediaId") mediaId: Uuid,
         @Body favoriteRequest: FavoriteRequest,
