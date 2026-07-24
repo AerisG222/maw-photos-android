@@ -32,7 +32,7 @@ kotlinx-datetime = "0.8.0"
 ksp = "2.3.2"
 mockk = "1.14.11"
 
-auth0 = "4.0.0"
+auth0 = "4.0.1"
 coil = "3.5.0"
 flowext = "1.0.0"
 markdown = "0.43.0"
