@@ -26,7 +26,11 @@ fun RandomScreen(
         },
         uiState.thumbnailSize,
         onMediaClicked,
-        onToggleFavorite = { onToggleFavorite(it.data) },
+        onToggleFavorite = if (uiState.showFavoriteIndicator) {
+            { onToggleFavorite(it.data) }
+        } else {
+            null
+        },
     )
 
     MediaGrid(gridState, modifier = modifier)

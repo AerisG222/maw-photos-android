@@ -69,6 +69,7 @@ fun DbCategoryPreference.toDomainCategoryPreference(): CategoryPreference =
         displayType = displayType,
         gridThumbnailSize = gridThumbnailSize,
         showMediaTypeIndicator = showMediaTypeIndicator,
+        showFavoriteIndicator = showFavoriteIndicator,
     )
 
 fun DbNotificationPreference.toDomainNotificationPreference(): NotificationPreference =
@@ -82,6 +83,7 @@ fun DbMediaPreference.toDomainPhotoPreference(): MediaPreference =
         slideshowIntervalSeconds = slideshowIntervalSeconds,
         gridThumbnailSize = gridThumbnailSize,
         showMediaTypeIndicator = showMediaTypeIndicator,
+        showFavoriteIndicator = showFavoriteIndicator,
     )
 
 fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =
@@ -89,6 +91,7 @@ fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =
         slideshowIntervalSeconds = slideshowIntervalSeconds,
         gridThumbnailSize = gridThumbnailSize,
         showMediaTypeIndicator = showMediaTypeIndicator,
+        showFavoriteIndicator = showFavoriteIndicator,
         showWidgetInfo = showWidgetInfo,
     )
 
@@ -151,6 +154,7 @@ fun DbSearchPreference.toDomainSearchPreference(): SearchPreference =
         displayType = displayType,
         gridThumbnailSize = gridThumbnailSize,
         showMediaTypeIndicator = showMediaTypeIndicator,
+        showFavoriteIndicator = showFavoriteIndicator,
     )
 
 fun ApiResult.Error.isUnauthorized(): Boolean = errorCode == HttpURLConnection.HTTP_UNAUTHORIZED

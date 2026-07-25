@@ -6,4 +6,5 @@ data class SearchPreference(
     val displayType: CategoryDisplayType,
     val gridThumbnailSize: GridThumbnailSize,
     val showMediaTypeIndicator: Boolean,
+    val showFavoriteIndicator: Boolean,
 )

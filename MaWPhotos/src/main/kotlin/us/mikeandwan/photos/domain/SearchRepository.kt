@@ -42,6 +42,18 @@ class SearchRepository
         private val _activeSearchTerm = MutableStateFlow("")
         val activeSearchTerm = _activeSearchTerm.asStateFlow()
 
+        fun updateCategory(updated: Category) {
+            _searchResults.update { currentList ->
+                val index = currentList.indexOfFirst { it.id == updated.id }
+
+                if (index < 0) {
+                    currentList
+                } else {
+                    currentList.toMutableList().also { it[index] = updated }
+                }
+        }
+    }
+
         fun getSearchHistory() =
             searchHistoryDao
                 .getSearchTerms()

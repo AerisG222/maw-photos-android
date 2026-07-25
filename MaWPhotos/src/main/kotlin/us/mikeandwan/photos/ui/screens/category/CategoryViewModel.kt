@@ -26,6 +26,7 @@ data class CategoryUiState(
     val category: Category? = null,
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
     val gridItemThumbnailSize: GridThumbnailSize = GridThumbnailSize.Large,
+    val showFavoriteIndicator: Boolean = true,
     val isLoading: Boolean = true,
     val isError: Boolean = false,
 )
@@ -63,7 +64,8 @@ class CategoryViewModel
                 category,
                 gridItemsFlow,
                 gridItemThumbnailSizeFlow,
-            ) { category, gridItems, gridItemThumbnailSize ->
+                mediaPreferenceRepository.getMediaPreference(),
+            ) { category, gridItems, gridItemThumbnailSize, mediaPref ->
                 var isError = false
                 var isLoading = true
 
@@ -75,6 +77,7 @@ class CategoryViewModel
                     category = category,
                     gridItems = gridItems,
                     gridItemThumbnailSize = gridItemThumbnailSize,
+                    showFavoriteIndicator = mediaPref.showFavoriteIndicator,
                     isLoading = isLoading,
                     isError = isError,
                 )

@@ -24,7 +24,11 @@ fun CategoryScreen(
         gridItems = uiState.gridItems,
         thumbnailSize = uiState.gridItemThumbnailSize,
         onSelectGridItem = { onMediaClicked(it.data) },
-        onToggleFavorite = { onToggleFavorite(it.data) },
+        onToggleFavorite = if (uiState.showFavoriteIndicator) {
+            { onToggleFavorite(it.data) }
+        } else {
+            null
+        },
     )
 
     MediaGrid(gridState, modifier = modifier)

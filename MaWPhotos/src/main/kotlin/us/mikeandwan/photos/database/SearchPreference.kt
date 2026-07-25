@@ -13,4 +13,5 @@ data class SearchPreference(
     @ColumnInfo(name = "display_type") val displayType: CategoryDisplayType,
     @ColumnInfo(name = "grid_thumbnail_size") val gridThumbnailSize: GridThumbnailSize,
     @ColumnInfo(name = "show_media_type_indicator", defaultValue = "1") val showMediaTypeIndicator: Boolean,
+    @ColumnInfo(name = "show_favorite_indicator", defaultValue = "1") val showFavoriteIndicator: Boolean,
 )

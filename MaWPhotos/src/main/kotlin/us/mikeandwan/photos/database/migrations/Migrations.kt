@@ -21,4 +21,5 @@ val ALL_MIGRATIONS: Array<Migration> = arrayOf(
     MIGRATION_14_15,
     MIGRATION_15_16,
     MIGRATION_16_17,
+    MIGRATION_17_18,
 )

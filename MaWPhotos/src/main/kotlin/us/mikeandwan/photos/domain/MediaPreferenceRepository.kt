@@ -43,6 +43,10 @@ class MediaPreferenceRepository
             setPreference { it.copy(showMediaTypeIndicator = show) }
         }
 
+        suspend fun setShowFavoriteIndicator(show: Boolean) {
+            setPreference { it.copy(showFavoriteIndicator = show) }
+        }
+
         private fun getPhotoPreferences() =
             dao
                 .getPhotoPreference(PREFERENCE_ID)
@@ -54,6 +58,7 @@ class MediaPreferenceRepository
                 pref.slideshowIntervalSeconds,
                 pref.gridThumbnailSize,
                 pref.showMediaTypeIndicator,
+                pref.showFavoriteIndicator,
             )
 
             dao.setPhotoPreference(dbPref)

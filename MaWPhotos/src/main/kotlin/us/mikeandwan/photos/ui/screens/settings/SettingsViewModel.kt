@@ -30,17 +30,21 @@ data class SettingsUiState(
     val categoryDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val categoryThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val categoryShowMediaTypeIndicator: Boolean = true,
+    val categoryShowFavoriteIndicator: Boolean = true,
     val photoSlideshowInterval: Int = 3,
     val photoThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val photoShowMediaTypeIndicator: Boolean = true,
+    val photoShowFavoriteIndicator: Boolean = true,
     val randomSlideshowInterval: Int = 3,
     val randomThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val randomShowMediaTypeIndicator: Boolean = true,
+    val randomShowFavoriteIndicator: Boolean = true,
     val randomShowWidgetInfo: Boolean = true,
     val searchQueryCount: Int = 20,
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val searchShowMediaTypeIndicator: Boolean = true,
+    val searchShowFavoriteIndicator: Boolean = true,
     val isDeveloperMode: Boolean = false,
     val developerLogs: List<DeveloperLog> = emptyList(),
 )
@@ -92,14 +96,20 @@ class SettingsViewModel
                     categoryThumbnailSize = args[3] as GridThumbnailSize,
                     categoryShowMediaTypeIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference)
                         .showMediaTypeIndicator,
+                    categoryShowFavoriteIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference)
+                        .showFavoriteIndicator,
                     photoSlideshowInterval = args[5] as Int,
                     photoThumbnailSize = args[6] as GridThumbnailSize,
                     photoShowMediaTypeIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
                         .showMediaTypeIndicator,
+                    photoShowFavoriteIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
+                        .showFavoriteIndicator,
                     randomSlideshowInterval = args[8] as Int,
                     randomThumbnailSize = args[9] as GridThumbnailSize,
                     randomShowMediaTypeIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
                         .showMediaTypeIndicator,
+                    randomShowFavoriteIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
+                        .showFavoriteIndicator,
                     randomShowWidgetInfo = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
                         .showWidgetInfo,
                     searchQueryCount = args[11] as Int,
@@ -107,6 +117,8 @@ class SettingsViewModel
                     searchThumbnailSize = args[13] as GridThumbnailSize,
                     searchShowMediaTypeIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
                         .showMediaTypeIndicator,
+                    searchShowFavoriteIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
+                        .showFavoriteIndicator,
                     isDeveloperMode = args[15] as Boolean,
                     developerLogs = developerLogs,
                 )
@@ -145,6 +157,12 @@ class SettingsViewModel
             }
         }
 
+        fun setCategoryShowFavoriteIndicator(show: Boolean) {
+            viewModelScope.launch {
+                categoryPreferenceRepository.setShowFavoriteIndicator(show)
+            }
+        }
+
         fun setPhotoSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
                 mediaPreferenceRepository.setSlideshowIntervalSeconds(slideshowInterval)
@@ -163,6 +181,12 @@ class SettingsViewModel
             }
         }
 
+        fun setPhotoShowFavoriteIndicator(show: Boolean) {
+            viewModelScope.launch {
+                mediaPreferenceRepository.setShowFavoriteIndicator(show)
+        }
+    }
+
         fun setRandomSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
                 randomPreferenceRepository.setSlideshowIntervalSeconds(slideshowInterval)
@@ -180,6 +204,12 @@ class SettingsViewModel
                 randomPreferenceRepository.setShowMediaTypeIndicator(show)
             }
         }
+
+        fun setRandomShowFavoriteIndicator(show: Boolean) {
+            viewModelScope.launch {
+                randomPreferenceRepository.setShowFavoriteIndicator(show)
+        }
+    }
 
         fun setRandomShowWidgetInfo(
             show: Boolean,
@@ -214,6 +244,12 @@ class SettingsViewModel
                 searchPreferenceRepository.setShowMediaTypeIndicator(show)
             }
         }
+
+    fun setSearchShowFavoriteIndicator(show: Boolean) {
+        viewModelScope.launch {
+            searchPreferenceRepository.setShowFavoriteIndicator(show)
+        }
+    }
 
         fun toggleDeveloperMode(code: String) {
             if (errorRepository.toggleDeveloperMode(code)) {

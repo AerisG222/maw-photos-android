@@ -17,6 +17,7 @@ data class RandomUiState(
     val media: List<Media> = emptyList(),
     val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val showMediaTypeIndicator: Boolean = true,
+    val showFavoriteIndicator: Boolean = true,
 )
 
 @HiltViewModel
@@ -38,6 +39,7 @@ class RandomViewModel
                 media = media,
                 thumbnailSize = thumbSize,
                 showMediaTypeIndicator = randomPref.showMediaTypeIndicator,
+                showFavoriteIndicator = randomPref.showFavoriteIndicator,
             )
         }.stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState())
 

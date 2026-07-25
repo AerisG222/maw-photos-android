@@ -60,6 +60,7 @@ private fun SearchRoute(
         onNavigateToCategory = { category ->
             appActions.navigateToCategory(category.id)
         },
+        onToggleFavorite = { category -> vm.toggleFavorite(category) },
         onContinueSearch = { vm.continueSearch() },
     )
 }

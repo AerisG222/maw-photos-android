@@ -37,6 +37,7 @@ import us.mikeandwan.photos.ui.shared.toMediaGridItem
 fun SearchScreen(
     uiState: SearchUiState,
     onNavigateToCategory: (Category) -> Unit,
+    onToggleFavorite: (Category) -> Unit,
     onContinueSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -81,6 +82,11 @@ fun SearchScreen(
                         },
                         thumbnailSize = uiState.thumbnailSize,
                         onSelectGridItem = { onNavigateToCategory(it.data) },
+                        onToggleFavorite = if (uiState.showFavoriteIndicator) {
+                            { onToggleFavorite(it.data) }
+                        } else {
+                            null
+                        },
                     )
 
                     MediaGrid(gridState, modifier = modifier)
@@ -92,6 +98,7 @@ fun SearchScreen(
                         showYear = true,
                         onSelectCategory = onNavigateToCategory,
                         modifier = modifier,
+                        onToggleFavorite = onToggleFavorite.takeIf { uiState.showFavoriteIndicator },
                     )
                 }
             }
@@ -125,6 +132,7 @@ fun SearchScreenNoResultsPreview() {
     SearchScreen(
         uiState = SearchUiState(results = emptyList()),
         onNavigateToCategory = {},
+        onToggleFavorite = {},
         onContinueSearch = {},
     )
 }
@@ -152,6 +160,7 @@ fun SearchScreenResultsPreview() {
             displayType = CategoryDisplayType.Grid,
         ),
         onNavigateToCategory = {},
+        onToggleFavorite = {},
         onContinueSearch = {},
     )
 }

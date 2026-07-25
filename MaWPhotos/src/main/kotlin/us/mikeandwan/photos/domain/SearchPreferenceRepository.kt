@@ -53,6 +53,10 @@ class SearchPreferenceRepository
             setPreference { it.copy(showMediaTypeIndicator = show) }
         }
 
+        suspend fun setShowFavoriteIndicator(show: Boolean) {
+            setPreference { it.copy(showFavoriteIndicator = show) }
+        }
+
         private fun getSearchPreferences() =
             dao
                 .getSearchPreference(PREFERENCE_ID)
@@ -65,6 +69,7 @@ class SearchPreferenceRepository
                 pref.displayType,
                 pref.gridThumbnailSize,
                 pref.showMediaTypeIndicator,
+                pref.showFavoriteIndicator,
             )
 
             dao.setSearchPreference(dbPref)

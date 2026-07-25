@@ -40,7 +40,11 @@ fun CategoriesScreen(
         },
         thumbnailSize = uiState.preferences.gridThumbnailSize,
         onSelectGridItem = { onNavigateToCategory(it.data) },
-        onToggleFavorite = { onToggleFavorite(it.data) },
+        onToggleFavorite = if (uiState.preferences.showFavoriteIndicator) {
+            { onToggleFavorite(it.data) }
+        } else {
+            null
+        },
     )
 
     PullToRefreshBox(
@@ -59,7 +63,9 @@ fun CategoriesScreen(
                     categories = uiState.categories,
                     showYear = false,
                     onSelectCategory = onNavigateToCategory,
-                    onToggleFavorite = onToggleFavorite,
+                    onToggleFavorite = onToggleFavorite.takeIf {
+                        uiState.preferences.showFavoriteIndicator
+                    },
                 )
             }
         }
