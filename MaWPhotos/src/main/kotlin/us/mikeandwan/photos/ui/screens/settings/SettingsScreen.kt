@@ -111,7 +111,7 @@ fun SettingsScreen(
 
         // --- CATEGORIES ----
         Heading(stringId = R.string.pref_category_display_header)
-        MenuPreference(
+        SegmentedPreference(
             labelStringId = R.string.display_type,
             options = displayTypeList,
             selectedValue = uiState.categoryDisplayType.name,
@@ -119,7 +119,7 @@ fun SettingsScreen(
                 onCategoryDisplayTypeChange(enumValueOf(it))
             },
         )
-        MenuPreference(
+        SegmentedPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
             selectedValue = uiState.categoryThumbnailSize.name,
@@ -152,7 +152,7 @@ fun SettingsScreen(
                 onPhotoSlideshowIntervalChange(it.toInt())
             },
         )
-        MenuPreference(
+        SegmentedPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
             selectedValue = uiState.photoThumbnailSize.name,
@@ -185,7 +185,7 @@ fun SettingsScreen(
                 onRandomSlideshowIntervalChange(it.toInt())
             },
         )
-        MenuPreference(
+        SegmentedPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
             selectedValue = uiState.randomThumbnailSize.name,
@@ -223,7 +223,7 @@ fun SettingsScreen(
                 onSearchQueryCountChange(it.toInt())
             },
         )
-        MenuPreference(
+        SegmentedPreference(
             labelStringId = R.string.display_type,
             options = displayTypeList,
             selectedValue = uiState.searchDisplayType.name,
@@ -231,7 +231,7 @@ fun SettingsScreen(
                 onSearchDisplayTypeChange(enumValueOf(it))
             },
         )
-        MenuPreference(
+        SegmentedPreference(
             labelStringId = R.string.grid_thumbnail_size,
             options = thumbnailSizeList,
             selectedValue = uiState.searchThumbnailSize.name,

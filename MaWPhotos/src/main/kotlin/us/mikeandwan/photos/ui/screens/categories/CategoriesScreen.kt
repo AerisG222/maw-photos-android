@@ -10,8 +10,9 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
-import us.mikeandwan.photos.ui.components.loading.Loading
+import us.mikeandwan.photos.ui.components.categorylist.CategoryListSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
+import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
@@ -25,7 +26,19 @@ fun CategoriesScreen(
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
-        Loading()
+        when (uiState.preferences.displayType) {
+            CategoryDisplayType.Grid -> {
+                MediaGridSkeleton(
+                    thumbnailSize = uiState.preferences.gridThumbnailSize,
+                    modifier = modifier,
+                )
+            }
+
+            CategoryDisplayType.List -> {
+                CategoryListSkeleton(modifier = modifier)
+            }
+        }
+
         return
     }
 

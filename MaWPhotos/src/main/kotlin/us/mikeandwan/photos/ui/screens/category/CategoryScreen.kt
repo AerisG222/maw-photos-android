@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.ui.components.loading.Loading
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
+import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
 
 @Composable
@@ -16,7 +16,11 @@ fun CategoryScreen(
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
-        Loading()
+        MediaGridSkeleton(
+            thumbnailSize = uiState.gridItemThumbnailSize,
+            modifier = modifier,
+        )
+
         return
     }
 
