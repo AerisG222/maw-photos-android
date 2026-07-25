@@ -12,6 +12,7 @@ import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
 fun CategoryScreen(
     uiState: CategoryUiState,
     onMediaClicked: (Media) -> Unit,
+    onToggleFavorite: (Media) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
@@ -23,6 +24,7 @@ fun CategoryScreen(
         gridItems = uiState.gridItems,
         thumbnailSize = uiState.gridItemThumbnailSize,
         onSelectGridItem = { onMediaClicked(it.data) },
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     MediaGrid(gridState, modifier = modifier)
@@ -34,6 +36,7 @@ fun CategoryScreenPreview() {
     CategoryScreen(
         uiState = CategoryUiState(isLoading = false),
         onMediaClicked = {},
+        onToggleFavorite = {},
     )
 }
 
@@ -43,5 +46,6 @@ fun CategoryScreenLoadingPreview() {
     CategoryScreen(
         uiState = CategoryUiState(isLoading = true),
         onMediaClicked = {},
+        onToggleFavorite = {},
     )
 }

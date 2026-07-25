@@ -14,6 +14,7 @@ import us.mikeandwan.photos.ui.shared.toMediaGridItem
 fun RandomScreen(
     uiState: RandomUiState,
     onMediaClicked: (MediaGridItem<Media>) -> Unit,
+    onToggleFavorite: (Media) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val gridState = rememberMediaGridState(
@@ -25,6 +26,7 @@ fun RandomScreen(
         },
         uiState.thumbnailSize,
         onMediaClicked,
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     MediaGrid(gridState, modifier = modifier)
@@ -36,5 +38,6 @@ fun RandomScreenPreview() {
     RandomScreen(
         uiState = RandomUiState(),
         onMediaClicked = {},
+        onToggleFavorite = {},
     )
 }

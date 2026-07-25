@@ -15,6 +15,7 @@ fun CategoryList(
     showYear: Boolean,
     onSelectCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
+    onToggleFavorite: ((Category) -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -24,9 +25,10 @@ fun CategoryList(
             key = { _, item -> item.id },
         ) { index, category ->
             CategoryListItem(
-                category,
-                showYear,
-                onSelectCategory,
+                category = category,
+                showYear = showYear,
+                onSelectCategory = onSelectCategory,
+                onToggleFavorite = onToggleFavorite,
             )
 
             if (index != categories.size - 1) {

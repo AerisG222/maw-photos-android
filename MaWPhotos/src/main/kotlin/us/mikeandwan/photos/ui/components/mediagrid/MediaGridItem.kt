@@ -8,4 +8,5 @@ data class MediaGridItem<T>(
     val url: String,
     val mediaTypes: List<MediaType>,
     val data: T,
+    val isFavorite: Boolean = false,
 )

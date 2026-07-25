@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,6 +30,7 @@ fun <T> MediaGridImage(
     size: Dp,
     onSelectImage: (MediaGridItem<T>) -> Unit,
     modifier: Modifier = Modifier,
+    onToggleFavorite: ((MediaGridItem<T>) -> Unit)? = null,
 ) {
     Box(
         modifier = modifier
@@ -51,7 +53,8 @@ fun <T> MediaGridImage(
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                     shape = CircleShape,
-                ).padding(end = 4.dp)
+                )
+                .padding(end = 4.dp)
                 .alpha(0.7f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -81,6 +84,38 @@ fun <T> MediaGridImage(
                 )
             }
         }
+
+        if (onToggleFavorite != null) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(2.dp)
+                    .clip(CircleShape)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                        shape = CircleShape,
+                    ).clickable { onToggleFavorite(item) }
+                    .alpha(if (item.isFavorite) 1f else 0.7f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(
+                        id = if (item.isFavorite) {
+                            R.drawable.ic_favorite
+                        } else {
+                            R.drawable.ic_favorite_border
+                        },
+                    ),
+                    contentDescription = stringResource(
+                        id = R.string.toggle_favorite_icon_description,
+                    ),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .size(16.dp),
+                )
+            }
+        }
     }
 }
 
@@ -96,5 +131,22 @@ private fun MediaGridImagePreview() {
         ),
         size = 120.dp,
         onSelectImage = {},
+    )
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun MediaGridImageFavoritePreview() {
+    MediaGridImage(
+        item = MediaGridItem(
+            id = kotlin.uuid.Uuid.random(),
+            url = "",
+            mediaTypes = listOf(MediaType.Photo, MediaType.Video),
+            data = Unit,
+            isFavorite = true,
+        ),
+        size = 120.dp,
+        onSelectImage = {},
+        onToggleFavorite = {},
     )
 }

@@ -46,6 +46,8 @@ class CategoryRepository
                 "Unable to load categories at this time.  Please try again later."
             private const val ERR_MSG_LOAD_MEDIA =
                 "Unable to load media for the category at this time.  Please try again later."
+            private const val ERR_MSG_SET_FAVORITE =
+                "Unable to update the favorite at this time.  Please try again later."
         }
 
         private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -182,6 +184,31 @@ class CategoryRepository
                 emitAll(cat)
             }
 
+        override fun setFavorite(
+            categoryId: Uuid,
+            isFavorite: Boolean,
+        ) = flow {
+            emit(ExternalCallStatus.Loading)
+
+            when (val result = api.setFavorite(categoryId, isFavorite)) {
+                is ApiResult.Error -> {
+                    emit(apiErrorHandler.handleError(result, ERR_MSG_SET_FAVORITE))
+                }
+
+                is ApiResult.Empty -> {
+                    emit(apiErrorHandler.handleEmpty(result, ERR_MSG_SET_FAVORITE))
+                }
+
+                is ApiResult.Success -> {
+                    val category = result.result
+
+                    catDao.setIsFavorite(category.id, category.isFavorite)
+
+                    emit(ExternalCallStatus.Success(category.toDomainCategory()))
+            }
+        }
+    }
+
         fun loadYears(errorMessage: String?) =
             flow {
                 emit(ExternalCallStatus.Loading)
@@ -308,6 +335,8 @@ class CategoryRepository
                 }
             }
         }
+
+    fun getCachedMedia(categoryId: Uuid): List<Media>? = cachedCategoryMedia[categoryId]
 
         fun tryUpdateCache(media: Media) {
             val mediaList = cachedCategoryMedia[media.categoryId]

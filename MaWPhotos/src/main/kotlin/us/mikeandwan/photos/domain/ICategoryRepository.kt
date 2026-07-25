@@ -18,4 +18,9 @@ interface ICategoryRepository {
     fun getCategory(categoryId: Uuid): Flow<Category?>
 
     fun getMedia(categoryId: Uuid): Flow<ExternalCallStatus<List<Media>>>
+
+    fun setFavorite(
+        categoryId: Uuid,
+        isFavorite: Boolean,
+    ): Flow<ExternalCallStatus<Category>>
 }

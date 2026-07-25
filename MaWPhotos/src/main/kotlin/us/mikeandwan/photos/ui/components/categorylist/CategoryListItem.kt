@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ fun CategoryListItem(
     showYear: Boolean,
     onSelectCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
+    onToggleFavorite: ((Category) -> Unit)? = null,
 ) {
     @Composable
     fun getMediaTypeIconAlpha(hasType: Boolean): Float =
@@ -96,6 +98,27 @@ fun CategoryListItem(
                 .padding(8.dp)
                 .weight(1f),
         )
+
+        if (onToggleFavorite != null) {
+            IconButton(onClick = { onToggleFavorite(category) }) {
+                Icon(
+                    painter = painterResource(
+                        id = if (category.isFavorite) {
+                            R.drawable.ic_favorite
+                        } else {
+                            R.drawable.ic_favorite_border
+                        },
+                    ),
+                    contentDescription = stringResource(
+                        id = R.string.toggle_favorite_icon_description,
+                    ),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .alpha(if (category.isFavorite) 1f else 0.7f),
+                )
+            }
+        }
     }
 }
 
@@ -115,5 +138,6 @@ private fun CategoryListItemPreview() {
         ),
         showYear = true,
         onSelectCategory = {},
+        onToggleFavorite = {},
     )
 }

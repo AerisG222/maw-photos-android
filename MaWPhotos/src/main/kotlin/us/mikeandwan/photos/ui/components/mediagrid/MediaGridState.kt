@@ -11,6 +11,8 @@ data class MediaGridState<T>(
     val gridItems: List<MediaGridItem<T>>,
     val thumbnailSize: GridThumbnailSize,
     val onSelectGridItem: (MediaGridItem<T>) -> Unit,
+    // when null, items do not show the favorite badge
+    val onToggleFavorite: ((MediaGridItem<T>) -> Unit)? = null,
 ) {
     val size: Dp
         get() = getSize(thumbnailSize)
@@ -21,11 +23,13 @@ fun <T> rememberMediaGridState(
     gridItems: List<MediaGridItem<T>> = emptyList(),
     thumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
     onSelectGridItem: (MediaGridItem<T>) -> Unit = {},
+    onToggleFavorite: ((MediaGridItem<T>) -> Unit)? = null,
 ): MediaGridState<T> =
-    remember(gridItems, thumbnailSize, onSelectGridItem) {
+    remember(gridItems, thumbnailSize, onSelectGridItem, onToggleFavorite) {
         MediaGridState(
             gridItems,
             thumbnailSize,
             onSelectGridItem,
+            onToggleFavorite,
         )
     }

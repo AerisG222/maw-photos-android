@@ -41,6 +41,18 @@ abstract class CategoryDao {
     )
     abstract fun getMostRecentModifiedDate(): Flow<Instant?>
 
+    @Query(
+        """
+        UPDATE category
+        SET is_favorite = :isFavorite
+        WHERE id = :id
+    """,
+    )
+    abstract suspend fun setIsFavorite(
+        id: Uuid,
+        isFavorite: Boolean,
+    )
+
     @Upsert
     abstract suspend fun upsertCategories(categories: List<Category>)
 

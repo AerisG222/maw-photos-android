@@ -12,11 +12,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
@@ -34,6 +36,7 @@ class CategoryViewModel
     constructor(
         categoryRepository: CategoryRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
+        private val mediaFavoriteService: MediaFavoriteService,
     ) : BaseCategoryViewModel(categoryRepository) {
         private val _uiState = MutableStateFlow(CategoryUiState())
         val uiState = _uiState.asStateFlow()
@@ -84,4 +87,12 @@ class CategoryViewModel
             loadCategory(categoryId)
             loadMedia(categoryId)
         }
+
+        fun toggleFavorite(media: Media) {
+            viewModelScope.launch {
+                val isFavorite = mediaFavoriteService.setIsFavorite(media, !media.isFavorite)
+
+                updateMedia(media.copy(isFavorite = isFavorite))
+            }
+    }
     }

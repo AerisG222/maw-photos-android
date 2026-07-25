@@ -8,6 +8,7 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaRepository
+import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.services.MediaCommentService
 import us.mikeandwan.photos.domain.services.MediaExifService
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
@@ -34,6 +35,7 @@ object ViewModelModule {
     @ViewModelScoped
     fun provideMediaListService(
         categoryRepository: CategoryRepository,
+        randomMediaRepository: RandomMediaRepository,
         fileRepository: FileStorageRepository,
         mediaFavoriteService: MediaFavoriteService,
         mediaCommentService: MediaCommentService,
@@ -41,6 +43,7 @@ object ViewModelModule {
     ): MediaListService =
         MediaListService(
             categoryRepository,
+            randomMediaRepository,
             fileRepository,
             mediaFavoriteService,
             mediaCommentService,

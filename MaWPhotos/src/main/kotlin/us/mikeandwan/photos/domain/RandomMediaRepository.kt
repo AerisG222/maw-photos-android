@@ -66,6 +66,18 @@ class RandomMediaRepository
             _media.update { emptyList() }
         }
 
+        fun updateMedia(updated: Media) {
+            _media.update { currentList ->
+                val index = currentList.indexOfFirst { it.id == updated.id }
+
+                if (index < 0) {
+                    currentList
+                } else {
+                    currentList.toMutableList().also { it[index] = updated }
+                }
+        }
+    }
+
         init {
             periodicJob = PeriodicJob(
                 false,

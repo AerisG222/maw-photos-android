@@ -21,6 +21,7 @@ fun CategoriesScreen(
     uiState: CategoriesUiState,
     onRefresh: () -> Unit,
     onNavigateToCategory: (Category) -> Unit,
+    onToggleFavorite: (Category) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
@@ -39,6 +40,7 @@ fun CategoriesScreen(
         },
         thumbnailSize = uiState.preferences.gridThumbnailSize,
         onSelectGridItem = { onNavigateToCategory(it.data) },
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     PullToRefreshBox(
@@ -57,6 +59,7 @@ fun CategoriesScreen(
                     categories = uiState.categories,
                     showYear = false,
                     onSelectCategory = onNavigateToCategory,
+                    onToggleFavorite = onToggleFavorite,
                 )
             }
 
@@ -72,6 +75,7 @@ fun CategoriesScreenPreview() {
         uiState = CategoriesUiState(isLoading = false),
         onRefresh = {},
         onNavigateToCategory = {},
+        onToggleFavorite = {},
     )
 }
 
@@ -82,5 +86,6 @@ fun CategoriesScreenLoadingPreview() {
         uiState = CategoriesUiState(isLoading = true),
         onRefresh = {},
         onNavigateToCategory = {},
+        onToggleFavorite = {},
     )
 }

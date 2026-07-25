@@ -21,6 +21,7 @@ fun Media.toMediaGridItem(
         this.findTeaserImage(useLargeTeaser).path,
         if (showMediaTypeIndicator) listOf(this.type) else emptyList(),
         this,
+        this.isFavorite,
     )
 
 val preferredMediaScales = arrayOf("qhd", "full-hd", "nhd", "qvg")
@@ -44,6 +45,7 @@ fun Category.toMediaGridItem(
         this.findTeaserImage(useLargeTeaser).path,
         if (showMediaTypeIndicator) this.mediaTypes else emptyList(),
         this,
+        this.isFavorite,
     )
 
 fun <T> ApiResult<T>.toExternalCallStatus(): ExternalCallStatus<T> =

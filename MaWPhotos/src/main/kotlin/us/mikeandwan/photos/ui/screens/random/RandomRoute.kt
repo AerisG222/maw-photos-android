@@ -49,5 +49,6 @@ private fun RandomRoute(vm: RandomViewModel = hiltViewModel()) {
     RandomScreen(
         uiState = uiState,
         onMediaClicked = { appActions.navigateToRandomItem(it.id) },
+        onToggleFavorite = { media -> vm.toggleFavorite(media) },
     )
 }

@@ -108,6 +108,15 @@ class CategoriesViewModel
             _year.update { year }
         }
 
+        fun toggleFavorite(category: Category) {
+            viewModelScope.launch {
+                categoryRepository
+                    .setFavorite(category.id, !category.isFavorite)
+                    .catch { e -> Timber.e(e) }
+                    .collect { }
+            }
+    }
+
         fun refreshCategories() {
             viewModelScope.launch {
                 categoryRepository

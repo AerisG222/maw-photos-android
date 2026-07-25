@@ -22,6 +22,7 @@ import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.PeriodicJob
+import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.Media
@@ -85,6 +86,7 @@ class MediaListService
     @Inject
     constructor(
         private val categoryRepository: CategoryRepository,
+        private val randomMediaRepository: RandomMediaRepository,
         private val fileRepository: FileStorageRepository,
         private val mediaFavoriteService: MediaFavoriteService,
         private val mediaCommentService: MediaCommentService,
@@ -239,7 +241,12 @@ class MediaListService
                     ) {
                         val updatedItem = currentMedia.copy(isFavorite = resultIsFav)
                         updatedMedia[currentIndex] = updatedItem
+
+                        // keep the lists backing the grids in sync so the favorite badge there
+                        // reflects what was just toggled in the pager
                         categoryRepository.tryUpdateCache(updatedItem)
+                        randomMediaRepository.updateMedia(updatedItem)
+
                         updatedMedia
                     } else {
                         currentMediaList

@@ -36,6 +36,20 @@ class CategoryApiClient
                 },
             )
 
+        suspend fun setFavorite(
+            categoryId: Uuid,
+            isFavorite: Boolean,
+        ): ApiResult<Category> {
+            val req = FavoriteRequest(isFavorite)
+
+            return makeApiCall(
+                ::setFavorite.name,
+                suspend {
+                    _categoryApi.setFavorite(categoryId, req)
+                },
+        )
+    }
+
         suspend fun getMediaForCategory(categoryId: Uuid): ApiResult<List<Media>> =
             makeApiCall(
                 ::getMediaForCategory.name,

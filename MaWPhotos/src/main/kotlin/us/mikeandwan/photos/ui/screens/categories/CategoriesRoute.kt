@@ -61,5 +61,6 @@ private fun CategoriesRoute(
         uiState = uiState,
         onRefresh = { vm.refreshCategories() },
         onNavigateToCategory = { appActions.navigateToCategory(it.id) },
+        onToggleFavorite = { vm.toggleFavorite(it) },
     )
 }

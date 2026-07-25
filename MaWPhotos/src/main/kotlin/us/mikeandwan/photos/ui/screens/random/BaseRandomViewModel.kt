@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.RandomMediaRepository
 
 abstract class BaseRandomViewModel(
-    private val randomMediaRepository: RandomMediaRepository,
+    protected val randomMediaRepository: RandomMediaRepository,
 ) : ViewModel() {
     // todo: allow videos in random area?
     val media = randomMediaRepository.media

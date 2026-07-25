@@ -35,6 +35,20 @@ abstract class BaseCategoryViewModel(
         _media.update { emptyList() }
     }
 
+    protected fun updateMedia(updated: Media) {
+        _media.update { currentList ->
+            val index = currentList.indexOfFirst { it.id == updated.id }
+
+            if (index < 0) {
+                currentList
+            } else {
+                currentList.toMutableList().also { it[index] = updated }
+            }
+        }
+
+        categoryRepository.tryUpdateCache(updated)
+    }
+
     fun loadCategory(categoryId: Uuid) {
         if (category.value?.id == categoryId) {
             return
@@ -57,6 +71,11 @@ abstract class BaseCategoryViewModel(
 
     fun loadMedia(categoryId: Uuid) {
         if (category.value?.id == categoryId && media.value.isNotEmpty()) {
+            // already loaded, but pick up any changes (i.e. favorites toggled in the pager)
+            categoryRepository.getCachedMedia(categoryId)?.let { cached ->
+                _media.update { cached }
+            }
+
             return
         }
 

@@ -68,5 +68,6 @@ private fun CategoryRoute(
         onMediaClicked = { media ->
             appActions.navigateToCategoryItem(media.categoryId, media.id)
         },
+        onToggleFavorite = { media -> vm.toggleFavorite(media) },
     )
 }

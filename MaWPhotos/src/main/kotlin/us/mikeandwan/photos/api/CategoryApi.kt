@@ -3,7 +3,9 @@ package us.mikeandwan.photos.api
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -20,6 +22,12 @@ internal interface CategoryApi {
     suspend fun getCategory(
         @Path("categoryId") categoryId: Uuid,
     ): Response<Category?>
+
+    @PUT("categories/{categoryId}/favorite")
+    suspend fun setFavorite(
+        @Path("categoryId") categoryId: Uuid,
+        @Body favoriteRequest: FavoriteRequest,
+    ): Response<Category>
 
     @GET("categories/{categoryId}/media")
     suspend fun getMediaForCategory(

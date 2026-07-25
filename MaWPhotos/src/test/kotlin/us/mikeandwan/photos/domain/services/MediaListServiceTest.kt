@@ -4,6 +4,8 @@ import android.graphics.drawable.Drawable
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import java.io.File
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -13,14 +15,14 @@ import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
+import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaType
-import kotlin.uuid.Uuid
-import java.io.File
 
 class MediaListServiceTest {
 
     private lateinit var categoryRepository: CategoryRepository
+    private lateinit var randomMediaRepository: RandomMediaRepository
     private lateinit var fileRepository: FileStorageRepository
     private lateinit var mediaFavoriteService: MediaFavoriteService
     private lateinit var mediaCommentService: MediaCommentService
@@ -30,6 +32,7 @@ class MediaListServiceTest {
     @Before
     fun setUp() {
         categoryRepository = mockk(relaxed = true)
+        randomMediaRepository = mockk(relaxed = true)
         fileRepository = mockk()
         mediaFavoriteService = mockk(relaxed = true)
         mediaCommentService = mockk(relaxed = true)
@@ -37,10 +40,11 @@ class MediaListServiceTest {
 
         service = MediaListService(
             categoryRepository,
+            randomMediaRepository,
             fileRepository,
             mediaFavoriteService,
             mediaCommentService,
-            mediaExifService
+            mediaExifService,
         )
     }
 
