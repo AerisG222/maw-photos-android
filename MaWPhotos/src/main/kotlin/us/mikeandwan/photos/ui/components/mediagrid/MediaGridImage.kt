@@ -1,7 +1,13 @@
 package us.mikeandwan.photos.ui.components.mediagrid
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -11,11 +17,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -23,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.MediaType
+import us.mikeandwan.photos.ui.components.favorite.FavoriteIcon
+
+private const val PRESSED_SCALE = 0.94f
 
 @Composable
 fun <T> MediaGridImage(
@@ -32,10 +46,29 @@ fun <T> MediaGridImage(
     modifier: Modifier = Modifier,
     onToggleFavorite: ((MediaGridItem<T>) -> Unit)? = null,
 ) {
+    val haptics = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) PRESSED_SCALE else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "gridItemPressScale",
+    )
+
     Box(
         modifier = modifier
             .height(size)
-            .clickable { onSelectImage(item) },
+            .graphicsLayer {
+                scaleX = pressScale
+                scaleY = pressScale
+            }.clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+            ) { onSelectImage(item) },
     ) {
         AsyncImage(
             model = item.url,
@@ -53,7 +86,8 @@ fun <T> MediaGridImage(
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                     shape = CircleShape,
-                ).padding(end = 4.dp)
+                )
+                .padding(end = 4.dp)
                 .alpha(0.7f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -93,22 +127,21 @@ fun <T> MediaGridImage(
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                         shape = CircleShape,
-                    ).clickable { onToggleFavorite(item) }
-                    .alpha(if (item.isFavorite) 1f else 0.7f),
+                    )
+                    .clickable {
+                        haptics.performHapticFeedback(
+                            if (item.isFavorite) {
+                                HapticFeedbackType.ToggleOff
+                            } else {
+                                HapticFeedbackType.ToggleOn
+                            },
+                        )
+                        onToggleFavorite(item)
+                    },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    painter = painterResource(
-                        id = if (item.isFavorite) {
-                            R.drawable.ic_favorite
-                        } else {
-                            R.drawable.ic_favorite_border
-                        },
-                    ),
-                    contentDescription = stringResource(
-                        id = R.string.toggle_favorite_icon_description,
-                    ),
-                    tint = MaterialTheme.colorScheme.primary,
+                FavoriteIcon(
+                    isFavorite = item.isFavorite,
                     modifier = Modifier
                         .padding(6.dp)
                         .size(16.dp),

@@ -37,7 +37,9 @@ fun <T> MediaGrid(
                 size = state.size,
                 onSelectImage = { item -> state.onSelectGridItem(item) },
                 onToggleFavorite = state.onToggleFavorite,
-                modifier = Modifier.testTag(MEDIA_GRID_ITEM_TAG),
+                modifier = Modifier
+                    .testTag(MEDIA_GRID_ITEM_TAG)
+                    .animateItem(),
             )
         }
     }

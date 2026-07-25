@@ -51,8 +51,8 @@ class SearchRepository
                 } else {
                     currentList.toMutableList().also { it[index] = updated }
                 }
+            }
         }
-    }
 
         fun getSearchHistory() =
             searchHistoryDao

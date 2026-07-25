@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.ui.components.categorylist
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -24,15 +25,17 @@ fun CategoryList(
             categories,
             key = { _, item -> item.id },
         ) { index, category ->
-            CategoryListItem(
-                category = category,
-                showYear = showYear,
-                onSelectCategory = onSelectCategory,
-                onToggleFavorite = onToggleFavorite,
-            )
+            Column(modifier = Modifier.animateItem()) {
+                CategoryListItem(
+                    category = category,
+                    showYear = showYear,
+                    onSelectCategory = onSelectCategory,
+                    onToggleFavorite = onToggleFavorite,
+                )
 
-            if (index != categories.size - 1) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.inverseOnSurface)
+                if (index != categories.size - 1) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.inverseOnSurface)
+                }
             }
         }
     }

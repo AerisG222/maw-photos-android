@@ -84,8 +84,8 @@ class SearchViewModel
                     .filterIsInstance<ExternalCallStatus.Success<Category>>()
                     .catch { e -> Timber.e(e) }
                     .collect { searchRepository.updateCategory(it.result) }
+            }
         }
-    }
 
         fun continueSearch() {
             viewModelScope.launch {

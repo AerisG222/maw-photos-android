@@ -184,8 +184,8 @@ class SettingsViewModel
         fun setPhotoShowFavoriteIndicator(show: Boolean) {
             viewModelScope.launch {
                 mediaPreferenceRepository.setShowFavoriteIndicator(show)
+            }
         }
-    }
 
         fun setRandomSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
@@ -208,8 +208,8 @@ class SettingsViewModel
         fun setRandomShowFavoriteIndicator(show: Boolean) {
             viewModelScope.launch {
                 randomPreferenceRepository.setShowFavoriteIndicator(show)
+            }
         }
-    }
 
         fun setRandomShowWidgetInfo(
             show: Boolean,
@@ -245,11 +245,11 @@ class SettingsViewModel
             }
         }
 
-    fun setSearchShowFavoriteIndicator(show: Boolean) {
-        viewModelScope.launch {
-            searchPreferenceRepository.setShowFavoriteIndicator(show)
+        fun setSearchShowFavoriteIndicator(show: Boolean) {
+            viewModelScope.launch {
+                searchPreferenceRepository.setShowFavoriteIndicator(show)
+            }
         }
-    }
 
         fun toggleDeveloperMode(code: String) {
             if (errorRepository.toggleDeveloperMode(code)) {

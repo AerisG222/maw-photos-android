@@ -15,7 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -27,6 +29,7 @@ import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.MediaType
+import us.mikeandwan.photos.ui.components.favorite.FavoriteIcon
 
 @Composable
 fun CategoryListItem(
@@ -36,6 +39,8 @@ fun CategoryListItem(
     modifier: Modifier = Modifier,
     onToggleFavorite: ((Category) -> Unit)? = null,
 ) {
+    val haptics = LocalHapticFeedback.current
+
     @Composable
     fun getMediaTypeIconAlpha(hasType: Boolean): Float =
         if (hasType) {
@@ -100,22 +105,17 @@ fun CategoryListItem(
         )
 
         if (onToggleFavorite != null) {
-            IconButton(onClick = { onToggleFavorite(category) }) {
-                Icon(
-                    painter = painterResource(
-                        id = if (category.isFavorite) {
-                            R.drawable.ic_favorite
-                        } else {
-                            R.drawable.ic_favorite_border
-                        },
-                    ),
-                    contentDescription = stringResource(
-                        id = R.string.toggle_favorite_icon_description,
-                    ),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .alpha(if (category.isFavorite) 1f else 0.7f),
+            IconButton(
+                onClick = {
+                    haptics.performHapticFeedback(
+                        if (category.isFavorite) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn,
+                    )
+                    onToggleFavorite(category)
+                },
+            ) {
+                FavoriteIcon(
+                    isFavorite = category.isFavorite,
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
