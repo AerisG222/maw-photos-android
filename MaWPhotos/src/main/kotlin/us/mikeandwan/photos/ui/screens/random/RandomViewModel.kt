@@ -47,7 +47,7 @@ class RandomViewModel
 
                 randomMediaRepository.updateMedia(media.copy(isFavorite = isFavorite))
             }
-    }
+        }
 
         fun initialFetch(count: Int) {
             // prevent fetching a new full amount after navigating between item and list views

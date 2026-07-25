@@ -62,8 +62,6 @@ fun CategoriesScreen(
                     onToggleFavorite = onToggleFavorite,
                 )
             }
-
-            else -> {}
         }
     }
 }

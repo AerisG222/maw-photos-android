@@ -21,7 +21,7 @@ data class MediaGridState<T>(
 @Composable
 fun <T> rememberMediaGridState(
     gridItems: List<MediaGridItem<T>> = emptyList(),
-    thumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
+    thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     onSelectGridItem: (MediaGridItem<T>) -> Unit = {},
     onToggleFavorite: ((MediaGridItem<T>) -> Unit)? = null,
 ): MediaGridState<T> =

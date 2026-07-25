@@ -21,7 +21,7 @@ import us.mikeandwan.photos.domain.models.SearchSource
 data class SearchUiState(
     val results: List<Category> = emptyList(),
     val hasMore: Boolean = false,
-    val displayType: CategoryDisplayType = CategoryDisplayType.Unspecified,
+    val displayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val showMediaTypeIndicator: Boolean = true,
     val activeTerm: String = "",

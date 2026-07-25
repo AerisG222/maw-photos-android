@@ -25,7 +25,7 @@ import us.mikeandwan.photos.ui.shared.toMediaGridItem
 data class CategoryUiState(
     val category: Category? = null,
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
-    val gridItemThumbnailSize: GridThumbnailSize = GridThumbnailSize.Unspecified,
+    val gridItemThumbnailSize: GridThumbnailSize = GridThumbnailSize.Large,
     val isLoading: Boolean = true,
     val isError: Boolean = false,
 )
@@ -44,7 +44,7 @@ class CategoryViewModel
         init {
             val gridItemThumbnailSizeFlow = mediaPreferenceRepository
                 .getPhotoGridItemSize()
-                .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Unspecified)
+                .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
 
             val gridItemsFlow = combine(
                 media,
@@ -94,5 +94,5 @@ class CategoryViewModel
 
                 updateMedia(media.copy(isFavorite = isFavorite))
             }
-    }
+        }
     }

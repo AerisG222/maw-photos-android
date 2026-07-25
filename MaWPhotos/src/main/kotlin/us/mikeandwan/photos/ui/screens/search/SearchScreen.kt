@@ -94,8 +94,6 @@ fun SearchScreen(
                         modifier = modifier,
                     )
                 }
-
-                else -> {}
             }
         }
 

@@ -75,8 +75,8 @@ class RandomMediaRepository
                 } else {
                     currentList.toMutableList().also { it[index] = updated }
                 }
+            }
         }
-    }
 
         init {
             periodicJob = PeriodicJob(

@@ -115,7 +115,7 @@ class CategoriesViewModel
                     .catch { e -> Timber.e(e) }
                     .collect { }
             }
-    }
+        }
 
         fun refreshCategories() {
             viewModelScope.launch {

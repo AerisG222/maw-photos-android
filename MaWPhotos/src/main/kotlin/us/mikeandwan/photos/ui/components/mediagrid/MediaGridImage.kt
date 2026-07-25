@@ -53,8 +53,7 @@ fun <T> MediaGridImage(
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                     shape = CircleShape,
-                )
-                .padding(end = 4.dp)
+                ).padding(end = 4.dp)
                 .alpha(0.7f),
             verticalAlignment = Alignment.CenterVertically,
         ) {

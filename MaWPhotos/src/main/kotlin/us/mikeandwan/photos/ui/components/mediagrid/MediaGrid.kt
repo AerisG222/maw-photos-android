@@ -22,34 +22,30 @@ fun <T> MediaGrid(
     state: MediaGridState<T>,
     modifier: Modifier = Modifier,
 ) {
-    if (state.size > 0.dp) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = state.size),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = modifier.testTag(MEDIA_GRID_TAG),
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = state.size),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = modifier.testTag(MEDIA_GRID_TAG),
+    ) {
+        items(
+            state.gridItems,
+            key = { item -> item.id },
         ) {
-            items(
-                state.gridItems,
-                key = { item -> item.id },
-            ) {
-                MediaGridImage(
-                    item = it,
-                    size = state.size,
-                    onSelectImage = { item -> state.onSelectGridItem(item) },
-                    onToggleFavorite = state.onToggleFavorite,
-                    modifier = Modifier.testTag(MEDIA_GRID_ITEM_TAG),
-                )
-            }
+            MediaGridImage(
+                item = it,
+                size = state.size,
+                onSelectImage = { item -> state.onSelectGridItem(item) },
+                onToggleFavorite = state.onToggleFavorite,
+                modifier = Modifier.testTag(MEDIA_GRID_ITEM_TAG),
+            )
         }
     }
 }
 
 internal fun getSize(size: GridThumbnailSize): Dp =
     when (size) {
-        GridThumbnailSize.ExtraSmall -> 60.dp
         GridThumbnailSize.Small -> 90.dp
         GridThumbnailSize.Medium -> 120.dp
         GridThumbnailSize.Large -> 180.dp
-        GridThumbnailSize.Unspecified -> 0.dp
     }

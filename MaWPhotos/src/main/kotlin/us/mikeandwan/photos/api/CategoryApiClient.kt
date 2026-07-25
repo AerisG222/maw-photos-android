@@ -47,8 +47,8 @@ class CategoryApiClient
                 suspend {
                     _categoryApi.setFavorite(categoryId, req)
                 },
-        )
-    }
+            )
+        }
 
         suspend fun getMediaForCategory(categoryId: Uuid): ApiResult<List<Media>> =
             makeApiCall(

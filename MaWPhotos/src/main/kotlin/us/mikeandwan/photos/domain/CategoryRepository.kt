@@ -205,9 +205,9 @@ class CategoryRepository
                     catDao.setIsFavorite(category.id, category.isFavorite)
 
                     emit(ExternalCallStatus.Success(category.toDomainCategory()))
+                }
             }
         }
-    }
 
         fun loadYears(errorMessage: String?) =
             flow {
@@ -336,7 +336,7 @@ class CategoryRepository
             }
         }
 
-    fun getCachedMedia(categoryId: Uuid): List<Media>? = cachedCategoryMedia[categoryId]
+        fun getCachedMedia(categoryId: Uuid): List<Media>? = cachedCategoryMedia[categoryId]
 
         fun tryUpdateCache(media: Media) {
             val mediaList = cachedCategoryMedia[media.categoryId]
