@@ -1,5 +1,12 @@
 # Release Notes
 
+## v9.7 : 07/25/2026
+
+- add ability to favorite categories and media in different locations
+- improve the look and feel with some additional animations and polish
+- simplify settings screen and expose more knobs
+- updated to support api versioning on the backend
+
 ## v9.6 : 06/28/2026
 - code cleanups and improvements (with help from claude)
 - regenerated baseline profile
