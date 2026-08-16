@@ -8,4 +8,22 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.androidx.baselineprofile) apply false
     alias(libs.plugins.androidx.room) apply false
+    alias(libs.plugins.spotless)
+}
+
+val ktlintVersion = libs.versions.ktlint.get()
+
+spotless {
+    kotlinGradle {
+        target("*.gradle.kts", "gradle/*.gradle.kts")
+        ktlint(ktlintVersion)
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    format("misc") {
+        target("*.md", ".gitignore", ".editorconfig")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }

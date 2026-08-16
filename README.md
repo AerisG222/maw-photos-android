@@ -39,7 +39,7 @@ emulator.  Additionally, you also need to uncomment the bind-interfaces line.
   - `./start_dev_dns.sh`
 - start dev emulator
   - `./start_dev_emulator.sh`
-- make sure you started the dev sites 
+- make sure you started the dev sites
   - `systemctl --user start pod-dev-www-pod.service`
   - `start_dev_services.sh`
 - verify you can access dev site via chrome in emulator by going to https://10.0.2.2:5021 (should bring up www site)
@@ -54,7 +54,8 @@ emulator.  Additionally, you also need to uncomment the bind-interfaces line.
     - Network Prefix Length: 16
     - DNS1: 10.0.2.2
 
-With the above steps, this seems to work pretty reliably, though I don't understand at this point why 
+With the above steps, this seems to work pretty reliably, though I don't understand at this point
+why
 simply setting the dns server on the emulator command line is not sufficient to get this to work anymore.
 
 ## Original DNS Instructions
