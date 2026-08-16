@@ -13,9 +13,6 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="startupCompilationNone()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="MaWPhotos">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2026-03-04T22:47:18.184323206Z">
