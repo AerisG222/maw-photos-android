@@ -1,5 +1,9 @@
 # Release Notes
 
+## v9.8 : 08/20/2026
+
+- dependency updates to try and improve video handling
+
 ## v9.7 : 07/25/2026
 
 - add ability to favorite categories and media in different locations
