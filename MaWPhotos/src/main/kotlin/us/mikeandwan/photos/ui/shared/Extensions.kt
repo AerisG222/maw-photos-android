@@ -10,6 +10,7 @@ import us.mikeandwan.photos.domain.findTeaserImage
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFileType
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 
 fun Media.toMediaGridItem(
@@ -28,7 +29,7 @@ val preferredMediaScales = arrayOf("qhd", "full-hd", "nhd", "qvg")
 
 fun Media.getMediaUrl(): String {
     for (scale in preferredMediaScales) {
-        this.files.find { it.scale.code == scale }?.let {
+        this.files.find { it.scale.code == scale && it.type != MediaFileType.VideoPoster }?.let {
             return it.path
         }
     }
