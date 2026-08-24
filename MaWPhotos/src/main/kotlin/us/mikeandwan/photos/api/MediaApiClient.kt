@@ -42,7 +42,7 @@ class MediaApiClient
                 suspend {
                     _mediaApi.getFaces(mediaId)
                 },
-        )
+            )
 
         suspend fun setFavorite(
             mediaId: Uuid,

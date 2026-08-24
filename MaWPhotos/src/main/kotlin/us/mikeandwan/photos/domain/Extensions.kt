@@ -13,6 +13,7 @@ import us.mikeandwan.photos.domain.models.MediaFileType
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.domain.models.NotificationPreference
+import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.models.Scale
@@ -30,6 +31,7 @@ import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
 import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
 import us.mikeandwan.photos.database.MediaPreference as DbMediaPreference
 import us.mikeandwan.photos.database.NotificationPreference as DbNotificationPreference
+import us.mikeandwan.photos.database.PeoplePreference as DbPeoplePreference
 import us.mikeandwan.photos.database.RandomPreference as DbRandomPreference
 import us.mikeandwan.photos.database.Scale as DbScale
 import us.mikeandwan.photos.database.SearchHistory as DbSearchHistory
@@ -90,6 +92,15 @@ fun DbMediaPreference.toDomainPhotoPreference(): MediaPreference =
         gridThumbnailSize = gridThumbnailSize,
         showMediaTypeIndicator = showMediaTypeIndicator,
         showFavoriteIndicator = showFavoriteIndicator,
+        showFaceHighlights = showFaceHighlights,
+    )
+
+fun DbPeoplePreference.toDomainPeoplePreference(): PeoplePreference =
+    PeoplePreference(
+        sortBy = sortBy,
+        gridThumbnailSize = gridThumbnailSize,
+        showNames = showNames,
+        showMediaCounts = showMediaCounts,
     )
 
 fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =

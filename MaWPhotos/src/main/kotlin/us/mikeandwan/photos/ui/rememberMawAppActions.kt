@@ -18,6 +18,7 @@ import us.mikeandwan.photos.ui.screens.category.CategoryNavKey
 import us.mikeandwan.photos.ui.screens.categoryItem.CategoryItemNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.login.LoginNavKey
+import us.mikeandwan.photos.ui.screens.people.PeopleNavKey
 import us.mikeandwan.photos.ui.screens.random.RandomNavKey
 import us.mikeandwan.photos.ui.screens.randomItem.RandomItemNavKey
 import us.mikeandwan.photos.ui.screens.search.SearchNavKey
@@ -90,6 +91,10 @@ private class MawAppActionsImpl(
 
     override fun navigateToLogin() {
         navigate(LoginNavKey)
+    }
+
+    override fun navigateToPeople() {
+        navigate(PeopleNavKey)
     }
 
     override fun navigateToRandom() {

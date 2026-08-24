@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.AuthStatus
+import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.ErrorRepository
@@ -64,6 +65,11 @@ class MawPhotosAppViewModel
     ) : ViewModel() {
         val authenticationStatus = authService.authStatus
         val userStatus = configRepository.userStatus
+
+        // starts Unknown rather than Denied so nothing gated on it is withdrawn before the first
+        // read of the token has had a chance to answer
+        val faceRecognitionAccess = authService.faceRecognitionAccess
+            .stateIn(viewModelScope, WhileSubscribed(5000), ScopeAccess.Unknown)
         val years = categoryRepository.getYears()
 
         private val _activeYear = MutableStateFlow(-1)

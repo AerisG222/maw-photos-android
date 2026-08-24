@@ -5,4 +5,5 @@ data class MediaPreference(
     val gridThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val showMediaTypeIndicator: Boolean = true,
     val showFavoriteIndicator: Boolean = true,
+    val showFaceHighlights: Boolean = false,
 )

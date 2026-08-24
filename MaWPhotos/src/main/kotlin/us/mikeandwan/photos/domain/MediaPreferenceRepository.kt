@@ -47,6 +47,10 @@ class MediaPreferenceRepository
             setPreference { it.copy(showFavoriteIndicator = show) }
         }
 
+        suspend fun setShowFaceHighlights(show: Boolean) {
+            setPreference { it.copy(showFaceHighlights = show) }
+        }
+
         private fun getPhotoPreferences() =
             dao
                 .getPhotoPreference(PREFERENCE_ID)
@@ -59,6 +63,7 @@ class MediaPreferenceRepository
                 pref.gridThumbnailSize,
                 pref.showMediaTypeIndicator,
                 pref.showFavoriteIndicator,
+                pref.showFaceHighlights,
             )
 
             dao.setPhotoPreference(dbPref)

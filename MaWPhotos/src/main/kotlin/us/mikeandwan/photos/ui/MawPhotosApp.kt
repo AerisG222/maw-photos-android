@@ -40,6 +40,7 @@ import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthStatus
+import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.navigation.NavigationRail
 import us.mikeandwan.photos.ui.components.topbar.TopBar
@@ -56,6 +57,8 @@ import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUser
 import us.mikeandwan.photos.ui.screens.login.LoginNavKey
 import us.mikeandwan.photos.ui.screens.login.login
+import us.mikeandwan.photos.ui.screens.people.PeopleNavKey
+import us.mikeandwan.photos.ui.screens.people.people
 import us.mikeandwan.photos.ui.screens.random.RandomNavKey
 import us.mikeandwan.photos.ui.screens.random.random
 import us.mikeandwan.photos.ui.screens.randomItem.randomItem
@@ -77,6 +80,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val topLevelRoutes = remember {
         setOf(
             CategoriesNavKey(null),
+            PeopleNavKey,
             RandomNavKey,
             SearchNavKey(),
             SettingsNavKey,
@@ -108,6 +112,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val activeYear by vm.activeYear.collectAsStateWithLifecycle()
     val authStatus by vm.authenticationStatus.collectAsStateWithLifecycle()
     val userStatus by vm.userStatus.collectAsStateWithLifecycle()
+    val faceRecognitionAccess by vm.faceRecognitionAccess.collectAsStateWithLifecycle()
 
     val appActions = rememberMawAppActions(
         vm = vm,
@@ -175,6 +180,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
         categories()
         category()
         categoryItem()
+        people()
         random()
         randomItem()
         search()
@@ -193,6 +199,10 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                     ) {
                         NavigationRail(
                             activeArea = navArea,
+                            // hidden outright when the API will refuse everything behind it - see
+                            // AuthService.faceRecognitionAccess.  Unknown leaves it showing, so a
+                            // scope check that has not answered yet cannot blink the entry away.
+                            showPeople = faceRecognitionAccess != ScopeAccess.Denied,
                             years = years,
                             activeYear = activeYear,
                             recentSearchTerms = recentSearchTerms,
@@ -201,6 +211,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             clearSearchHistory = vm::clearSearchHistory,
                             navigateToCategories = { appActions.navigateToCategories(null) },
                             navigateToCategoriesByYear = { appActions.navigateToCategories(it) },
+                            navigateToPeople = { appActions.navigateToPeople() },
                             navigateToRandom = { appActions.navigateToRandom() },
                             navigateToSearch = { appActions.navigateToSearch() },
                             navigateToSearchWithTerm = { appActions.navigateToSearch(it) },

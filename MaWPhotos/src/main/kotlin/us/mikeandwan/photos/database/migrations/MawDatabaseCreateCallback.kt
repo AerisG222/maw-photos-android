@@ -4,6 +4,7 @@ import androidx.room.RoomDatabase.Callback
 import androidx.sqlite.db.SupportSQLiteDatabase
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+import us.mikeandwan.photos.domain.models.PersonSort
 
 class MawDatabaseCreateCallback : Callback() {
     override fun onCreate(db: SupportSQLiteDatabase) {
@@ -16,7 +17,10 @@ class MawDatabaseCreateCallback : Callback() {
             "INSERT INTO notification_preference (id, do_notify, do_vibrate) VALUES (1, 0, 1)",
         )
         db.execSQL(
-            "INSERT INTO media_preference (id, slideshow_interval_seconds, grid_thumbnail_size, show_media_type_indicator, show_favorite_indicator) VALUES (1, 3, '${GridThumbnailSize.Medium}', 1, 1)",
+            "INSERT INTO media_preference (id, slideshow_interval_seconds, grid_thumbnail_size, show_media_type_indicator, show_favorite_indicator, show_face_highlights) VALUES (1, 3, '${GridThumbnailSize.Medium}', 1, 1, 0)",
+        )
+        db.execSQL(
+            "INSERT INTO people_preference (id, sort_by, grid_thumbnail_size, show_names, show_media_counts) VALUES (1, '${PersonSort.Name}', '${GridThumbnailSize.Medium}', 1, 1)",
         )
         db.execSQL(
             "INSERT INTO random_preference (id, slideshow_interval_seconds, grid_thumbnail_size, show_media_type_indicator, show_widget_info, show_favorite_indicator) VALUES (1, 3, '${GridThumbnailSize.Medium}', 1, 1, 1)",

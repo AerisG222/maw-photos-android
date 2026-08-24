@@ -20,10 +20,12 @@ import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
+import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+import us.mikeandwan.photos.domain.models.PeoplePreference
 
 data class SettingsUiState(
     val notificationDoNotify: Boolean = false,
@@ -46,6 +48,9 @@ data class SettingsUiState(
     val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val searchShowMediaTypeIndicator: Boolean = true,
     val searchShowFavoriteIndicator: Boolean = true,
+    val peopleThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
+    val peopleShowNames: Boolean = true,
+    val peopleShowMediaCounts: Boolean = true,
     val isDeveloperMode: Boolean = false,
     val developerLogs: List<DeveloperLog> = emptyList(),
     val faceRecognitionAccess: ScopeAccess = ScopeAccess.Unknown,
@@ -59,6 +64,7 @@ class SettingsViewModel
         private val categoryPreferenceRepository: CategoryPreferenceRepository,
         private val notificationPreferenceRepository: NotificationPreferenceRepository,
         private val mediaPreferenceRepository: MediaPreferenceRepository,
+        private val peoplePreferenceRepository: PeoplePreferenceRepository,
         private val randomPreferenceRepository: RandomPreferenceRepository,
         private val searchPreferenceRepository: SearchPreferenceRepository,
         private val widgetRandomPhotoService: us.mikeandwan.photos.domain.services.WidgetRandomPhotoService,
@@ -88,9 +94,11 @@ class SettingsViewModel
                 errorRepository.isDeveloperMode,
                 errorRepository.developerLogs,
                 authService.faceRecognitionAccess,
+                peoplePreferenceRepository.getPeoplePreference(),
             ) { args: Array<Any?> ->
                 @Suppress("UNCHECKED_CAST")
                 val developerLogs = args[16] as List<DeveloperLog>
+                val peoplePreference = args[18] as PeoplePreference
 
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
@@ -122,6 +130,9 @@ class SettingsViewModel
                         .showMediaTypeIndicator,
                     searchShowFavoriteIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
                         .showFavoriteIndicator,
+                    peopleThumbnailSize = peoplePreference.gridThumbnailSize,
+                    peopleShowNames = peoplePreference.showNames,
+                    peopleShowMediaCounts = peoplePreference.showMediaCounts,
                     isDeveloperMode = args[15] as Boolean,
                     developerLogs = developerLogs,
                     faceRecognitionAccess = args[17] as ScopeAccess,
@@ -285,6 +296,24 @@ class SettingsViewModel
         fun showError(message: String) {
             errorRepository.showError(message)
         }
+
+        fun setPeopleThumbnailSize(size: GridThumbnailSize) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setPeopleGridItemSize(size)
+            }
+        }
+
+        fun setPeopleShowNames(show: Boolean) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setShowNames(show)
+            }
+        }
+
+        fun setPeopleShowMediaCounts(show: Boolean) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setShowMediaCounts(show)
+        }
+    }
 
         fun logout(context: Context) {
             viewModelScope.launch {

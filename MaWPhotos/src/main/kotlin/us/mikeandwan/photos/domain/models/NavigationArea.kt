@@ -4,6 +4,7 @@ enum class NavigationArea {
     About,
     Category,
     Login,
+    People,
     Random,
     Search,
     Settings,

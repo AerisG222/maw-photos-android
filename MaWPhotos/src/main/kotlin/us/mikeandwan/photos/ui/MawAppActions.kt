@@ -40,6 +40,8 @@ interface MawAppActions {
 
     fun navigateToLogin()
 
+    fun navigateToPeople()
+
     fun navigateToRandom()
 
     fun navigateToRandomItem(mediaId: Uuid)

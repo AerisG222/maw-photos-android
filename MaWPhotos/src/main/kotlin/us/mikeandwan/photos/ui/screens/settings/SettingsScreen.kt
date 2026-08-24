@@ -71,6 +71,9 @@ fun SettingsScreen(
     onSearchThumbnailSizeChange: (GridThumbnailSize) -> Unit,
     onSearchShowMediaTypeIndicatorChange: (Boolean) -> Unit,
     onSearchShowFavoriteIndicatorChange: (Boolean) -> Unit,
+    onPeopleThumbnailSizeChange: (GridThumbnailSize) -> Unit,
+    onPeopleShowNamesChange: (Boolean) -> Unit,
+    onPeopleShowMediaCountsChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
     onClearCache: () -> Unit,
@@ -309,6 +312,35 @@ fun SettingsScreen(
             color = MaterialTheme.colorScheme.inverseOnSurface,
         )
 
+        // --- PEOPLE (CONDITIONAL) ----
+        // absent along with the rest of face browsing when the API will refuse it, so this screen
+        // does not offer preferences for something that cannot be reached
+        if (uiState.faceRecognitionAccess != ScopeAccess.Denied) {
+            Heading(stringId = R.string.pref_people_display_header)
+            SegmentedPreference(
+                labelStringId = R.string.grid_thumbnail_size,
+                options = thumbnailSizeList,
+                selectedValue = uiState.peopleThumbnailSize.name,
+                onSelect = {
+                    onPeopleThumbnailSizeChange(enumValueOf(it))
+                },
+            )
+            SwitchPreference(
+                labelStringId = R.string.pref_people_show_names,
+                isChecked = uiState.peopleShowNames,
+                onChange = onPeopleShowNamesChange,
+            )
+            SwitchPreference(
+                labelStringId = R.string.pref_people_show_media_counts,
+                isChecked = uiState.peopleShowMediaCounts,
+                onChange = onPeopleShowMediaCountsChange,
+            )
+            HorizontalDivider(
+                modifier = dividerModifier,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+            )
+        }
+
         // --- ADVANCED ----
         Heading(stringId = R.string.pref_advanced_display_header)
         Row(
@@ -511,6 +543,9 @@ private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
         onSearchThumbnailSizeChange = {},
         onSearchShowMediaTypeIndicatorChange = {},
         onSearchShowFavoriteIndicatorChange = {},
+        onPeopleThumbnailSizeChange = {},
+        onPeopleShowNamesChange = {},
+        onPeopleShowMediaCountsChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},
         onClearCache = {},

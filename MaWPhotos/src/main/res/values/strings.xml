@@ -81,6 +81,17 @@
     <string name="upload_queue_icon_description">Upload Queue</string>
     <string name="help_icon_description">Help</string>
     <string name="settings_icon_description">Settings</string>
+    <string name="people_icon_description">Browse by Person</string>
+
+    <!-- people -->
+    <string name="people_title">Browse by Person</string>
+    <string name="people_filter_hint">Find a person</string>
+    <string name="people_sort_by_name">Sorted by Name</string>
+    <string name="people_sort_by_media_count">Sorted by Media Count</string>
+    <string name="people_none_found">No people have been identified yet</string>
+    <string name="people_no_matches">Nobody matches that name</string>
+    <string name="people_face_description">Face</string>
+    <string name="people_media_count_description">%1$d media</string>
 
     <!-- settings -->
     <string name="clear_cache">Clear Cache</string>
@@ -107,6 +118,9 @@
     <string name="pref_search_display_header">Search Display</string>
     <string name="pref_search_query_count_to_remember">Query Count to Remember</string>
     <string name="pref_search_result_display_header">Search Result Display</string>
+    <string name="pref_people_display_header">People Display</string>
+    <string name="pref_people_show_names">Show Names</string>
+    <string name="pref_people_show_media_counts">Show Media Counts</string>
     <string name="pref_face_recognition_header">Browse by Person</string>
     <string name="pref_advanced_display_header">Advanced</string>
     <string name="pref_show_media_type_indicator">Show Media Type Badge</string>

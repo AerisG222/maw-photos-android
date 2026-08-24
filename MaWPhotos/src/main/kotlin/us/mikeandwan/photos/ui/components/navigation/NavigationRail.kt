@@ -17,6 +17,7 @@ import us.mikeandwan.photos.domain.models.SearchHistory
 @Composable
 fun NavigationRail(
     activeArea: NavigationArea,
+    showPeople: Boolean,
     years: List<Int>,
     recentSearchTerms: List<SearchHistory>,
     navigateToSearchWithTerm: (String) -> Unit,
@@ -26,6 +27,7 @@ fun NavigationRail(
     activeYear: Int,
     navigateToCategories: () -> Unit,
     navigateToCategoriesByYear: (Int) -> Unit,
+    navigateToPeople: () -> Unit,
     navigateToRandom: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToUpload: () -> Unit,
@@ -62,6 +64,16 @@ fun NavigationRail(
                 onNavigate = { navigateToRandom() },
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
+
+            if (showPeople) {
+                PrimaryNavigationLink(
+                    iconId = R.drawable.ic_people,
+                    descriptionStringId = R.string.people_icon_description,
+                    isActiveArea = NavigationArea.People == activeArea,
+                    onNavigate = { navigateToPeople() },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
