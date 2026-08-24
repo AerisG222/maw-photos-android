@@ -55,7 +55,7 @@ class MawPhotosAppViewModel
     constructor(
         private val errorRepository: ErrorRepository,
         private val categoryRepository: CategoryRepository,
-        authService: AuthService,
+        private val authService: AuthService,
         private val configRepository: ConfigRepository,
         private val application: Application,
         private val fileStorageRepository: FileStorageRepository,
@@ -305,6 +305,16 @@ class MawPhotosAppViewModel
                     if (status is AuthStatus.Authorized) {
                         bootstrapAppData()
                     }
+                }
+            }
+
+            // its own collector so a scope check that has to reach the network cannot hold up the
+            // scales, years and categories the app opens on. every status is passed along rather
+            // than only an authorized one: losing the session has to withdraw what the last one
+            // granted, which is the same call
+            viewModelScope.launch {
+                authenticationStatus.collect {
+                    authService.refreshScopeAccess()
                 }
             }
         }

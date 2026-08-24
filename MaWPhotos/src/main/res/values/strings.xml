@@ -85,6 +85,8 @@
     <!-- settings -->
     <string name="clear_cache">Clear Cache</string>
     <string name="fragment_settings_log_out">Log Out</string>
+    <string name="settings_face_recognition_reauthorize_message">To browse media by person, please reauthorize by clicking the button below</string>
+    <string name="settings_face_recognition_reauthorize">Sign In Again</string>
 
     <!-- year menu -->
     <string name="fragment_year_menu_choose_year">Choose Year</string>
@@ -105,6 +107,7 @@
     <string name="pref_search_display_header">Search Display</string>
     <string name="pref_search_query_count_to_remember">Query Count to Remember</string>
     <string name="pref_search_result_display_header">Search Result Display</string>
+    <string name="pref_face_recognition_header">Browse by Person</string>
     <string name="pref_advanced_display_header">Advanced</string>
     <string name="pref_show_media_type_indicator">Show Media Type Badge</string>
     <string name="pref_show_favorite_indicator">Show Favorite Badge</string>

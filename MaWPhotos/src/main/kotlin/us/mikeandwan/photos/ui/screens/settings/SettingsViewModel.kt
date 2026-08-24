@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
+import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.database.DeveloperLog
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.ErrorRepository
@@ -47,6 +48,7 @@ data class SettingsUiState(
     val searchShowFavoriteIndicator: Boolean = true,
     val isDeveloperMode: Boolean = false,
     val developerLogs: List<DeveloperLog> = emptyList(),
+    val faceRecognitionAccess: ScopeAccess = ScopeAccess.Unknown,
 )
 
 @HiltViewModel
@@ -85,6 +87,7 @@ class SettingsViewModel
                 searchPreferenceRepository.getSearchPreference(),
                 errorRepository.isDeveloperMode,
                 errorRepository.developerLogs,
+                authService.faceRecognitionAccess,
             ) { args: Array<Any?> ->
                 @Suppress("UNCHECKED_CAST")
                 val developerLogs = args[16] as List<DeveloperLog>
@@ -121,6 +124,7 @@ class SettingsViewModel
                         .showFavoriteIndicator,
                     isDeveloperMode = args[15] as Boolean,
                     developerLogs = developerLogs,
+                    faceRecognitionAccess = args[17] as ScopeAccess,
                 )
             }.onEach { newState ->
                 _uiState.update { newState }
@@ -287,4 +291,12 @@ class SettingsViewModel
                 authService.logout(context)
             }
         }
+
+        // a fresh login is the only thing that can widen a grant, so an authorization the current
+        // credentials do not carry is offered as signing in again rather than as a retry
+        fun reauthorize(context: Context) {
+            viewModelScope.launch {
+                authService.login(context)
+            }
+    }
     }

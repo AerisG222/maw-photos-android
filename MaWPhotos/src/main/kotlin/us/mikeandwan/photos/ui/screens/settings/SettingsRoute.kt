@@ -92,5 +92,6 @@ private fun SettingsRoute(vm: SettingsViewModel = hiltViewModel()) {
             vm.logout(context)
             appActions.navigateToLogin()
         },
+        onReauthorize = { vm.reauthorize(context) },
     )
 }

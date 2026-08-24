@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.logo.Logo
@@ -74,6 +75,7 @@ fun SettingsScreen(
     onClearLogs: () -> Unit,
     onClearCache: () -> Unit,
     onLogout: () -> Unit,
+    onReauthorize: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val displayTypeList = CategoryDisplayType.entries.map { it.name }
@@ -92,6 +94,59 @@ fun SettingsScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp),
     ) {
+        // --- FACE RECOGNITION (CONDITIONAL) ----
+        // first, and absent entirely otherwise: this is the one thing on this screen that is an
+        // action to take rather than a preference to set, and it stops applying once taken
+        if (uiState.faceRecognitionAccess == ScopeAccess.Denied) {
+            Heading(stringId = R.string.pref_face_recognition_header)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        id = R.string.settings_face_recognition_reauthorize_message,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                OutlinedButton(
+                    onClick = onReauthorize,
+                    colors = ButtonColors(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.onSurface,
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                ) {
+                    AsyncImage(
+                        model = R.drawable.ic_login,
+                        contentDescription = stringResource(
+                            id = R.string.settings_face_recognition_reauthorize,
+                        ),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                        modifier = Modifier
+                            .padding(4.dp, 4.dp, 12.dp, 4.dp)
+                            .height(24.dp)
+                            .width(24.dp),
+                    )
+
+                    Text(
+                        text = stringResource(id = R.string.settings_face_recognition_reauthorize),
+                        modifier = Modifier.padding(0.dp, 4.dp, 4.dp, 4.dp),
+                    )
+                }
+            }
+            HorizontalDivider(
+                modifier = dividerModifier,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+            )
+        }
+
         // --- NOTIFICATIONS ----
         Heading(stringId = R.string.pref_notifications_header)
         SwitchPreference(
@@ -419,8 +474,22 @@ fun DeveloperModeDialog(
 @Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
+    SettingsScreenPreviewContent(uiState = SettingsUiState())
+}
+
+// the state a sign-in that predates face recognition lands in, where Advanced offers a way out
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenFaceRecognitionDeniedPreview() {
+    SettingsScreenPreviewContent(
+        uiState = SettingsUiState(faceRecognitionAccess = ScopeAccess.Denied),
+    )
+}
+
+@Composable
+private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
     SettingsScreen(
-        uiState = SettingsUiState(),
+        uiState = uiState,
         permissionPostNotificationAllowed = true,
         onNotificationDoNotifyChange = {},
         onNotificationDoVibrateChange = {},
@@ -446,5 +515,6 @@ fun SettingsScreenPreview() {
         onClearLogs = {},
         onClearCache = {},
         onLogout = {},
+        onReauthorize = {},
     )
 }
