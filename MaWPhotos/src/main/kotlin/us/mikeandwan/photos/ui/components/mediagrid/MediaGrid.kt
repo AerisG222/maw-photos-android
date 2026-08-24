@@ -2,8 +2,10 @@ package us.mikeandwan.photos.ui.components.mediagrid
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -21,8 +23,12 @@ const val MEDIA_GRID_ITEM_TAG = "mediaGridItem"
 fun <T> MediaGrid(
     state: MediaGridState<T>,
     modifier: Modifier = Modifier,
+    // hoisted for the callers that need to watch it - a paged feed asks for the next page from how
+    // far it has been scrolled
+    gridState: LazyGridState = rememberLazyGridState(),
 ) {
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Adaptive(minSize = state.size),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),

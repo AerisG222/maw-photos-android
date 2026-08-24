@@ -14,6 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.models.Media
@@ -23,6 +24,7 @@ class MediaListServiceTest {
 
     private lateinit var categoryRepository: CategoryRepository
     private lateinit var randomMediaRepository: RandomMediaRepository
+    private lateinit var faceFeedRepository: FaceFeedRepository
     private lateinit var fileRepository: FileStorageRepository
     private lateinit var mediaFavoriteService: MediaFavoriteService
     private lateinit var mediaCommentService: MediaCommentService
@@ -33,6 +35,7 @@ class MediaListServiceTest {
     fun setUp() {
         categoryRepository = mockk(relaxed = true)
         randomMediaRepository = mockk(relaxed = true)
+        faceFeedRepository = mockk(relaxed = true)
         fileRepository = mockk()
         mediaFavoriteService = mockk(relaxed = true)
         mediaCommentService = mockk(relaxed = true)
@@ -41,6 +44,7 @@ class MediaListServiceTest {
         service = MediaListService(
             categoryRepository,
             randomMediaRepository,
+            faceFeedRepository,
             fileRepository,
             mediaFavoriteService,
             mediaCommentService,

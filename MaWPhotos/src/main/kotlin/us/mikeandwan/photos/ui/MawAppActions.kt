@@ -3,6 +3,7 @@ package us.mikeandwan.photos.ui
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
+import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
@@ -41,6 +42,13 @@ interface MawAppActions {
     fun navigateToLogin()
 
     fun navigateToPeople()
+
+    fun navigateToFaceFeed(subject: FaceFeedSubject)
+
+    fun navigateToFaceFeedItem(
+        subject: FaceFeedSubject,
+        mediaId: Uuid,
+    )
 
     fun navigateToRandom()
 

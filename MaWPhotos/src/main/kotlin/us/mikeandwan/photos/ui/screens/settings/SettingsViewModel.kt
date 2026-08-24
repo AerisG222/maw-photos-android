@@ -312,8 +312,8 @@ class SettingsViewModel
         fun setPeopleShowMediaCounts(show: Boolean) {
             viewModelScope.launch {
                 peoplePreferenceRepository.setShowMediaCounts(show)
+            }
         }
-    }
 
         fun logout(context: Context) {
             viewModelScope.launch {

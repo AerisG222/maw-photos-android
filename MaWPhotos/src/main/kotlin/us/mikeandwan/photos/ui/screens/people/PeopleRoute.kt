@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
@@ -42,8 +43,8 @@ private fun PeopleRoute(vm: PeopleViewModel = hiltViewModel()) {
         onFilterChange = { vm.setFilter(it) },
         onToggleSort = { vm.toggleSort() },
         onToggleFavorite = { vm.toggleFavorite(it) },
-        // the person feed arrives with the next set of screens; until then a person is somebody to
-        // find and mark rather than open, so the cards stay inert
-        onSelectPerson = null,
+        onSelectPerson = { person ->
+            appActions.navigateToFaceFeed(FaceFeedSubject.Person(person.id))
+        },
     )
 }

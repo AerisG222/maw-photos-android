@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.PeriodicJob
 import us.mikeandwan.photos.domain.RandomMediaRepository
@@ -87,6 +88,7 @@ class MediaListService
     constructor(
         private val categoryRepository: CategoryRepository,
         private val randomMediaRepository: RandomMediaRepository,
+        private val faceFeedRepository: FaceFeedRepository,
         private val fileRepository: FileStorageRepository,
         private val mediaFavoriteService: MediaFavoriteService,
         private val mediaCommentService: MediaCommentService,
@@ -246,6 +248,7 @@ class MediaListService
                         // reflects what was just toggled in the pager
                         categoryRepository.tryUpdateCache(updatedItem)
                         randomMediaRepository.updateMedia(updatedItem)
+                        faceFeedRepository.updateMedia(updatedItem)
 
                         updatedMedia
                     } else {

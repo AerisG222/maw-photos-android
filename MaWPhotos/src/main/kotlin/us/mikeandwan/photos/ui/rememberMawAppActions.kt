@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.navigation.NavigationState
@@ -16,6 +17,10 @@ import us.mikeandwan.photos.ui.screens.about.AboutNavKey
 import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.category.CategoryNavKey
 import us.mikeandwan.photos.ui.screens.categoryItem.CategoryItemNavKey
+import us.mikeandwan.photos.ui.screens.faceFeed.ClanMediaNavKey
+import us.mikeandwan.photos.ui.screens.faceFeed.PersonMediaNavKey
+import us.mikeandwan.photos.ui.screens.faceFeedItem.ClanMediaItemNavKey
+import us.mikeandwan.photos.ui.screens.faceFeedItem.PersonMediaItemNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.login.LoginNavKey
 import us.mikeandwan.photos.ui.screens.people.PeopleNavKey
@@ -95,6 +100,28 @@ private class MawAppActionsImpl(
 
     override fun navigateToPeople() {
         navigate(PeopleNavKey)
+    }
+
+    // one subject, two keys - see FaceFeedRoute for why the two feeds share a screen
+    override fun navigateToFaceFeed(subject: FaceFeedSubject) {
+        navigate(
+            when (subject) {
+                is FaceFeedSubject.Person -> PersonMediaNavKey(subject.personId)
+                is FaceFeedSubject.Clan -> ClanMediaNavKey(subject.clanId)
+            },
+        )
+    }
+
+    override fun navigateToFaceFeedItem(
+        subject: FaceFeedSubject,
+        mediaId: Uuid,
+    ) {
+        navigate(
+            when (subject) {
+                is FaceFeedSubject.Person -> PersonMediaItemNavKey(subject.personId, mediaId)
+                is FaceFeedSubject.Clan -> ClanMediaItemNavKey(subject.clanId, mediaId)
+            },
+        )
     }
 
     override fun navigateToRandom() {

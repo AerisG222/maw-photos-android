@@ -53,6 +53,8 @@ import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.categories.categories
 import us.mikeandwan.photos.ui.screens.category.category
 import us.mikeandwan.photos.ui.screens.categoryItem.categoryItem
+import us.mikeandwan.photos.ui.screens.faceFeed.faceFeed
+import us.mikeandwan.photos.ui.screens.faceFeedItem.faceFeedItem
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUser
 import us.mikeandwan.photos.ui.screens.login.LoginNavKey
@@ -180,6 +182,8 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
         categories()
         category()
         categoryItem()
+        faceFeed()
+        faceFeedItem()
         people()
         random()
         randomItem()

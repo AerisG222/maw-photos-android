@@ -91,6 +91,10 @@
     <string name="people_none_found">No people have been identified yet</string>
     <string name="people_no_matches">Nobody matches that name</string>
     <string name="people_face_description">Face</string>
+    <string name="face_feed_shuffle">Shuffle</string>
+    <string name="face_feed_favorites_only">Show Favorites Only</string>
+    <string name="face_feed_empty">No media to show</string>
+    <string name="face_feed_no_favorites">No favorites here yet</string>
     <string name="people_media_count_description">%1$d media</string>
 
     <!-- settings -->
