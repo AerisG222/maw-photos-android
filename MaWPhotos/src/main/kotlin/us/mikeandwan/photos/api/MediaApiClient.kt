@@ -36,6 +36,14 @@ class MediaApiClient
                 },
             )
 
+        suspend fun getFaces(mediaId: Uuid): ApiResult<List<Face>> =
+            makeApiCall(
+                ::getFaces.name,
+                suspend {
+                    _mediaApi.getFaces(mediaId)
+                },
+        )
+
         suspend fun setFavorite(
             mediaId: Uuid,
             isFavorite: Boolean,

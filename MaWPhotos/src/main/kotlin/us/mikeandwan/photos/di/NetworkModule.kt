@@ -24,6 +24,7 @@ import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.Constants
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.ConfigApiClient
+import us.mikeandwan.photos.api.FaceApiClient
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.api.UploadApiClient
 import us.mikeandwan.photos.authorization.AuthInterceptor
@@ -109,6 +110,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideConfigApiClient(retrofit: Retrofit): ConfigApiClient = ConfigApiClient(retrofit)
+
+    @Provides
+    @Singleton
+    fun provideFaceApiClient(retrofit: Retrofit): FaceApiClient = FaceApiClient(retrofit)
 
     @Provides
     @Singleton

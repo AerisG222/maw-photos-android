@@ -298,5 +298,5 @@ class SettingsViewModel
             viewModelScope.launch {
                 authService.login(context)
             }
-    }
+        }
     }

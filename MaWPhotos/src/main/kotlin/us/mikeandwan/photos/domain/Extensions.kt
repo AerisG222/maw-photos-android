@@ -4,21 +4,27 @@ import java.net.HttpURLConnection
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryPreference
+import us.mikeandwan.photos.domain.models.Clan
 import us.mikeandwan.photos.domain.models.Comment
+import us.mikeandwan.photos.domain.models.DetectedFace
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFile
 import us.mikeandwan.photos.domain.models.MediaFileType
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.domain.models.NotificationPreference
+import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.models.Scale
 import us.mikeandwan.photos.domain.models.SearchHistory
 import us.mikeandwan.photos.domain.models.SearchPreference
 import us.mikeandwan.photos.api.Category as ApiCategory
+import us.mikeandwan.photos.api.Clan as ApiClan
 import us.mikeandwan.photos.api.Comment as ApiComment
+import us.mikeandwan.photos.api.Face as ApiFace
 import us.mikeandwan.photos.api.Media as ApiMedia
 import us.mikeandwan.photos.api.MediaFile as ApiMediaFile
+import us.mikeandwan.photos.api.Person as ApiPerson
 import us.mikeandwan.photos.database.CategoryDetail as DbCategoryDetail
 import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
 import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
@@ -131,6 +137,32 @@ private fun getMediaType(type: String): MediaType =
         "video" -> MediaType.Video
         else -> throw IllegalArgumentException("Unknown media type: $type")
     }
+
+fun ApiPerson.toDomainPerson(): Person =
+    Person(
+        id = id,
+        name = name,
+        preferredFaceUrl = preferredFaceUrl,
+        mediaCount = mediaCount,
+        isFavorite = isFavorite,
+    )
+
+fun ApiClan.toDomainClan(): Clan =
+    Clan(
+        id = id,
+        name = name,
+        members = members.map { it.toDomainPerson() },
+    )
+
+fun ApiFace.toDomainDetectedFace(): DetectedFace =
+    DetectedFace(
+        id = id,
+        personId = personId,
+        boxX = boxX,
+        boxY = boxY,
+        boxWidth = boxWidth,
+        boxHeight = boxHeight,
+    )
 
 fun ApiComment.toDomainComment(): Comment =
     Comment(

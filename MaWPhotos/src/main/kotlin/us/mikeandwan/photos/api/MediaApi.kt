@@ -25,6 +25,13 @@ internal interface MediaApi {
         @Path("mediaId") mediaId: Uuid,
     ): Response<List<Comment>>
 
+    // answers an empty list rather than a 404 for a media item nobody was detected in, so an empty
+    // overlay and a missing one are the same thing here
+    @GET("media/{mediaId}/faces")
+    suspend fun getFaces(
+        @Path("mediaId") mediaId: Uuid,
+    ): Response<List<Face>>
+
     @PUT("media/{mediaId}/favorite")
     suspend fun setFavorite(
         @Path("mediaId") mediaId: Uuid,
