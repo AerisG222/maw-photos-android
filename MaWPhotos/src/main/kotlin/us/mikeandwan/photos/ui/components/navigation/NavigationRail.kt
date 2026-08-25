@@ -49,6 +49,16 @@ fun NavigationRail(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 
+            if (showPeople) {
+                PrimaryNavigationLink(
+                    iconId = R.drawable.ic_people,
+                    descriptionStringId = R.string.people_icon_description,
+                    isActiveArea = NavigationArea.People == activeArea,
+                    onNavigate = { navigateToPeople() },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
+
             PrimaryNavigationLink(
                 iconId = R.drawable.ic_search,
                 descriptionStringId = R.string.search_icon_description,
@@ -64,16 +74,6 @@ fun NavigationRail(
                 onNavigate = { navigateToRandom() },
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
-
-            if (showPeople) {
-                PrimaryNavigationLink(
-                    iconId = R.drawable.ic_people,
-                    descriptionStringId = R.string.people_icon_description,
-                    isActiveArea = NavigationArea.People == activeArea,
-                    onNavigate = { navigateToPeople() },
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-            }
 
             Spacer(modifier = Modifier.weight(1f))
 
