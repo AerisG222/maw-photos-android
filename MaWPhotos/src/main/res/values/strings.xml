@@ -74,6 +74,8 @@
     <string name="people_none_found">No people have been identified yet</string>
     <string name="people_no_matches">Nobody matches that name</string>
     <string name="people_face_description">Face</string>
+    <string name="people_section_title">People</string>
+    <string name="people_menu_none">No people yet</string>
     <!-- clans -->
     <string name="clan_new">New Clan</string>
     <string name="clan_section_title">Clans</string>

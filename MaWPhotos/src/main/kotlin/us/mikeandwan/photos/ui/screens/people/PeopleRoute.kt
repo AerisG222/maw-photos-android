@@ -34,6 +34,8 @@ private fun PeopleRoute(vm: PeopleViewModel = hiltViewModel()) {
 
     LaunchedEffect(title) {
         appActions.setNavArea(NavigationArea.People)
+        // the grid is nobody in particular, so nothing in the rail's list is current
+        appActions.setActiveFaceSubject(null)
         appActions.updateTopBar(
             NavigationArea.People,
             TopBarState(title = title),

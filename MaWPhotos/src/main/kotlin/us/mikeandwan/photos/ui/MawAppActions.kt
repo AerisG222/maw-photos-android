@@ -18,6 +18,9 @@ interface MawAppActions {
 
     fun setActiveYear(year: Int)
 
+    /** Marks which person or clan the rail is currently showing, or null for the people grid. */
+    fun setActiveFaceSubject(subject: FaceFeedSubject?)
+
     fun openDrawer()
 
     fun closeDrawer()

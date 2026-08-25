@@ -55,6 +55,11 @@ private fun FaceFeedRoute(
         appActions.setNavArea(NavigationArea.People)
     }
 
+    // lights up this person or clan in the rail, where the rest of them are listed to switch to
+    LaunchedEffect(subject) {
+        appActions.setActiveFaceSubject(subject)
+    }
+
     LaunchedEffect(subject) {
         vm.initState(subject)
     }

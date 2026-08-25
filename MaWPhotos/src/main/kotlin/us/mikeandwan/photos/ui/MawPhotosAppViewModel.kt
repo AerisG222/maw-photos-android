@@ -38,13 +38,17 @@ import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.AuthStatus
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
+import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
+import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
+import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.UserStatus
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.screens.upload.UploadNavKey
@@ -62,6 +66,8 @@ class MawPhotosAppViewModel
         private val fileStorageRepository: FileStorageRepository,
         private val searchRepository: SearchRepository,
         private val randomMediaRepository: RandomMediaRepository,
+        peopleRepository: PeopleRepository,
+        clanRepository: ClanRepository,
     ) : ViewModel() {
         val authenticationStatus = authService.authStatus
         val userStatus = configRepository.userStatus
@@ -72,8 +78,21 @@ class MawPhotosAppViewModel
             .stateIn(viewModelScope, WhileSubscribed(5000), ScopeAccess.Unknown)
         val years = categoryRepository.getYears()
 
+        // whoever the people screen has already loaded - the rail lists them so a person or a clan
+        // can be swapped for another without going back to the grid first.  nothing is fetched
+        // here: the people area cannot be reached without the screen that loads it.
+        val people = peopleRepository.people
+            .map { list -> list.sortedForMenu() }
+            .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+        val clans = clanRepository.clans
+
         private val _activeYear = MutableStateFlow(-1)
         val activeYear = _activeYear.asStateFlow()
+
+        // which person or clan the rail should mark as current, or null while the people grid
+        // itself is showing
+        private val _activeFaceSubject = MutableStateFlow<FaceFeedSubject?>(null)
+        val activeFaceSubject = _activeFaceSubject.asStateFlow()
 
         private val _navArea = MutableStateFlow(NavigationArea.Category)
         val navArea = _navArea.asStateFlow()
@@ -136,6 +155,10 @@ class MawPhotosAppViewModel
         fun setActiveYear(year: Int) {
             _activeYear.update { year }
         }
+
+    fun setActiveFaceSubject(subject: FaceFeedSubject?) {
+        _activeFaceSubject.update { subject }
+    }
 
         fun clearSearchHistory() {
             viewModelScope.launch {
@@ -264,6 +287,14 @@ class MawPhotosAppViewModel
         }
 
         private suspend fun saveUploadFile(mediaUri: Uri): File? = fileStorageRepository.saveFileToUpload(mediaUri)
+
+    // favorites lead, as they do in the grid, so the handful of people looked at most often sit
+    // at the top of a list that can run to a few hundred rows
+    private fun List<Person>.sortedForMenu(): List<Person> =
+        sortedWith(
+            compareByDescending<Person> { it.isFavorite }
+                .thenBy { it.name.lowercase() },
+        )
 
         private fun bootstrapAppData() {
             viewModelScope.launch(Dispatchers.IO) {

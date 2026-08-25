@@ -60,6 +60,10 @@ private fun FaceFeedItemRoute(
         appActions.setNavArea(NavigationArea.People)
     }
 
+    LaunchedEffect(subject) {
+        appActions.setActiveFaceSubject(subject)
+    }
+
     LaunchedEffect(subject, mediaId) {
         vm.initState(subject, mediaId)
     }

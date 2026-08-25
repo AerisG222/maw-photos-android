@@ -112,6 +112,9 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val topBarState by vm.topBarState.collectAsStateWithLifecycle()
     val enableDrawerGestures by vm.enableDrawerGestures.collectAsStateWithLifecycle()
     val activeYear by vm.activeYear.collectAsStateWithLifecycle()
+    val clans by vm.clans.collectAsStateWithLifecycle()
+    val people by vm.people.collectAsStateWithLifecycle()
+    val activeFaceSubject by vm.activeFaceSubject.collectAsStateWithLifecycle()
     val authStatus by vm.authenticationStatus.collectAsStateWithLifecycle()
     val userStatus by vm.userStatus.collectAsStateWithLifecycle()
     val faceRecognitionAccess by vm.faceRecognitionAccess.collectAsStateWithLifecycle()
@@ -209,6 +212,9 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             showPeople = faceRecognitionAccess != ScopeAccess.Denied,
                             years = years,
                             activeYear = activeYear,
+                            clans = clans,
+                            people = people,
+                            activeFaceSubject = activeFaceSubject,
                             recentSearchTerms = recentSearchTerms,
                             fetchRandomPhotos = vm::fetchRandomPhotos,
                             clearRandomPhotos = vm::clearRandomPhotos,
@@ -216,6 +222,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             navigateToCategories = { appActions.navigateToCategories(null) },
                             navigateToCategoriesByYear = { appActions.navigateToCategories(it) },
                             navigateToPeople = { appActions.navigateToPeople() },
+                            navigateToFaceFeed = { appActions.navigateToFaceFeed(it) },
                             navigateToRandom = { appActions.navigateToRandom() },
                             navigateToSearch = { appActions.navigateToSearch() },
                             navigateToSearchWithTerm = { appActions.navigateToSearch(it) },

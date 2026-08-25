@@ -58,6 +58,8 @@ private class MawAppActionsImpl(
 
     override fun setActiveYear(year: Int) = vm.setActiveYear(year)
 
+    override fun setActiveFaceSubject(subject: FaceFeedSubject?) = vm.setActiveFaceSubject(subject)
+
     override fun openDrawer() {
         coroutineScope.launch { drawerState.open() }
     }

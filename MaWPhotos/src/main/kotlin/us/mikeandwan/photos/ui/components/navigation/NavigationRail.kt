@@ -11,7 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.models.Clan
+import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
+import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.SearchHistory
 
 @Composable
@@ -19,6 +22,9 @@ fun NavigationRail(
     activeArea: NavigationArea,
     showPeople: Boolean,
     years: List<Int>,
+    clans: List<Clan>,
+    people: List<Person>,
+    activeFaceSubject: FaceFeedSubject?,
     recentSearchTerms: List<SearchHistory>,
     navigateToSearchWithTerm: (String) -> Unit,
     clearSearchHistory: () -> Unit,
@@ -28,6 +34,7 @@ fun NavigationRail(
     navigateToCategories: () -> Unit,
     navigateToCategoriesByYear: (Int) -> Unit,
     navigateToPeople: () -> Unit,
+    navigateToFaceFeed: (FaceFeedSubject) -> Unit,
     navigateToRandom: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToUpload: () -> Unit,
@@ -109,6 +116,18 @@ fun NavigationRail(
                         years = years,
                         activeYear = activeYear,
                         onYearSelected = { year -> navigateToCategoriesByYear(year) },
+                    )
+                }
+
+                NavigationArea.People -> {
+                    PeopleListMenu(
+                        clans = clans,
+                        people = people,
+                        activeSubject = activeFaceSubject,
+                        onClanSelected = { clan -> navigateToFaceFeed(FaceFeedSubject.Clan(clan.id)) },
+                        onPersonSelected = { person ->
+                            navigateToFaceFeed(FaceFeedSubject.Person(person.id))
+                        },
                     )
                 }
 
