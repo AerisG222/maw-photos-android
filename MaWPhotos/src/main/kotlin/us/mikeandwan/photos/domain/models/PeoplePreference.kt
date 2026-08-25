@@ -5,4 +5,5 @@ data class PeoplePreference(
     val gridThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val showNames: Boolean = true,
     val showMediaCounts: Boolean = true,
+    val showClans: Boolean = true,
 )

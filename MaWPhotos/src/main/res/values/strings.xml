@@ -91,6 +91,35 @@
     <string name="people_none_found">No people have been identified yet</string>
     <string name="people_no_matches">Nobody matches that name</string>
     <string name="people_face_description">Face</string>
+    <!-- clans -->
+    <string name="clan_new">New Clan</string>
+    <string name="clan_section_title">Clans</string>
+    <string name="clan_section_count">(%1$d)</string>
+    <string name="clan_section_expand">Show Clans</string>
+    <string name="clan_section_collapse">Hide Clans</string>
+    <string name="clan_menu">Clan Options</string>
+    <string name="clan_edit_people">Edit People</string>
+    <string name="clan_rename">Rename</string>
+    <string name="clan_delete">Delete</string>
+    <string name="clan_delete_title">Delete %1$s?</string>
+    <string name="clan_delete_message">The people in it are left alone.</string>
+    <string name="clan_no_people">No people in this clan yet</string>
+    <string name="clan_more_people">+%1$d more</string>
+    <string name="clan_name">Name</string>
+    <string name="clan_name_new">Name Your Clan</string>
+    <string name="clan_name_too_long">A clan name may be at most %1$d characters</string>
+    <string name="clan_create">Create</string>
+    <string name="clan_save">Save</string>
+    <string name="clan_name_clan">Name Clan</string>
+    <string name="clan_save_people">Save People</string>
+    <string name="clan_clear">Clear</string>
+    <string name="clan_picking_new">New clan</string>
+    <string name="clan_picking_members">Members of %1$s</string>
+    <string name="clan_too_many_people">A clan may hold at most %1$d people</string>
+    <string name="clan_error_duplicate_name">You already have a clan with that name</string>
+    <string name="clan_error_invalid">One or more of those people could not be found</string>
+    <string name="clan_error_failed">Unable to save the clan.  Please try again later.</string>
+
     <string name="face_feed_shuffle">Shuffle</string>
     <string name="face_feed_favorites_only">Show Favorites Only</string>
     <string name="face_feed_empty">No media to show</string>
@@ -125,6 +154,7 @@
     <string name="pref_people_display_header">People Display</string>
     <string name="pref_people_show_names">Show Names</string>
     <string name="pref_people_show_media_counts">Show Media Counts</string>
+    <string name="pref_people_show_clans">Show Clans</string>
     <string name="pref_face_recognition_header">Browse by Person</string>
     <string name="pref_advanced_display_header">Advanced</string>
     <string name="pref_show_media_type_indicator">Show Media Type Badge</string>
@@ -132,4 +162,14 @@
     <string name="pref_show_widget_info">Show Metadata on Widget</string>
 
     <string name="cancel">Cancel</string>
+
+    <plurals name="clan_member_count">
+        <item quantity="one">%1$d person</item>
+        <item quantity="other">%1$d people</item>
+    </plurals>
+
+    <plurals name="clan_selected_count">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
 </resources>

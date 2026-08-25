@@ -101,6 +101,7 @@ fun DbPeoplePreference.toDomainPeoplePreference(): PeoplePreference =
         gridThumbnailSize = gridThumbnailSize,
         showNames = showNames,
         showMediaCounts = showMediaCounts,
+        showClans = showClans,
     )
 
 fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =

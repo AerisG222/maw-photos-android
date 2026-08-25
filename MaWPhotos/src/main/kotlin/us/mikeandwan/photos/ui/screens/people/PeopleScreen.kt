@@ -28,13 +28,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.models.Clan
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.PersonSort
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.getSize
+import us.mikeandwan.photos.ui.components.people.ClanSection
+import us.mikeandwan.photos.ui.components.people.ClanSectionHeader
 import us.mikeandwan.photos.ui.components.people.PersonCard
+import us.mikeandwan.photos.ui.components.people.SelectionBar
 
 // Stable selector for UI automation (baseline profile generation). Surfaced to UiAutomator via
 // `testTagsAsResourceId` enabled at the app root. Keep in sync with the matching literal in the
@@ -47,9 +51,18 @@ fun PeopleScreen(
     onFilterChange: (String) -> Unit,
     onToggleSort: () -> Unit,
     onToggleFavorite: (Person) -> Unit,
+    onSelectPerson: (Person) -> Unit,
+    onSelectClan: (Clan) -> Unit,
+    onCreateClan: () -> Unit,
+    onEditClanMembers: (Clan) -> Unit,
+    onRenameClan: (Clan) -> Unit,
+    onDeleteClan: (Clan) -> Unit,
+    onToggleSelected: (Person) -> Unit,
+    onClearSelection: () -> Unit,
+    onSubmitPicking: () -> Unit,
+    onCancelPicking: () -> Unit,
+    onToggleClansExpanded: () -> Unit,
     modifier: Modifier = Modifier,
-    // null until there is a person feed to open - see PersonCard
-    onSelectPerson: ((Person) -> Unit)? = null,
 ) {
     if (uiState.isLoading) {
         MediaGridSkeleton(
@@ -61,6 +74,44 @@ fun PeopleScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
+        // the bar replaces the clan row while picking rather than joining it: the two are the same
+        // strip of screen doing the same job at two different moments
+        if (uiState.isPicking) {
+            SelectionBar(
+                title = pickingTitle(uiState.picking),
+                selectedCount = uiState.selectedIds.size,
+                submitLabel = if (uiState.picking is ClanPicking.Create) {
+                    stringResource(id = R.string.clan_name_clan)
+                } else {
+                    stringResource(id = R.string.clan_save_people)
+                },
+                // an empty selection is a real answer when editing - it is how the last member is
+                // removed - but creating an empty clan is not worth allowing
+                canSubmit = uiState.picking !is ClanPicking.Create || uiState.selectedIds.isNotEmpty(),
+                isSaving = uiState.isSaving,
+                onSubmit = onSubmitPicking,
+                onClear = onClearSelection,
+                onCancel = onCancelPicking,
+            )
+        } else {
+            ClanSectionHeader(
+                clanCount = uiState.clans.size,
+                expanded = uiState.preferences.showClans,
+                onToggleExpanded = onToggleClansExpanded,
+                onCreate = onCreateClan,
+            )
+
+            if (uiState.preferences.showClans) {
+                ClanSection(
+                    clans = uiState.clans,
+                    onSelect = onSelectClan,
+                    onEditMembers = onEditClanMembers,
+                    onRename = onRenameClan,
+                    onDelete = onDeleteClan,
+                )
+            }
+        }
+
         // the whole list is already in hand, so this narrows what is on screen without a round trip
         FilterBar(
             filter = uiState.filter,
@@ -99,7 +150,9 @@ fun PeopleScreen(
                             showName = uiState.preferences.showNames,
                             showMediaCount = uiState.preferences.showMediaCounts,
                             onToggleFavorite = onToggleFavorite,
-                            onSelect = onSelectPerson,
+                            onSelect = if (uiState.isPicking) onToggleSelected else onSelectPerson,
+                            selectable = uiState.isPicking,
+                            selected = person.id in uiState.selectedIds,
                             // favoriting reorders the grid, which is the point of the mark - let the
                             // card slide to its new place rather than jump
                             modifier = Modifier.animateItem(),
@@ -110,6 +163,13 @@ fun PeopleScreen(
         }
     }
 }
+
+@Composable
+private fun pickingTitle(picking: ClanPicking): String =
+    when (picking) {
+        is ClanPicking.Members -> stringResource(id = R.string.clan_picking_members, picking.clan.name)
+        else -> stringResource(id = R.string.clan_picking_new)
+    }
 
 @Composable
 private fun FilterBar(
@@ -192,6 +252,17 @@ private fun PeopleScreenPreview() {
         onFilterChange = {},
         onToggleSort = {},
         onToggleFavorite = {},
+        onSelectPerson = {},
+        onSelectClan = {},
+        onCreateClan = {},
+        onEditClanMembers = {},
+        onRenameClan = {},
+        onDeleteClan = {},
+        onToggleSelected = {},
+        onClearSelection = {},
+        onSubmitPicking = {},
+        onCancelPicking = {},
+        onToggleClansExpanded = {},
     )
 }
 
@@ -208,6 +279,17 @@ private fun PeopleScreenNoMatchesPreview() {
         onFilterChange = {},
         onToggleSort = {},
         onToggleFavorite = {},
+        onSelectPerson = {},
+        onSelectClan = {},
+        onCreateClan = {},
+        onEditClanMembers = {},
+        onRenameClan = {},
+        onDeleteClan = {},
+        onToggleSelected = {},
+        onClearSelection = {},
+        onSubmitPicking = {},
+        onCancelPicking = {},
+        onToggleClansExpanded = {},
     )
 }
 
@@ -219,5 +301,16 @@ private fun PeopleScreenEmptyLibraryPreview() {
         onFilterChange = {},
         onToggleSort = {},
         onToggleFavorite = {},
+        onSelectPerson = {},
+        onSelectClan = {},
+        onCreateClan = {},
+        onEditClanMembers = {},
+        onRenameClan = {},
+        onDeleteClan = {},
+        onToggleSelected = {},
+        onClearSelection = {},
+        onSubmitPicking = {},
+        onCancelPicking = {},
+        onToggleClansExpanded = {},
     )
 }

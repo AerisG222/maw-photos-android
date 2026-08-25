@@ -74,6 +74,7 @@ fun SettingsScreen(
     onPeopleThumbnailSizeChange: (GridThumbnailSize) -> Unit,
     onPeopleShowNamesChange: (Boolean) -> Unit,
     onPeopleShowMediaCountsChange: (Boolean) -> Unit,
+    onPeopleShowClansChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
     onClearCache: () -> Unit,
@@ -335,6 +336,11 @@ fun SettingsScreen(
                 isChecked = uiState.peopleShowMediaCounts,
                 onChange = onPeopleShowMediaCountsChange,
             )
+            SwitchPreference(
+                labelStringId = R.string.pref_people_show_clans,
+                isChecked = uiState.peopleShowClans,
+                onChange = onPeopleShowClansChange,
+            )
             HorizontalDivider(
                 modifier = dividerModifier,
                 color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -546,6 +552,7 @@ private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
         onPeopleThumbnailSizeChange = {},
         onPeopleShowNamesChange = {},
         onPeopleShowMediaCountsChange = {},
+        onPeopleShowClansChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},
         onClearCache = {},

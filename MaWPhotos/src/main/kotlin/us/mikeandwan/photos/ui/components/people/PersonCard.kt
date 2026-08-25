@@ -11,7 +11,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,16 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Person
@@ -65,6 +61,10 @@ fun PersonCard(
     // null while there is nowhere for a person to lead, which leaves the card inert rather than
     // giving it press feedback for a tap that does nothing
     onSelect: ((Person) -> Unit)? = null,
+    // while people are being picked for a clan the card marks instead of opening - the same tap,
+    // pointed at a different job
+    selectable: Boolean = false,
+    selected: Boolean = false,
 ) {
     val haptics = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -98,18 +98,16 @@ fun PersonCard(
             ),
     ) {
         Box(modifier = Modifier.size(size)) {
-            // the silhouette sits underneath rather than being handed to the image as a fallback,
-            // so it shows through in both cases that leave nothing to draw: a person the pipeline
-            // has published no crop for, and a crop this device cannot decode - face crops are avif,
-            // which needs api 31, and below that this is the intended outcome rather than a failure
-            PersonSilhouette(modifier = Modifier.matchParentSize())
+            PersonFace(person = person, modifier = Modifier.matchParentSize())
 
-            AsyncImage(
-                model = person.preferredFaceUrl,
-                contentDescription = stringResource(id = R.string.people_face_description),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize(),
-            )
+            if (selectable) {
+                SelectionCheck(
+                    selected = selected,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(4.dp),
+                )
+            }
 
             Row(
                 modifier = Modifier
@@ -170,19 +168,34 @@ fun PersonCard(
     }
 }
 
-// a tinted silhouette rather than a flat block, so a person with no face still reads as a person
+// filled when picked, an empty ring when not - so the grid says what is selected and what merely
+// could be, without a second glance
 @Composable
-private fun PersonSilhouette(modifier: Modifier = Modifier) {
+private fun SelectionCheck(
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+        modifier = modifier
+            .size(20.dp)
+            .clip(CircleShape)
+            .background(
+                color = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                },
+            ),
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_person),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            modifier = Modifier.fillMaxSize(0.6f),
-        )
+        if (selected) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_check),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(14.dp),
+            )
+        }
     }
 }
 

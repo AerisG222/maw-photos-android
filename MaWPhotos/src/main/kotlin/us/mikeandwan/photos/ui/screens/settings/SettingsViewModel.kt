@@ -51,6 +51,7 @@ data class SettingsUiState(
     val peopleThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val peopleShowNames: Boolean = true,
     val peopleShowMediaCounts: Boolean = true,
+    val peopleShowClans: Boolean = true,
     val isDeveloperMode: Boolean = false,
     val developerLogs: List<DeveloperLog> = emptyList(),
     val faceRecognitionAccess: ScopeAccess = ScopeAccess.Unknown,
@@ -133,6 +134,7 @@ class SettingsViewModel
                     peopleThumbnailSize = peoplePreference.gridThumbnailSize,
                     peopleShowNames = peoplePreference.showNames,
                     peopleShowMediaCounts = peoplePreference.showMediaCounts,
+                    peopleShowClans = peoplePreference.showClans,
                     isDeveloperMode = args[15] as Boolean,
                     developerLogs = developerLogs,
                     faceRecognitionAccess = args[17] as ScopeAccess,
@@ -312,6 +314,12 @@ class SettingsViewModel
         fun setPeopleShowMediaCounts(show: Boolean) {
             viewModelScope.launch {
                 peoplePreferenceRepository.setShowMediaCounts(show)
+            }
+        }
+
+        fun setPeopleShowClans(show: Boolean) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setShowClans(show)
             }
         }
 

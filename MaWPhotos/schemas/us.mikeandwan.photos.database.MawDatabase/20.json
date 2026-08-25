@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 19,
-    "identityHash": "d9e4878c531693e4222c52c4c5fc3294",
+    "version": 20,
+    "identityHash": "9a6dd1416651391e96f7ebfa422876b0",
     "entities": [
       {
         "tableName": "category",
@@ -328,7 +328,7 @@
       },
       {
         "tableName": "people_preference",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `sort_by` TEXT NOT NULL DEFAULT 'Name', `grid_thumbnail_size` TEXT NOT NULL, `show_names` INTEGER NOT NULL DEFAULT 1, `show_media_counts` INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `sort_by` TEXT NOT NULL DEFAULT 'Name', `grid_thumbnail_size` TEXT NOT NULL, `show_names` INTEGER NOT NULL DEFAULT 1, `show_media_counts` INTEGER NOT NULL DEFAULT 1, `show_clans` INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -359,6 +359,13 @@
           {
             "fieldPath": "showMediaCounts",
             "columnName": "show_media_counts",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "showClans",
+            "columnName": "show_clans",
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "1"
