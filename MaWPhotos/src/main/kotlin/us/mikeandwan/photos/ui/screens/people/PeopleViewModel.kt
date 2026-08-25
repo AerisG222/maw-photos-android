@@ -132,11 +132,11 @@ class PeopleViewModel
             }
         }
 
-    // the same preference the settings screen offers, so folding the row away here and turning
-    // it off there are one setting rather than two that can disagree
-    fun toggleClansExpanded() {
-        viewModelScope.launch {
-            peoplePreferenceRepository.setShowClans(!_uiState.value.preferences.showClans)
+        // the same preference the settings screen offers, so folding the row away here and turning
+        // it off there are one setting rather than two that can disagree
+        fun toggleClansExpanded() {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setShowClans(!_uiState.value.preferences.showClans)
         }
     }
 
@@ -151,11 +151,11 @@ class PeopleViewModel
             loadClans(forceRefresh = true)
         }
 
-    // CLAN PICKING
+        // CLAN PICKING
 
-    fun startCreateClan() {
-        _selectedIds.update { emptySet() }
-        _picking.update { ClanPicking.Create }
+        fun startCreateClan() {
+            _selectedIds.update { emptySet() }
+            _picking.update { ClanPicking.Create }
     }
 
     // seeded with who is already in it, so the same interaction adds and removes: whatever is
