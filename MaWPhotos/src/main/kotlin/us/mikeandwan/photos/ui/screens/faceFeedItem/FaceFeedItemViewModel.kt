@@ -124,7 +124,6 @@ class FaceFeedItemViewModel
         // it, or it stays subscribed for the rest of the session
         override fun onCleared() {
             mediaListService.close()
-            super.onCleared()
         }
 
         fun setActiveId(id: Uuid) {

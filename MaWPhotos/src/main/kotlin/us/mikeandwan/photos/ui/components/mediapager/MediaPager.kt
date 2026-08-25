@@ -35,10 +35,10 @@ import us.mikeandwan.photos.ui.shared.getMediaUrl
 fun MediaPager(
     media: List<Media>,
     activeId: Uuid,
-    activeRotation: Float = 0f,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
     setActiveId: (Uuid) -> Unit,
     modifier: Modifier = Modifier,
+    activeRotation: Float = 0f,
     // the faces in the active item only.  the pager keeps neighbours composed so a swipe is
     // instant, and fetching for pages nobody has landed on would spend calls on faces that are
     // never seen.

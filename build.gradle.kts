@@ -22,7 +22,7 @@ val ktlintVersion = libs.versions.ktlint.get()
 //
 // Spotless is still what handles whitespace, xml and the odds and ends.
 allprojects {
-    val ktlint by configurations.creating
+    val ktlint = configurations.create("ktlint")
 
     dependencies {
         ktlint("com.pinterest.ktlint:ktlint-cli:$ktlintVersion") {

@@ -4,7 +4,6 @@ import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
@@ -102,8 +101,6 @@ class PeopleRepository
                     person.isFavorite
                 }
             }
-
-        fun getPerson(personId: Uuid) = _people.value.firstOrNull { it.id == personId }
 
         private fun updatePerson(updated: Person) {
             _people.update { currentList ->

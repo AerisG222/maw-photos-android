@@ -120,11 +120,11 @@ fun RandomItemScreen(
         modifier = modifier,
     ) {
         MediaPager(
-            uiState.media,
-            uiState.activeId,
-            rotationState.activeRotation,
-            videoPlayerDataSourceFactory,
+            media = uiState.media,
+            activeId = uiState.activeId,
+            videoPlayerDataSourceFactory = videoPlayerDataSourceFactory,
             setActiveId = onSetActiveId,
+            activeRotation = rotationState.activeRotation,
             faces = uiState.faces,
         )
     }

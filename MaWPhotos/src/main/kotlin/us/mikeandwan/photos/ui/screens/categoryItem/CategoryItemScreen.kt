@@ -107,11 +107,11 @@ fun CategoryItemScreen(
         modifier = modifier,
     ) {
         MediaPager(
-            uiState.media,
+            media = uiState.media,
             activeId = uiState.activeId,
-            rotationState.activeRotation,
-            videoPlayerDataSourceFactory,
+            videoPlayerDataSourceFactory = videoPlayerDataSourceFactory,
             setActiveId = onSetActiveId,
+            activeRotation = rotationState.activeRotation,
             faces = uiState.faces,
         )
     }

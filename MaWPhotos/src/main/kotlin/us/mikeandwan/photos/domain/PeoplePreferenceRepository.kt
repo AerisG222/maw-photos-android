@@ -22,11 +22,6 @@ class PeoplePreferenceRepository
                 .getPeoplePreference(PREFERENCE_ID)
                 .map { it.toDomainPeoplePreference() }
 
-        fun getPeopleGridItemSize() =
-            dao
-                .getPeoplePreference(PREFERENCE_ID)
-                .map { it.gridThumbnailSize }
-
         suspend fun setSortBy(sortBy: PersonSort) {
             setPreference { it.copy(sortBy = sortBy) }
         }
