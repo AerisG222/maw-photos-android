@@ -256,7 +256,7 @@ class MediaListService
          */
         fun close() {
             slideshowJob.cancel()
-        scope.cancel()
+            scope.cancel()
         }
 
         private fun setActiveId(id: Uuid) {
@@ -344,8 +344,8 @@ class MediaListService
         private fun toggleFaceHighlights() {
             scope.launch {
                 mediaPreferenceRepository.setShowFaceHighlights(!state.value.showFaceHighlights)
+            }
         }
-    }
 
         // EXIF
         private fun fetchExif() {
@@ -372,8 +372,8 @@ class MediaListService
          *
          * Safe to call again: everything it starts is replaced rather than added to, so a view
          * model that is reused for a second feed does not end up with two collectors writing the
-     * same state.
-     */
+         * same state.
+         */
         fun initialize(
             sourceMedia: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
@@ -401,40 +401,40 @@ class MediaListService
 
                 launch {
                     slideshowDurationInMillis.collect { slideshowJob.setIntervalMillis(it) }
-            }
+                }
 
-            launch { watchFacesForActiveMedia() }
+                launch { watchFacesForActiveMedia() }
+            }
         }
-    }
 
-    /**
-     * Keeps the face overlay pointed at whatever is on screen, and only while the preference
-     * asks for it - which is what makes the whole feature cost nothing at all for anyone who
-     * leaves it switched off.
-     *
-     * Videos are skipped rather than asked about: the overlay is drawn over a still frame, and
-     * a box fixed to the frame would be wrong the moment the video moved.
-     */
-    private suspend fun watchFacesForActiveMedia() {
-        combine(
-            media,
-            activeId,
-            faceHighlighting,
-        ) { mediaList, id, highlighting ->
-            // availability is read here and not only where the switch is drawn: credentials
-            // that lost the scope would otherwise keep asking for faces the API refuses, once
-            // per photo, on behalf of a preference the user can no longer see
-            if (highlighting.isOn && highlighting.isAvailable) {
-                mediaList.firstOrNull { it.id == id && it.type == MediaType.Photo }?.id
-            } else {
-                null
-            }
-        }.distinctUntilChanged()
-            // boxes belong to the item they were fetched for, so they go the instant the
-            // item does rather than lingering over the next one while it loads
-            .onEach { mediaFaceService.clear() }
-            .collectLatest { mediaId ->
-                if (mediaId != null) {
+        /**
+         * Keeps the face overlay pointed at whatever is on screen, and only while the preference
+         * asks for it - which is what makes the whole feature cost nothing at all for anyone who
+         * leaves it switched off.
+         *
+         * Videos are skipped rather than asked about: the overlay is drawn over a still frame, and
+         * a box fixed to the frame would be wrong the moment the video moved.
+         */
+        private suspend fun watchFacesForActiveMedia() {
+            combine(
+                media,
+                activeId,
+                faceHighlighting,
+            ) { mediaList, id, highlighting ->
+                // availability is read here and not only where the switch is drawn: credentials
+                // that lost the scope would otherwise keep asking for faces the API refuses, once
+                // per photo, on behalf of a preference the user can no longer see
+                if (highlighting.isOn && highlighting.isAvailable) {
+                    mediaList.firstOrNull { it.id == id && it.type == MediaType.Photo }?.id
+                } else {
+                    null
+                }
+            }.distinctUntilChanged()
+                // boxes belong to the item they were fetched for, so they go the instant the
+                // item does rather than lingering over the next one while it loads
+                .onEach { mediaFaceService.clear() }
+                .collectLatest { mediaId ->
+                    if (mediaId != null) {
                     mediaFaceService.fetchFaces(mediaId)
                 }
             }
@@ -456,11 +456,11 @@ class MediaListService
             }
         }
 
-    private fun cancelCategoryLoad() {
-        categoryJob?.cancel()
-        categoryJob = null
-        // forgotten as well as cancelled, so the next visit asks again rather than assuming the
-        // category it was showing before is still loaded
+        private fun cancelCategoryLoad() {
+            categoryJob?.cancel()
+            categoryJob = null
+            // forgotten as well as cancelled, so the next visit asks again rather than assuming the
+            // category it was showing before is still loaded
         requestedCategoryId = null
         category.update { null }
     }

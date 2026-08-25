@@ -137,8 +137,8 @@ class PeopleViewModel
         fun toggleClansExpanded() {
             viewModelScope.launch {
                 peoplePreferenceRepository.setShowClans(!_uiState.value.preferences.showClans)
+            }
         }
-    }
 
         fun toggleFavorite(person: Person) {
             viewModelScope.launch {
@@ -156,18 +156,18 @@ class PeopleViewModel
         fun startCreateClan() {
             _selectedIds.update { emptySet() }
             _picking.update { ClanPicking.Create }
-    }
+        }
 
-    // seeded with who is already in it, so the same interaction adds and removes: whatever is
-    // selected when the bar is saved becomes the membership
-    fun startEditMembers(clan: Clan) {
-        _selectedIds.update { clan.members.map { it.id }.toSet() }
-        _picking.update { ClanPicking.Members(clan) }
-    }
+        // seeded with who is already in it, so the same interaction adds and removes: whatever is
+        // selected when the bar is saved becomes the membership
+        fun startEditMembers(clan: Clan) {
+            _selectedIds.update { clan.members.map { it.id }.toSet() }
+            _picking.update { ClanPicking.Members(clan) }
+        }
 
-    fun stopPicking() {
-        _picking.update { ClanPicking.Off }
-        _selectedIds.update { emptySet() }
+        fun stopPicking() {
+            _picking.update { ClanPicking.Off }
+            _selectedIds.update { emptySet() }
     }
 
     fun toggleSelected(person: Person) {
