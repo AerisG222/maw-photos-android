@@ -135,8 +135,8 @@ class MediaListService
             FaceHighlighting(
                 isOn = pref.showFaceHighlights,
                 isAvailable = access != ScopeAccess.Denied,
-        )
-    }
+            )
+        }
         private val category = MutableStateFlow<Category?>(null)
         private val media = MutableStateFlow<List<Media>>(emptyList())
         private val activeId = MutableStateFlow(Uuid.NIL)
@@ -152,7 +152,7 @@ class MediaListService
         // and cancelled rather than launched and forgotten, and the id it was asked for is
         // remembered so repeated asks for the same one do not each start another
         private var categoryJob: Job? = null
-    private var requestedCategoryId: Uuid? = null
+        private var requestedCategoryId: Uuid? = null
 
         val state: StateFlow<MediaListState> =
             combine(
@@ -247,15 +247,15 @@ class MediaListService
             mediaFaceService.clear()
         }
 
-    /**
-     * Releases everything this holds, for a view model that is going away.
-     *
-     * The scope below is this object's own, and the flows it collects - the feed, the
-     * preferences, the granted scopes - all outlive any one screen.  They would hold this and
-     * its state alive for the rest of the session otherwise, once per pager ever opened.
-     */
-    fun close() {
-        slideshowJob.cancel()
+        /**
+         * Releases everything this holds, for a view model that is going away.
+         *
+         * The scope below is this object's own, and the flows it collects - the feed, the
+         * preferences, the granted scopes - all outlive any one screen.  They would hold this and
+         * its state alive for the rest of the session otherwise, once per pager ever opened.
+         */
+        fun close() {
+            slideshowJob.cancel()
         scope.cancel()
         }
 
@@ -337,13 +337,13 @@ class MediaListService
             }
         }
 
-    // FACES
-    // written to the preference rather than held for this screen: somebody who turns the boxes
-    // on here means it for the grid they came from and the next photo they open, which is the
-    // same setting the settings screen offers
-    private fun toggleFaceHighlights() {
-        scope.launch {
-            mediaPreferenceRepository.setShowFaceHighlights(!state.value.showFaceHighlights)
+        // FACES
+        // written to the preference rather than held for this screen: somebody who turns the boxes
+        // on here means it for the grid they came from and the next photo they open, which is the
+        // same setting the settings screen offers
+        private fun toggleFaceHighlights() {
+            scope.launch {
+                mediaPreferenceRepository.setShowFaceHighlights(!state.value.showFaceHighlights)
         }
     }
 
@@ -367,40 +367,40 @@ class MediaListService
             }
         }
 
-    /**
-     * Points this at the feed a pager is being opened over.
-     *
-     * Safe to call again: everything it starts is replaced rather than added to, so a view
-     * model that is reused for a second feed does not end up with two collectors writing the
+        /**
+         * Points this at the feed a pager is being opened over.
+         *
+         * Safe to call again: everything it starts is replaced rather than added to, so a view
+         * model that is reused for a second feed does not end up with two collectors writing the
      * same state.
      */
         fun initialize(
             sourceMedia: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
         ) {
-        wiring?.cancel()
-        cancelCategoryLoad()
+            wiring?.cancel()
+            cancelCategoryLoad()
 
-        wiring = scope.launch {
-            // the list is a mirror of the feed, seeded from what it already holds - a state flow
-            // hands its current value to a new collector, which is what makes a second visit to
-            // the pager find the media it had rather than an empty list
-            launch {
-                sourceMedia.collect { newList -> media.update { newList } }
-            }
+            wiring = scope.launch {
+                // the list is a mirror of the feed, seeded from what it already holds - a state flow
+                // hands its current value to a new collector, which is what makes a second visit to
+                // the pager find the media it had rather than an empty list
+                launch {
+                    sourceMedia.collect { newList -> media.update { newList } }
+                }
 
-            // the title follows the item, which in a random or face feed means it changes as the
-            // pager moves.  loadCategory is what keeps repeated asks for the same category from
-            // each starting their own lookup - this fires on every state change, not just on a
-            // new item.
-            launch {
-                state
-                    .mapNotNull { it.activeMedia?.categoryId }
-                    .collect { categoryId -> loadCategory(categoryId) }
-            }
+                // the title follows the item, which in a random or face feed means it changes as the
+                // pager moves.  loadCategory is what keeps repeated asks for the same category from
+                // each starting their own lookup - this fires on every state change, not just on a
+                // new item.
+                launch {
+                    state
+                        .mapNotNull { it.activeMedia?.categoryId }
+                        .collect { categoryId -> loadCategory(categoryId) }
+                }
 
-            launch {
-                slideshowDurationInMillis.collect { slideshowJob.setIntervalMillis(it) }
+                launch {
+                    slideshowDurationInMillis.collect { slideshowJob.setIntervalMillis(it) }
             }
 
             launch { watchFacesForActiveMedia() }

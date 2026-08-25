@@ -116,7 +116,7 @@ class RandomItemViewModel
         override fun onCleared() {
             mediaListService.close()
             super.onCleared()
-    }
+        }
 
         fun setActiveId(id: Uuid) {
             mediaListService.onAction(MediaListAction.SetActiveId(id))
@@ -132,7 +132,7 @@ class RandomItemViewModel
 
         fun toggleFaceHighlights() {
             mediaListService.onAction(MediaListAction.ToggleFaceHighlights)
-    }
+        }
 
         fun toggleFavorite() {
             _uiState.value.activeMedia?.let {

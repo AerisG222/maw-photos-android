@@ -203,12 +203,9 @@ hilt {
     enableAggregatingTask = true
 }
 
-val ktlintVersion = libs.versions.ktlint.get()
-
 spotless {
     kotlin {
         target("src/**/*.kt")
-        ktlint(ktlintVersion)
         trimTrailingWhitespace()
         leadingTabsToSpaces(4)
         endWithNewline()
@@ -216,7 +213,6 @@ spotless {
 
     kotlinGradle {
         target("*.gradle.kts")
-        ktlint(ktlintVersion)
         trimTrailingWhitespace()
         endWithNewline()
     }
