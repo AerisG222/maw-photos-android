@@ -47,26 +47,41 @@ class FaceFeedRepository
 
         private var nextOffset = 0
 
+        // whether anything has come back yet, which is what tells an exhausted feed apart from one
+        // that has not started.  it cannot be inferred from nextOffset: a feed the API answers
+        // whole in one page comes back with no more results and an offset of zero, and reading that
+        // as "not started" sends the very same request again and appends the same rows twice.
+        private var hasLoadedAPage = false
+
         // a grid can ask for the next page more than once before the first ask lands - two rows of
         // a scroll are enough - and a second request at the same offset would append the same page
         // twice
         private var isLoading = false
 
+        // bumped every time the feed starts over.  a request already in flight when that happens
+        // was asked under the old subject or filter, and its rows do not belong in the new list -
+        // appending them anyway leaves the grid holding media the filter excludes, and duplicate
+        // ids once the new pages arrive alongside them.
+        private var generation = 0
+
         /**
          * Points the feed at a subject, keeping what has already been accumulated when it is
          * already the one being shown - which is what lets the pager hand back to the grid without
          * refetching everything the user scrolled through.
+         *
+         * The subject alone decides that.  The filter belongs to the feed rather than to whoever
+         * points at it: the grid is what narrows and reshuffles, and both screens call this on the
+         * way in, so treating a filter as part of the identity would have the pager reset the feed
+         * to an unfiltered first page and lose the item that was tapped.  A new subject is a new
+         * feed, and starts unfiltered.
          */
-        fun initialize(
-            subject: FaceFeedSubject,
-            filter: FaceFeedFilter = FaceFeedFilter(),
-        ) {
-            if (_subject.value == subject && _filter.value == filter) {
+        fun initialize(subject: FaceFeedSubject) {
+            if (_subject.value == subject) {
                 return
             }
 
             _subject.update { subject }
-            _filter.update { filter }
+            _filter.update { FaceFeedFilter() }
 
             reset()
         }
@@ -87,18 +102,27 @@ class FaceFeedRepository
             flow {
                 val subject = _subject.value
 
-                if (subject == null || isLoading || (nextOffset > 0 && !_hasMore.value)) {
+                if (subject == null || isLoading || (hasLoadedAPage && !_hasMore.value)) {
                     return@flow
                 }
 
                 isLoading = true
+                val generationAsked = generation
                 emit(ExternalCallStatus.Loading)
 
                 try {
                     val filter = _filter.value
                     val offset = nextOffset
 
-                    when (val result = fetch(subject, offset, filter)) {
+                    val result = fetch(subject, offset, filter)
+
+                    // the feed started over while this was in flight, so what came back answers a
+                    // question nobody is asking any more
+                    if (generationAsked != generation) {
+                        return@flow
+                    }
+
+                    when (result) {
                         is ApiResult.Success -> {
                             emit(handleResults(result.result))
                         }
@@ -121,7 +145,10 @@ class FaceFeedRepository
                         }
                     }
                 } finally {
-                    isLoading = false
+                    // a superseded request leaves the flag to whichever request replaced it
+                    if (generationAsked == generation) {
+                        isLoading = false
+                    }
                 }
             }
 
@@ -165,11 +192,15 @@ class FaceFeedRepository
             _media.update { it + page }
             _hasMore.update { results.hasMoreResults }
             nextOffset = results.nextOffset
+            hasLoadedAPage = true
 
             return ExternalCallStatus.Success(page)
         }
 
         private fun reset() {
+            generation++
+            isLoading = false
+            hasLoadedAPage = false
             _media.update { emptyList() }
             _hasMore.update { false }
             nextOffset = 0

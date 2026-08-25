@@ -5,7 +5,10 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import java.net.HttpURLConnection
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -135,8 +138,32 @@ class FaceFeedRepositoryTest {
         assertEquals(2, repository.media.value.size)
     }
 
+    // the pager calls initialize on its way in, over the feed the grid has already narrowed.  if a
+    // filter counted as part of the feed's identity that call would reset it to an unfiltered first
+    // page, and the item that was tapped would no longer be in the list to show.
     @Test
-    fun `moving to another subject starts over`() = runTest {
+    fun `re-initializing with the same subject keeps a filter the grid applied`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
+        coEvery { api.getPersonMedia(personId, 0, true, 42L) } returns
+            ApiResult.Success(page(count = 3, hasMore = true, nextOffset = 3))
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+
+        repository.setFilter(FaceFeedFilter(favoritesOnly = true, seed = 42L))
+        repository.loadNextPage().toList()
+
+        // Act
+        repository.initialize(subject)
+
+        // Assert
+        assertEquals(FaceFeedFilter(favoritesOnly = true, seed = 42L), repository.filter.value)
+        assertEquals(3, repository.media.value.size)
+    }
+
+    @Test
+    fun `moving to another subject starts over, unfiltered`() = runTest {
         val otherId = Uuid.random()
 
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
@@ -144,9 +171,65 @@ class FaceFeedRepositoryTest {
 
         repository.initialize(subject)
         repository.loadNextPage().toList()
+        repository.setFilter(FaceFeedFilter(favoritesOnly = true, seed = 42L))
         repository.initialize(FaceFeedSubject.Clan(otherId))
 
         assertTrue(repository.media.value.isEmpty())
+        assertEquals(FaceFeedFilter(), repository.filter.value)
+    }
+
+    // a feed the API answers whole comes back with no more results and an offset of zero.  reading
+    // that offset as "nothing loaded yet" sends the identical request again, and the same rows land
+    // in the list twice - which the grid, keyed by media id, dies on rather than merely drawing
+    // wrong.
+    @Test
+    fun `a feed answered whole in one page is not asked for again`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 0))
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+
+        // Act
+        repository.loadNextPage().toList()
+
+        // Assert
+        assertEquals(2, repository.media.value.size)
+        assertEquals(2, repository.media.value.distinctBy { it.id }.size)
+        coVerify(exactly = 1) { api.getPersonMedia(personId, 0, false, null) }
+    }
+
+    // the grid pages as it scrolls, so a request can still be in flight when the user narrows or
+    // reshuffles.  appending what it returns would leave the list holding rows the new filter
+    // excludes - and, once the new pages land beside them, the same media id twice, which is a
+    // crash in the grid rather than a cosmetic problem.
+    @Test
+    fun `a page still in flight when the filter changes is discarded`() = runTest {
+        val stale = page(count = 2, hasMore = true, nextOffset = 2)
+        val fresh = page(count = 1, hasMore = false, nextOffset = 1)
+        val staleRequestLanded = CompletableDeferred<Unit>()
+
+        coEvery { api.getPersonMedia(personId, 0, false, null) } coAnswers {
+            staleRequestLanded.await()
+            ApiResult.Success(stale)
+        }
+        coEvery { api.getPersonMedia(personId, 0, true, null) } returns ApiResult.Success(fresh)
+
+        repository.initialize(subject)
+
+        val staleLoad = launch { repository.loadNextPage().toList() }
+        runCurrent()
+
+        // Act - the filter changes, and only then does the first request come back
+        repository.setFilter(FaceFeedFilter(favoritesOnly = true))
+        repository.loadNextPage().toList()
+
+        staleRequestLanded.complete(Unit)
+        staleLoad.join()
+
+        // Assert
+        assertEquals(1, repository.media.value.size)
+        assertEquals(fresh.results.first().id, repository.media.value.first().id)
     }
 
     private fun page(

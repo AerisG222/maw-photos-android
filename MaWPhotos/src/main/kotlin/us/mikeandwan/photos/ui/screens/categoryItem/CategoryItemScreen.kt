@@ -30,6 +30,7 @@ fun CategoryItemScreen(
     onSetActiveId: (Uuid) -> Unit,
     onToggleSlideshow: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onToggleFaceHighlights: () -> Unit,
     onToggleDetails: () -> Unit,
     onFetchExif: () -> Unit,
     onFetchComments: () -> Unit,
@@ -72,8 +73,11 @@ fun CategoryItemScreen(
                     activeMediaType = activeMedia.type,
                     isSlideshowPlaying = uiState.isSlideshowPlaying,
                     isFavorite = activeMedia.isFavorite,
+                    showFaceHighlights = uiState.showFaceHighlights,
+                    canHighlightFaces = uiState.canHighlightFaces,
                     onRotateLeft = { rotationState.setActiveRotation(-90f) },
                     onRotateRight = { rotationState.setActiveRotation(90f) },
+                    onToggleFaceHighlights = onToggleFaceHighlights,
                     onToggleFavorite = onToggleFavorite,
                     onToggleSlideshow = onToggleSlideshow,
                     onShare = {
@@ -108,6 +112,7 @@ fun CategoryItemScreen(
             rotationState.activeRotation,
             videoPlayerDataSourceFactory,
             setActiveId = onSetActiveId,
+            faces = uiState.faces,
         )
     }
 }

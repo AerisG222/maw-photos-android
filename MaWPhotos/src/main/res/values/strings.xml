@@ -72,6 +72,7 @@
     <string name="toggle_favorite_icon_description">Toggle Favorite</string>
     <string name="toggle_slideshow_icon_description">Toggle Slideshow</string>
     <string name="share_photo_icon_description">Share Photo</string>
+    <string name="toggle_face_highlights_icon_description">Toggle Face Highlights</string>
     <string name="view_media_details_icon_description">View Media Details</string>
 
     <!-- navigation rail -->
@@ -155,6 +156,7 @@
     <string name="pref_people_show_names">Show Names</string>
     <string name="pref_people_show_media_counts">Show Media Counts</string>
     <string name="pref_people_show_clans">Show Clans</string>
+    <string name="pref_people_show_face_highlights">Highlight Faces on Media</string>
     <string name="pref_face_recognition_header">Browse by Person</string>
     <string name="pref_advanced_display_header">Advanced</string>
     <string name="pref_show_media_type_indicator">Show Media Type Badge</string>

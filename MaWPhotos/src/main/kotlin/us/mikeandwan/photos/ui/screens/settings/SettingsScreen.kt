@@ -75,6 +75,7 @@ fun SettingsScreen(
     onPeopleShowNamesChange: (Boolean) -> Unit,
     onPeopleShowMediaCountsChange: (Boolean) -> Unit,
     onPeopleShowClansChange: (Boolean) -> Unit,
+    onMediaShowFaceHighlightsChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
     onClearCache: () -> Unit,
@@ -341,6 +342,11 @@ fun SettingsScreen(
                 isChecked = uiState.peopleShowClans,
                 onChange = onPeopleShowClansChange,
             )
+            SwitchPreference(
+                labelStringId = R.string.pref_people_show_face_highlights,
+                isChecked = uiState.mediaShowFaceHighlights,
+                onChange = onMediaShowFaceHighlightsChange,
+            )
             HorizontalDivider(
                 modifier = dividerModifier,
                 color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -553,6 +559,7 @@ private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
         onPeopleShowNamesChange = {},
         onPeopleShowMediaCountsChange = {},
         onPeopleShowClansChange = {},
+        onMediaShowFaceHighlightsChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},
         onClearCache = {},

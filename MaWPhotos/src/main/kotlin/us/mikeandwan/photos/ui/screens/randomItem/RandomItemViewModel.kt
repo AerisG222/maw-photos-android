@@ -21,6 +21,7 @@ import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
+import us.mikeandwan.photos.domain.models.FaceHighlight
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.services.MediaListAction
@@ -36,6 +37,9 @@ data class RandomItemUiState(
     val showDetailSheet: Boolean = false,
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
+    val faces: List<FaceHighlight> = emptyList(),
+    val showFaceHighlights: Boolean = false,
+    val canHighlightFaces: Boolean = false,
     val isLoading: Boolean = true,
     val hasPrevious: Boolean = false,
     val hasNext: Boolean = false,
@@ -86,6 +90,9 @@ class RandomItemViewModel
                     showDetailSheet = mediaListState.showDetailSheet,
                     exif = mediaListState.exif,
                     comments = mediaListState.comments,
+                    faces = mediaListState.faces,
+                    showFaceHighlights = mediaListState.showFaceHighlights,
+                    canHighlightFaces = mediaListState.canHighlightFaces,
                     isLoading = mediaListState.isLoading,
                     hasPrevious = mediaListState.hasPrevious,
                     hasNext = mediaListState.hasNext,
@@ -103,6 +110,14 @@ class RandomItemViewModel
             mediaListService.onAction(MediaListAction.SetActiveId(id))
         }
 
+        // the service keeps its own scope over flows that outlive this screen - the feed, the
+        // preferences, the granted scopes - so it has to be told when this view model is done with
+        // it, or it stays subscribed for the rest of the session
+        override fun onCleared() {
+            mediaListService.close()
+            super.onCleared()
+    }
+
         fun setActiveId(id: Uuid) {
             mediaListService.onAction(MediaListAction.SetActiveId(id))
         }
@@ -114,6 +129,10 @@ class RandomItemViewModel
         fun toggleShowDetails() {
             mediaListService.onAction(MediaListAction.ToggleShowDetails)
         }
+
+        fun toggleFaceHighlights() {
+            mediaListService.onAction(MediaListAction.ToggleFaceHighlights)
+    }
 
         fun toggleFavorite() {
             _uiState.value.activeMedia?.let {

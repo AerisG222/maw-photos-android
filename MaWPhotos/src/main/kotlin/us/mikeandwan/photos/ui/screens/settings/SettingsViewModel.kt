@@ -52,6 +52,9 @@ data class SettingsUiState(
     val peopleShowNames: Boolean = true,
     val peopleShowMediaCounts: Boolean = true,
     val peopleShowClans: Boolean = true,
+    // stored with the media preferences rather than the people ones - it applies wherever media is
+    // shown - but offered beside the rest of the face settings, since it is face data it draws
+    val mediaShowFaceHighlights: Boolean = false,
     val isDeveloperMode: Boolean = false,
     val developerLogs: List<DeveloperLog> = emptyList(),
     val faceRecognitionAccess: ScopeAccess = ScopeAccess.Unknown,
@@ -135,6 +138,8 @@ class SettingsViewModel
                     peopleShowNames = peoplePreference.showNames,
                     peopleShowMediaCounts = peoplePreference.showMediaCounts,
                     peopleShowClans = peoplePreference.showClans,
+                    mediaShowFaceHighlights = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
+                        .showFaceHighlights,
                     isDeveloperMode = args[15] as Boolean,
                     developerLogs = developerLogs,
                     faceRecognitionAccess = args[17] as ScopeAccess,
@@ -320,6 +325,12 @@ class SettingsViewModel
         fun setPeopleShowClans(show: Boolean) {
             viewModelScope.launch {
                 peoplePreferenceRepository.setShowClans(show)
+            }
+        }
+
+        fun setMediaShowFaceHighlights(show: Boolean) {
+            viewModelScope.launch {
+                mediaPreferenceRepository.setShowFaceHighlights(show)
             }
         }
 

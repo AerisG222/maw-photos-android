@@ -1,0 +1,23 @@
+<!--
+  a face inside a detection frame - the frame is what the overlay actually draws, so the icon says
+  "mark the faces" rather than merely "person", which ic_person already means elsewhere
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:fillColor="@android:color/transparent"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M3,3h6v2H5v4H3V3zM15,3h6v6h-2V5h-4V3zM3,15h2v4h4v2H3v-6zM19,15h2v6h-6v-2h4v-4z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M9.5,10.5m-1.1,0a1.1,1.1 0 1,0 2.2,0a1.1,1.1 0 1,0 -2.2,0" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14.5,10.5m-1.1,0a1.1,1.1 0 1,0 2.2,0a1.1,1.1 0 1,0 -2.2,0" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M8.4,13.6l-1.5,1.1C7.98,16.15 9.86,17.1 12,17.1s4.02,-0.95 5.1,-2.4l-1.5,-1.1c-0.78,1.04 -2.13,1.7 -3.6,1.7s-2.82,-0.66 -3.6,-1.7z" />
+</vector>

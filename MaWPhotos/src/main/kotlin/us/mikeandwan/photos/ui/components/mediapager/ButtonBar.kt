@@ -21,8 +21,13 @@ fun ButtonBar(
     activeMediaType: MediaType,
     isSlideshowPlaying: Boolean,
     isFavorite: Boolean,
+    showFaceHighlights: Boolean,
+    // the switch is absent rather than disabled when the API would refuse the calls behind the
+    // overlay - the same reason the settings screen leaves those preferences out entirely
+    canHighlightFaces: Boolean,
     onRotateLeft: () -> Unit,
     onRotateRight: () -> Unit,
+    onToggleFaceHighlights: () -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleSlideshow: () -> Unit,
     onShare: () -> Unit,
@@ -67,6 +72,24 @@ fun ButtonBar(
                     ),
                     tint = color,
                 )
+            }
+
+            if (canHighlightFaces) {
+                IconButton(onClick = onToggleFaceHighlights) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_face),
+                        contentDescription = stringResource(
+                            id = R.string.toggle_face_highlights_icon_description,
+                        ),
+                        // lit while the boxes are being drawn, the same way the face feed marks its
+                        // own filters as on
+                        tint = if (showFaceHighlights) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            color
+                        },
+                    )
+                }
             }
 
             IconButton(onClick = onToggleFavorite) {

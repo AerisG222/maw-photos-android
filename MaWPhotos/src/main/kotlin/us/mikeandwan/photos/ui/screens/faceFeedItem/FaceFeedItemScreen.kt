@@ -30,6 +30,7 @@ fun FaceFeedItemScreen(
     onSetActiveId: (Uuid) -> Unit,
     onToggleSlideshow: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onToggleFaceHighlights: () -> Unit,
     onToggleDetails: () -> Unit,
     onFetchExif: () -> Unit,
     onFetchComments: () -> Unit,
@@ -74,8 +75,11 @@ fun FaceFeedItemScreen(
                     activeMediaType = activeMedia.type,
                     isSlideshowPlaying = uiState.isSlideshowPlaying,
                     isFavorite = activeMedia.isFavorite,
+                    showFaceHighlights = uiState.showFaceHighlights,
+                    canHighlightFaces = uiState.canHighlightFaces,
                     onRotateLeft = { rotationState.setActiveRotation(-90f) },
                     onRotateRight = { rotationState.setActiveRotation(90f) },
+                    onToggleFaceHighlights = onToggleFaceHighlights,
                     onToggleFavorite = onToggleFavorite,
                     onToggleSlideshow = onToggleSlideshow,
                     onShare = {
@@ -110,6 +114,7 @@ fun FaceFeedItemScreen(
             rotationState.activeRotation,
             videoPlayerDataSourceFactory,
             setActiveId = onSetActiveId,
+            faces = uiState.faces,
         )
     }
 }

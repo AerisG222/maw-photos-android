@@ -89,6 +89,7 @@ private fun SettingsRoute(vm: SettingsViewModel = hiltViewModel()) {
         onPeopleShowNamesChange = { vm.setPeopleShowNames(it) },
         onPeopleShowMediaCountsChange = { vm.setPeopleShowMediaCounts(it) },
         onPeopleShowClansChange = { vm.setPeopleShowClans(it) },
+        onMediaShowFaceHighlightsChange = { vm.setMediaShowFaceHighlights(it) },
         onToggleDeveloperMode = { vm.toggleDeveloperMode(it) },
         onClearLogs = { vm.clearLogs() },
         onClearCache = { vm.clearCache() },

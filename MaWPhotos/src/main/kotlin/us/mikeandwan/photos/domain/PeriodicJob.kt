@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,17 @@ class PeriodicJob<T>(
 
     fun stop() {
         _doJob.update { false }
+    }
+
+    /**
+     * Stops the job for good, for an owner that is going away.
+     *
+     * The loop below runs on a scope of this object's own making, which nothing else can reach - so
+     * without this it outlives whoever created it, and one is created per pager.
+     */
+    fun cancel() {
+        stop()
+        scope.cancel()
     }
 
     fun setIntervalMillis(millis: Long) {

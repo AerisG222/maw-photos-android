@@ -76,6 +76,7 @@ private fun CategoryItemRoute(
         onSetActiveId = { vm.setActiveId(it) },
         onToggleSlideshow = { vm.toggleSlideshow() },
         onToggleFavorite = { vm.toggleFavorite() },
+        onToggleFaceHighlights = { vm.toggleFaceHighlights() },
         onToggleDetails = { vm.toggleShowDetails() },
         onFetchExif = { vm.fetchExif() },
         onFetchComments = { vm.fetchCommentDetails() },
