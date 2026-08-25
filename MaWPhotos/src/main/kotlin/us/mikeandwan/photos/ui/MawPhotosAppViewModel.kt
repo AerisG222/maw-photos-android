@@ -156,9 +156,9 @@ class MawPhotosAppViewModel
             _activeYear.update { year }
         }
 
-    fun setActiveFaceSubject(subject: FaceFeedSubject?) {
-        _activeFaceSubject.update { subject }
-    }
+        fun setActiveFaceSubject(subject: FaceFeedSubject?) {
+            _activeFaceSubject.update { subject }
+        }
 
         fun clearSearchHistory() {
             viewModelScope.launch {
@@ -288,12 +288,12 @@ class MawPhotosAppViewModel
 
         private suspend fun saveUploadFile(mediaUri: Uri): File? = fileStorageRepository.saveFileToUpload(mediaUri)
 
-    // favorites lead, as they do in the grid, so the handful of people looked at most often sit
-    // at the top of a list that can run to a few hundred rows
-    private fun List<Person>.sortedForMenu(): List<Person> =
-        sortedWith(
-            compareByDescending<Person> { it.isFavorite }
-                .thenBy { it.name.lowercase() },
+        // favorites lead, as they do in the grid, so the handful of people looked at most often sit
+        // at the top of a list that can run to a few hundred rows
+        private fun List<Person>.sortedForMenu(): List<Person> =
+            sortedWith(
+                compareByDescending<Person> { it.isFavorite }
+                    .thenBy { it.name.lowercase() },
         )
 
         private fun bootstrapAppData() {

@@ -1,15 +1,20 @@
 package us.mikeandwan.photos.ui.components.people
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -23,9 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,10 +44,13 @@ import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Clan
 import us.mikeandwan.photos.domain.models.Person
 
-// enough faces to recognise the clan at a glance; the rest are counted
-private const val FACES_SHOWN = 5
-
 private val FACE_SIZE = 36.dp
+
+// a third of a face, which reads as a stack while still leaving each one recognisable
+private val FACE_OVERLAP = 12.dp
+
+// separates one face from the face it sits on, in the colour of the card behind them
+private val FACE_RING = 1.5.dp
 
 /**
  * One saved group of people.
@@ -56,7 +68,6 @@ fun ClanCard(
     modifier: Modifier = Modifier,
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    val hidden = (clan.members.size - FACES_SHOWN).coerceAtLeast(0)
 
     Card(
         modifier = modifier
@@ -136,28 +147,79 @@ fun ClanCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    clan.members.take(FACES_SHOWN).forEach { member ->
-                        PersonFace(
-                            person = member,
-                            shape = CircleShape,
-                            modifier = Modifier.size(FACE_SIZE),
-                        )
-                    }
-
-                    if (hidden > 0) {
-                        Text(
-                            text = stringResource(id = R.string.clan_more_people, hidden),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                FaceStack(members = clan.members)
             }
         }
+    }
+}
+
+/**
+ * The clan's members, overlapped so however many there are, they occupy one row of the card.
+ *
+ * The row is measured rather than cut to a fixed count: as many faces as the card can hold are
+ * drawn, and when they do not all fit the last slot becomes the count of the ones left out - so
+ * every card ends at the same place regardless of how big the clan is.
+ */
+@Composable
+private fun FaceStack(
+    members: List<Person>,
+    modifier: Modifier = Modifier,
+) {
+    val ringColor = CardDefaults.cardColors().containerColor
+
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        // each face past the first only costs what it does not overlap
+        val step = FACE_SIZE - FACE_OVERLAP
+        val capacity = (((maxWidth - FACE_SIZE) / step).toInt() + 1).coerceAtLeast(1)
+        val shown = if (members.size <= capacity) members.size else capacity - 1
+        val hidden = members.size - shown
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(-FACE_OVERLAP),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            members.take(shown).forEach { member ->
+                PersonFace(
+                    person = member,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(FACE_SIZE)
+                        .border(FACE_RING, ringColor, CircleShape),
+                )
+            }
+
+            if (hidden > 0) {
+                HiddenFaceCount(count = hidden, ringColor = ringColor)
+            }
+        }
+    }
+}
+
+/** The faces the row had no room for, counted in a slot the same size as one of them. */
+@Composable
+private fun HiddenFaceCount(
+    count: Int,
+    ringColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val description = stringResource(id = R.string.clan_more_people_description, count)
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(FACE_SIZE)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(FACE_RING, ringColor, CircleShape)
+            // the badge says "+3" on screen, which reads as nothing much out loud
+            .clearAndSetSemantics { contentDescription = description },
+    ) {
+        Text(
+            text = stringResource(id = R.string.clan_more_people, count),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
     }
 }
 
@@ -168,7 +230,23 @@ private fun ClanCardPreview() {
         clan = Clan(
             id = Uuid.random(),
             name = "The Kids",
-            members = (1..7).map { Person(Uuid.random(), "Person $it", null, it, false) },
+            members = (1..4).map { Person(Uuid.random(), "Person $it", null, it, false) },
+        ),
+        onSelect = {},
+        onEditMembers = {},
+        onRename = {},
+        onDelete = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ClanCardOverflowPreview() {
+    ClanCard(
+        clan = Clan(
+            id = Uuid.random(),
+            name = "Everybody",
+            members = (1..24).map { Person(Uuid.random(), "Person $it", null, it, false) },
         ),
         onSelect = {},
         onEditMembers = {},

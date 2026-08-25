@@ -89,7 +89,8 @@
     <string name="clan_delete_title">Delete %1$s?</string>
     <string name="clan_delete_message">The people in it are left alone.</string>
     <string name="clan_no_people">No people in this clan yet</string>
-    <string name="clan_more_people">+%1$d more</string>
+    <string name="clan_more_people">+%1$d</string>
+    <string name="clan_more_people_description">%1$d more people</string>
     <string name="clan_name">Name</string>
     <string name="clan_name_new">Name Your Clan</string>
     <string name="clan_name_too_long">A clan name may be at most %1$d characters</string>
