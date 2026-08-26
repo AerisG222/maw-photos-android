@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthStatus
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.models.UserStatus
+import us.mikeandwan.photos.ui.components.authorization.ReauthorizeDialog
 import us.mikeandwan.photos.ui.components.navigation.NavigationRail
 import us.mikeandwan.photos.ui.components.topbar.TopBar
 import us.mikeandwan.photos.ui.navigation.Navigator
@@ -118,6 +119,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val authStatus by vm.authenticationStatus.collectAsStateWithLifecycle()
     val userStatus by vm.userStatus.collectAsStateWithLifecycle()
     val faceRecognitionAccess by vm.faceRecognitionAccess.collectAsStateWithLifecycle()
+    val showReauthorizePrompt by vm.showReauthorizePrompt.collectAsStateWithLifecycle()
 
     val appActions = rememberMawAppActions(
         vm = vm,
@@ -282,6 +284,15 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                         entries = navigationState.toEntries(entryProvider),
                         onBack = { appActions.back() },
                         sceneStrategies = listOf(remember { DialogSceneStrategy() }),
+                    )
+                }
+
+                // over whatever the app opened on, rather than tied to a screen: the people area
+                // this restores is the one place it could not be shown from
+                if (showReauthorizePrompt) {
+                    ReauthorizeDialog(
+                        onReauthorize = { vm.reauthorize(context) },
+                        onDismiss = { vm.dismissReauthorizePrompt() },
                     )
                 }
             }

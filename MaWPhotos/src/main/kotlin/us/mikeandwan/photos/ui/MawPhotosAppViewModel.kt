@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.ui
 
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.material3.DrawerValue
@@ -26,6 +27,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -76,6 +78,23 @@ class MawPhotosAppViewModel
         // read of the token has had a chance to answer
         val faceRecognitionAccess = authService.faceRecognitionAccess
             .stateIn(viewModelScope, WhileSubscribed(5000), ScopeAccess.Unknown)
+
+        // asking again after the user has waved it off would make it a nag, so a dismissal holds
+        // for as long as this view model lives - the next launch is the next chance to ask
+        private val _reauthorizePromptDismissed = MutableStateFlow(false)
+
+        // a sign in that predates face recognition leaves the people area simply missing, with
+        // nothing on screen to say why, so the offer to fix it is made on launch rather than left
+        // for the user to find in Settings.  an inactive user is excluded: they are held on a
+        // screen of their own, and a wider grant would not change what they can see
+        val showReauthorizePrompt = combine(
+            faceRecognitionAccess,
+            userStatus,
+            _reauthorizePromptDismissed,
+        ) { access, user, dismissed ->
+            access == ScopeAccess.Denied && user !is UserStatus.Inactive && !dismissed
+        }.stateIn(viewModelScope, WhileSubscribed(5000), false)
+
         val years = categoryRepository.getYears()
 
         // whoever the people screen has already loaded - the rail lists them so a person or a clan
@@ -159,6 +178,22 @@ class MawPhotosAppViewModel
         fun setActiveFaceSubject(subject: FaceFeedSubject?) {
             _activeFaceSubject.update { subject }
         }
+
+        fun dismissReauthorizePrompt() {
+            _reauthorizePromptDismissed.update { true }
+        }
+
+        // a fresh login is the only thing that can widen a grant, so the missing authorization is
+        // offered as signing in again rather than as a retry.  the prompt is put away either way:
+        // a login that succeeds makes it moot, and one that fails should not bounce straight back
+        // at the user, who can still reach this from Settings
+        fun reauthorize(context: Context) {
+            dismissReauthorizePrompt()
+
+            viewModelScope.launch {
+            authService.login(context)
+        }
+    }
 
         fun clearSearchHistory() {
             viewModelScope.launch {
