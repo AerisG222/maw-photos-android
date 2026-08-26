@@ -2,9 +2,9 @@
 
 ## v9.9 : 08/25/2026
 
-- browse photos and videos by the people
-- create clans - saved groups of people - and browse media any of them are in
-- toggle highlighting and naming faces in a photo
+- browse photos and videos by person
+- create clans - saved groups of people - and browse media containing any of them
+- highlight and name faces in photos
 
 ## v9.8 : 08/20/2026
 
