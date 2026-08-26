@@ -294,7 +294,7 @@ class MawPhotosAppViewModel
             sortedWith(
                 compareByDescending<Person> { it.isFavorite }
                     .thenBy { it.name.lowercase() },
-        )
+            )
 
         private fun bootstrapAppData() {
             viewModelScope.launch(Dispatchers.IO) {

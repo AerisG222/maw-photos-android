@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,6 +40,11 @@ import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.ui.components.favorite.FavoriteIcon
 
 private const val PRESSED_SCALE = 0.94f
+
+// Stable selector for UI automation (baseline profile generation), like the media grid's item tag.
+// Surfaced to UiAutomator via `testTagsAsResourceId` enabled at the app root. Keep in sync with the
+// matching literal in the :baselineprofile module's BaselineProfileGenerator.
+const val PERSON_CARD_TAG = "personCard"
 
 /**
  * One person in the grid: their preferred face crop, and the two badges the preferences allow.
@@ -83,10 +89,12 @@ fun PersonCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .width(size)
+            .testTag(PERSON_CARD_TAG)
             .graphicsLayer {
                 scaleX = pressScale
                 scaleY = pressScale
-            }.then(
+            }
+            .then(
                 if (onSelect != null) {
                     Modifier.clickable(
                         interactionSource = interactionSource,
@@ -117,7 +125,8 @@ fun PersonCard(
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                         shape = CircleShape,
-                    ).clickable {
+                    )
+                    .clickable {
                         haptics.performHapticFeedback(
                             if (person.isFavorite) {
                                 HapticFeedbackType.ToggleOff
@@ -149,7 +158,8 @@ fun PersonCard(
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                             shape = CircleShape,
-                        ).padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
                 )
             }
         }

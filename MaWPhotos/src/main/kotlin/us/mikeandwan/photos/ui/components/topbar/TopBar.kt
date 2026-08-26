@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,12 @@ data class TopBarState(
     var showSearch: Boolean = false,
     var tinyVerticalTitlePrefix: String = "",
 )
+
+// Stable selector for UI automation (baseline profile generation). The description below sits on
+// the icon, which is not the node that takes the click - the button around it is - so the tag goes
+// on the button. Surfaced to UiAutomator via `testTagsAsResourceId` enabled at the app root. Keep
+// in sync with the matching literal in the :baselineprofile module's BaselineProfileGenerator.
+const val APP_MENU_TAG = "appMenu"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +86,10 @@ fun TopBar(
         },
         navigationIcon = {
             if (state.showAppIcon) {
-                IconButton(onClick = onExpandNavMenu) {
+                IconButton(
+                    onClick = onExpandNavMenu,
+                    modifier = Modifier.testTag(APP_MENU_TAG),
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_launch),
                         contentDescription = stringResource(R.string.application_menu_icon_description),

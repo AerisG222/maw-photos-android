@@ -1,5 +1,11 @@
 # Release Notes
 
+## v9.9 : 08/25/2026
+
+- browse photos and videos by the people
+- create clans - saved groups of people - and browse media any of them are in
+- toggle highlighting and naming faces in a photo
+
 ## v9.8 : 08/20/2026
 
 - dependency updates to try and improve video handling
