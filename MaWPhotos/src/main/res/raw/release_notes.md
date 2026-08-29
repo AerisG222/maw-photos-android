@@ -1,5 +1,10 @@
 # Release Notes
 
+## v9.10 : 08/29/2026
+
+- allow browsing categories or media in the people section
+- bump dependencies
+
 ## v9.9 : 08/25/2026
 
 - browse photos and videos by person
