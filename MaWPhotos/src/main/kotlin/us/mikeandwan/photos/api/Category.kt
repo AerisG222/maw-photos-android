@@ -18,4 +18,8 @@ data class Category(
     val isFavorite: Boolean,
     val teaser: Media,
     val mediaTypes: List<String>,
+    // how many of the caller's media in this category a person or clan appears in.  only the
+    // person and clan category listings populate it; everywhere else the category is the whole of
+    // what is being listed, and the API leaves it out.
+    val mediaCount: Int? = null,
 )

@@ -1,43 +1,60 @@
 package us.mikeandwan.photos.domain
 
-import java.net.HttpURLConnection
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.update
-import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.FaceApiClient
-import us.mikeandwan.photos.api.SearchResults
-import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.FaceFeedFilter
 import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
 /**
- * The media one person - or anyone in a clan - appears in, accumulated a page at a time.
+ * What one person - or anyone in a clan - appears in, accumulated a page at a time.
+ *
+ * Two listings over the one subject: the media itself, and the categories that media sits in. Both
+ * are held so that switching between them keeps what has already been scrolled through, and both
+ * are started over when the feed is pointed somewhere new.
  *
  * Held here rather than in a view model because the grid and the pager are separate screens over
- * the same list, the same way the random feed is shared between its two. Only one feed is on screen
- * at a time, so one accumulation is enough, and pointing this at a new subject or filter starts a
- * new one.
+ * the same list of media, the same way the random feed is shared between its two. Only one feed is
+ * on screen at a time, so one accumulation is enough.
  */
 class FaceFeedRepository
     @Inject
     constructor(
         private val api: FaceApiClient,
-        private val apiErrorHandler: ApiErrorHandler,
+        apiErrorHandler: ApiErrorHandler,
     ) {
         companion object {
             private const val ERR_MSG_LOAD_MEDIA = "Unable to load media at this time.  Please try again later."
+            private const val ERR_MSG_LOAD_CATEGORIES =
+                "Unable to load categories at this time.  Please try again later."
         }
 
-        private val _media = MutableStateFlow<List<Media>>(emptyList())
-        val media = _media.asStateFlow()
+        private val mediaPager = FaceFeedPager<ApiMedia, Media>(
+            apiErrorHandler = apiErrorHandler,
+            errorMessage = ERR_MSG_LOAD_MEDIA,
+            idOf = { it.id },
+            toDomain = { it.toDomainMedia() },
+        )
 
-        private val _hasMore = MutableStateFlow(false)
-        val hasMore = _hasMore.asStateFlow()
+        private val categoryPager = FaceFeedPager<ApiCategory, Category>(
+            apiErrorHandler = apiErrorHandler,
+            errorMessage = ERR_MSG_LOAD_CATEGORIES,
+            idOf = { it.id },
+            toDomain = { it.toDomainCategory() },
+        )
+
+        val media = mediaPager.items
+        val hasMore = mediaPager.hasMore
+
+        val categories = categoryPager.items
+        val hasMoreCategories = categoryPager.hasMore
 
         private val _subject = MutableStateFlow<FaceFeedSubject?>(null)
         val subject = _subject.asStateFlow()
@@ -45,24 +62,11 @@ class FaceFeedRepository
         private val _filter = MutableStateFlow(FaceFeedFilter())
         val filter = _filter.asStateFlow()
 
-        private var nextOffset = 0
-
-        // whether anything has come back yet, which is what tells an exhausted feed apart from one
-        // that has not started.  it cannot be inferred from nextOffset: a feed the API answers
-        // whole in one page comes back with no more results and an offset of zero, and reading that
-        // as "not started" sends the very same request again and appends the same rows twice.
-        private var hasLoadedAPage = false
-
-        // a grid can ask for the next page more than once before the first ask lands - two rows of
-        // a scroll are enough - and a second request at the same offset would append the same page
-        // twice
-        private var isLoading = false
-
-        // bumped every time the feed starts over.  a request already in flight when that happens
-        // was asked under the old subject or filter, and its rows do not belong in the new list -
-        // appending them anyway leaves the grid holding media the filter excludes, and duplicate
-        // ids once the new pages arrive alongside them.
-        private var generation = 0
+        // which of the two listings is being browsed.  it outlives the subject on purpose - it is
+        // how somebody wants to look at people rather than something about one of them, so moving
+        // from one person to the next stays on the listing they were reading.
+        private val _showCategories = MutableStateFlow(false)
+    val showCategories = _showCategories.asStateFlow()
 
         /**
          * Points the feed at a subject, keeping what has already been accumulated when it is
@@ -89,120 +93,83 @@ class FaceFeedRepository
         // narrowing to favorites or reshuffling changes which rows come back and in what order, so
         // the accumulated list cannot be kept
         fun setFilter(filter: FaceFeedFilter) {
-            if (_filter.value == filter) {
+            val current = _filter.value
+
+            if (current == filter) {
                 return
             }
 
             _filter.update { filter }
 
-            reset()
+            mediaPager.reset()
+
+            // the seed only orders media - there is no shuffling a list of categories, and the API
+            // takes no seed for one - so the categories are only started over when the narrowing
+            // itself changed
+            if (current.favoritesOnly != filter.favoritesOnly) {
+                categoryPager.reset()
+            }
+        }
+
+        fun setShowCategories(showCategories: Boolean) {
+        _showCategories.update { showCategories }
         }
 
         fun loadNextPage() =
-            flow {
-                val subject = _subject.value
+            when (val subject = _subject.value) {
+                null -> emptyFlow()
 
-                if (subject == null || isLoading || (hasLoadedAPage && !_hasMore.value)) {
-                    return@flow
-                }
-
-                isLoading = true
-                val generationAsked = generation
-                emit(ExternalCallStatus.Loading)
-
-                try {
+                else -> mediaPager.loadNextPage { offset ->
                     val filter = _filter.value
-                    val offset = nextOffset
 
-                    val result = fetch(subject, offset, filter)
-
-                    // the feed started over while this was in flight, so what came back answers a
-                    // question nobody is asking any more
-                    if (generationAsked != generation) {
-                        return@flow
-                    }
-
-                    when (result) {
-                        is ApiResult.Success -> {
-                            emit(handleResults(result.result))
+                    when (subject) {
+                        is FaceFeedSubject.Person -> {
+                            api.getPersonMedia(subject.personId, offset, filter.favoritesOnly, filter.seed)
                         }
 
-                        // an empty feed answers 404 rather than an empty first page - see the notes
-                        // on GetPersonMedia in maw-media.  a person the caller cannot see answers
-                        // the same way on purpose, so both land here as simply nothing to show.
-                        is ApiResult.Error -> {
-                            if (result.errorCode == HttpURLConnection.HTTP_NOT_FOUND) {
-                                _hasMore.update { false }
-
-                                emit(ExternalCallStatus.Success(emptyList()))
-                            } else {
-                                emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_MEDIA))
-                            }
+                        is FaceFeedSubject.Clan -> {
+                            api.getClanMedia(subject.clanId, offset, filter.favoritesOnly, filter.seed)
                         }
-
-                        is ApiResult.Empty -> {
-                            emit(apiErrorHandler.handleEmpty(result, ERR_MSG_LOAD_MEDIA))
-                        }
-                    }
-                } finally {
-                    // a superseded request leaves the flag to whichever request replaced it
-                    if (generationAsked == generation) {
-                        isLoading = false
                     }
                 }
             }
 
-        fun updateMedia(updated: Media) {
-            _media.update { currentList ->
-                val index = currentList.indexOfFirst { it.id == updated.id }
+    fun loadNextPageOfCategories() =
+        when (val subject = _subject.value) {
+            null -> emptyFlow()
 
-                if (index < 0) {
-                    currentList
-                } else {
-                    currentList.toMutableList().also { it[index] = updated }
+            else -> categoryPager.loadNextPage { offset ->
+                val favoritesOnly = _filter.value.favoritesOnly
+
+                when (subject) {
+                    is FaceFeedSubject.Person -> {
+                        api.getPersonCategories(subject.personId, offset, favoritesOnly)
+                    }
+
+                    is FaceFeedSubject.Clan -> {
+                        api.getClanCategories(subject.clanId, offset, favoritesOnly)
+                    }
                 }
             }
         }
 
-        fun clear() {
-            _subject.update { null }
-            _filter.update { FaceFeedFilter() }
+    fun updateMedia(updated: Media) {
+        mediaPager.update(updated)
+    }
 
-            reset()
-        }
+    fun updateCategory(updated: Category) {
+        categoryPager.update(updated)
+    }
 
-        private suspend fun fetch(
-            subject: FaceFeedSubject,
-            offset: Int,
-            filter: FaceFeedFilter,
-        ): ApiResult<SearchResults<ApiMedia>> =
-            when (subject) {
-                is FaceFeedSubject.Person -> {
-                    api.getPersonMedia(subject.personId, offset, filter.favoritesOnly, filter.seed)
-                }
+    fun clear() {
+        _subject.update { null }
+        _filter.update { FaceFeedFilter() }
 
-                is FaceFeedSubject.Clan -> {
-                    api.getClanMedia(subject.clanId, offset, filter.favoritesOnly, filter.seed)
-                }
-            }
-
-        private fun handleResults(results: SearchResults<ApiMedia>): ExternalCallStatus<List<Media>> {
-            val page = results.results.map { it.toDomainMedia() }
-
-            _media.update { it + page }
-            _hasMore.update { results.hasMoreResults }
-            nextOffset = results.nextOffset
-            hasLoadedAPage = true
-
-            return ExternalCallStatus.Success(page)
+        reset()
         }
 
         private fun reset() {
-            generation++
-            isLoading = false
-            hasLoadedAPage = false
-            _media.update { emptyList() }
-            _hasMore.update { false }
-            nextOffset = 0
+            mediaPager.reset()
+            categoryPager.reset()
         }
     }

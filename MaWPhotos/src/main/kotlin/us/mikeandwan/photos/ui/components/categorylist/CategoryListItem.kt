@@ -104,6 +104,18 @@ fun CategoryListItem(
                 .weight(1f),
         )
 
+        // only the person and clan listings carry a count - there it is how much of the category
+        // they are in, which is the whole reason for listing it.  everywhere else the category is
+        // the thing being listed and there is nothing to compare it against.
+        category.mediaCount?.let { count ->
+            Text(
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = count.toString(),
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+        }
+
         if (onToggleFavorite != null) {
             IconButton(
                 onClick = {

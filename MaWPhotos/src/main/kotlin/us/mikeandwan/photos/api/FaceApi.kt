@@ -28,6 +28,15 @@ internal interface FaceApi {
         @Query("seed") seed: Long?,
     ): Response<SearchResults<Media>>
 
+    // the same media, rolled up to the categories holding it - no seed, because a shuffled list of
+    // categories would mean nothing
+    @GET("persons/{personId}/categories")
+    suspend fun getPersonCategories(
+        @Path("personId") personId: Uuid,
+        @Query("o") offset: Int,
+        @Query("f") favoritesOnly: Boolean?,
+    ): Response<SearchResults<Category>>
+
     @PUT("persons/{personId}/favorite")
     suspend fun setPersonFavorite(
         @Path("personId") personId: Uuid,
@@ -66,4 +75,11 @@ internal interface FaceApi {
         @Query("f") favoritesOnly: Boolean?,
         @Query("seed") seed: Long?,
     ): Response<SearchResults<Media>>
+
+    @GET("clans/{clanId}/categories")
+    suspend fun getClanCategories(
+        @Path("clanId") clanId: Uuid,
+        @Query("o") offset: Int,
+        @Query("f") favoritesOnly: Boolean?,
+    ): Response<SearchResults<Category>>
 }

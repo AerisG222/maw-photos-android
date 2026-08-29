@@ -13,4 +13,8 @@ data class Category(
     val isFavorite: Boolean,
     val teaser: List<MediaFile>,
     val mediaTypes: List<MediaType>,
+    // how many of the category's media a person or clan appears in, and null when that question was
+    // not the one being asked - listing a year's categories, or searching them, is about the
+    // categories whole
+    val mediaCount: Int? = null,
 )

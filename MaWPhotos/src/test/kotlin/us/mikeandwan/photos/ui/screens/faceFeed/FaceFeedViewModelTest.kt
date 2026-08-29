@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.LocalDate
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -23,16 +25,20 @@ import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.FaceApiClient
 import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.ApiErrorHandler
+import us.mikeandwan.photos.domain.CategoryPreferenceRepository
+import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
+import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
 /*
@@ -47,6 +53,8 @@ class FaceFeedViewModelTest {
     private lateinit var faceFeedRepository: FaceFeedRepository
     private lateinit var peopleRepository: PeopleRepository
     private lateinit var clanRepository: ClanRepository
+    private lateinit var categoryRepository: CategoryRepository
+    private lateinit var categoryPreferenceRepository: CategoryPreferenceRepository
     private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
     private lateinit var mediaFavoriteService: MediaFavoriteService
 
@@ -71,12 +79,16 @@ class FaceFeedViewModelTest {
 
         peopleRepository = mockk(relaxed = true)
         clanRepository = mockk(relaxed = true)
+        categoryRepository = mockk(relaxed = true)
+        categoryPreferenceRepository = mockk(relaxed = true)
         mediaPreferenceRepository = mockk(relaxed = true)
         mediaFavoriteService = mockk(relaxed = true)
 
         every { peopleRepository.people } returns MutableStateFlow(listOf(person))
         every { peopleRepository.getPeople(any()) } returns
             flowOf(ExternalCallStatus.Success(listOf(person)))
+        every { categoryPreferenceRepository.getCategoryPreference() } returns
+            flowOf(CategoryPreference())
         every { mediaPreferenceRepository.getPhotoGridItemSize() } returns
             flowOf(GridThumbnailSize.Medium)
         every { mediaPreferenceRepository.getMediaPreference() } returns flowOf(MediaPreference())
@@ -223,14 +235,149 @@ class FaceFeedViewModelTest {
         assertTrue(faceFeedRepository.media.value.single().isFavorite)
     }
 
+    // ---- the categories listing ----
+
+    @Test
+    fun `switching to the categories loads them and reports on that listing`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = true, nextOffset = 3))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        // Act
+        vm.setShowCategories(true)
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(vm.uiState.value.showCategories)
+        assertEquals(3, vm.uiState.value.categories.size)
+        assertFalse(vm.uiState.value.isLoading)
+        assertFalse(vm.uiState.value.isEmpty)
+
+        // the paging flag follows whatever is on screen, so the grid does not have to ask which
+        // listing it is drawing before it can page
+        assertTrue(vm.uiState.value.hasMore)
+    }
+
+    @Test
+    fun `going back to the media does not ask for it a second time`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        vm.setShowCategories(true)
+        advanceUntilIdle()
+
+        // Act
+        vm.setShowCategories(false)
+        advanceUntilIdle()
+
+        // Assert
+        assertEquals(2, vm.uiState.value.gridItems.size)
+        assertFalse(vm.uiState.value.isLoading)
+        coVerify(exactly = 1) { api.getPersonMedia(personId, 0, false, null) }
+    }
+
+    // a person can be in nothing the caller has favorited, which is a real answer about somebody
+    // they can see rather than an empty listing
+    @Test
+    fun `a categories listing with nothing in it reports empty`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Error("not found", java.net.HttpURLConnection.HTTP_NOT_FOUND)
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        vm.setShowCategories(true)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.isEmpty)
+        assertFalse(vm.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `favoriting a category keeps how much of it the person is in`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        vm.setShowCategories(true)
+        advanceUntilIdle()
+
+        val category = faceFeedRepository.categories.value.single()
+
+        // the answer describes the category on its own terms, and carries no count
+        every { categoryRepository.setFavorite(category.id, true) } returns
+            flowOf(ExternalCallStatus.Success(category.copy(isFavorite = true, mediaCount = null)))
+
+        // Act
+        vm.toggleCategoryFavorite(category)
+        advanceUntilIdle()
+
+        // Assert
+        val updated = faceFeedRepository.categories.value.single()
+
+        assertTrue(updated.isFavorite)
+        assertEquals(4, updated.mediaCount)
+    }
+
     private fun viewModel() =
         FaceFeedViewModel(
             faceFeedRepository,
             peopleRepository,
             clanRepository,
+            categoryRepository,
+            categoryPreferenceRepository,
             mediaPreferenceRepository,
             mediaFavoriteService,
         )
+
+    private fun categoryPage(
+        count: Int,
+        hasMore: Boolean,
+        nextOffset: Int,
+    ) = SearchResults(
+        results = (0 until count).map {
+            ApiCategory(
+                id = Uuid.random(),
+                name = "Category $it",
+                effectiveDate = LocalDate(2024, 1, 1),
+                modified = Instant.fromEpochMilliseconds(0),
+                isFavorite = false,
+                teaser = ApiMedia(
+                    id = Uuid.random(),
+                    categoryId = Uuid.random(),
+                    type = "photo",
+                    isFavorite = false,
+                ),
+                mediaTypes = listOf("photo"),
+                mediaCount = 4,
+            )
+        },
+        hasMoreResults = hasMore,
+        nextOffset = nextOffset,
+    )
 
     private fun page(
         count: Int,

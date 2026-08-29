@@ -15,7 +15,8 @@ import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 /*
-   The media one person appears in, and the media anyone in a clan appears in.
+   What one person appears in, and what anyone in a clan appears in - the media itself, or the
+   categories holding it.
 
    Two keys and one screen: the two feeds differ only in which endpoint answers, so everything the
    user can see - paging, the filters, the shuffle, the pager behind a tap - is identical by
@@ -74,9 +75,14 @@ private fun FaceFeedRoute(
     FaceFeedScreen(
         uiState = uiState,
         onMediaClicked = { media -> appActions.navigateToFaceFeedItem(subject, media.id) },
+        // a category is a way back into the library proper rather than another face feed, so it
+        // opens where every other category does
+        onCategoryClicked = { category -> appActions.navigateToCategory(category.id) },
         onToggleFavorite = { vm.toggleFavorite(it) },
+        onToggleCategoryFavorite = { vm.toggleCategoryFavorite(it) },
         onSetFavoritesOnly = { vm.setFavoritesOnly(it) },
         onSetShuffled = { vm.setShuffled(it) },
+        onSetShowCategories = { vm.setShowCategories(it) },
         onLoadMore = { vm.loadNextPage() },
     )
 }

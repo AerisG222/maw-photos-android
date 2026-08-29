@@ -4,12 +4,15 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import java.net.HttpURLConnection
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -21,6 +24,7 @@ import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.FaceFeedFilter
 import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
 class FaceFeedRepositoryTest {
@@ -203,6 +207,7 @@ class FaceFeedRepositoryTest {
     // reshuffles.  appending what it returns would leave the list holding rows the new filter
     // excludes - and, once the new pages land beside them, the same media id twice, which is a
     // crash in the grid rather than a cosmetic problem.
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `a page still in flight when the filter changes is discarded`() = runTest {
         val stale = page(count = 2, hasMore = true, nextOffset = 2)
@@ -231,6 +236,157 @@ class FaceFeedRepositoryTest {
         assertEquals(1, repository.media.value.size)
         assertEquals(fresh.results.first().id, repository.media.value.first().id)
     }
+
+    // ---- the categories a subject turns up in, the feed's other listing ----
+
+    @Test
+    fun `categories page and accumulate the same way the media does`() = runTest {
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 2, hasMore = true, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 2, false) } returns
+            ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 3))
+
+        repository.initialize(subject)
+        repository.loadNextPageOfCategories().toList()
+
+        assertEquals(2, repository.categories.value.size)
+        assertTrue(repository.hasMoreCategories.value)
+
+        repository.loadNextPageOfCategories().toList()
+
+        assertEquals(3, repository.categories.value.size)
+        assertFalse(repository.hasMoreCategories.value)
+    }
+
+    // the two listings are how one subject is looked at, so moving between them is not a reason to
+    // ask the API for anything already in hand
+    @Test
+    fun `each listing keeps what it has loaded while the other is browsed`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+        repository.loadNextPageOfCategories().toList()
+
+        // Act - back to the media, which has nothing more to fetch
+        repository.loadNextPage().toList()
+
+        // Assert
+        assertEquals(2, repository.media.value.size)
+        assertEquals(3, repository.categories.value.size)
+        coVerify(exactly = 1) { api.getPersonMedia(personId, 0, false, null) }
+        coVerify(exactly = 1) { api.getPersonCategories(personId, 0, false) }
+    }
+
+    @Test
+    fun `narrowing to favorites starts both listings over`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+        repository.loadNextPageOfCategories().toList()
+
+        // Act
+        repository.setFilter(FaceFeedFilter(favoritesOnly = true))
+
+        // Assert
+        assertTrue(repository.media.value.isEmpty())
+        assertTrue(repository.categories.value.isEmpty())
+    }
+
+    // a seed only orders media.  there is no shuffling a list of categories - the API takes no seed
+    // for one - so throwing away what has been read of it would be a fetch spent on nothing.
+    @Test
+    fun `reshuffling leaves the categories where they are`() = runTest {
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
+
+        repository.initialize(subject)
+        repository.loadNextPageOfCategories().toList()
+
+        // Act
+        repository.setFilter(FaceFeedFilter(seed = 42L))
+
+        // Assert
+        assertEquals(3, repository.categories.value.size)
+    }
+
+    @Test
+    fun `moving to another subject starts the categories over too`() = runTest {
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
+
+        repository.initialize(subject)
+        repository.loadNextPageOfCategories().toList()
+
+        // Act
+        repository.initialize(FaceFeedSubject.Clan(Uuid.random()))
+
+        // Assert
+        assertTrue(repository.categories.value.isEmpty())
+    }
+
+    // the same rule the media listing follows, and for the same reason - see the notes on
+    // GetPersonCategories in maw-media
+    @Test
+    fun `a 404 is an empty categories listing rather than an error`() = runTest {
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Error("not found", HttpURLConnection.HTTP_NOT_FOUND)
+
+        repository.initialize(subject)
+
+        val statuses = repository.loadNextPageOfCategories().toList()
+
+        assertTrue(statuses.last() is ExternalCallStatus.Success)
+        assertTrue(repository.categories.value.isEmpty())
+        coVerify(exactly = 0) { apiErrorHandler.handleError(any(), any()) }
+    }
+
+    @Test
+    fun `a clan's categories come from the clan endpoint`() = runTest {
+        val clanId = Uuid.random()
+
+        coEvery { api.getClanCategories(clanId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
+
+        repository.initialize(FaceFeedSubject.Clan(clanId))
+        repository.loadNextPageOfCategories().toList()
+
+        assertEquals(1, repository.categories.value.size)
+        coVerify(exactly = 1) { api.getClanCategories(clanId, 0, false) }
+    }
+
+    private fun categoryPage(
+        count: Int,
+        hasMore: Boolean,
+        nextOffset: Int,
+    ) = SearchResults(
+        results = (0 until count).map {
+            ApiCategory(
+                id = Uuid.random(),
+                name = "Category $it",
+                effectiveDate = LocalDate(2024, 1, 1),
+                modified = Instant.fromEpochMilliseconds(0),
+                isFavorite = false,
+                teaser = ApiMedia(
+                    id = Uuid.random(),
+                    categoryId = Uuid.random(),
+                    type = "photo",
+                    isFavorite = false,
+                ),
+                mediaTypes = listOf("photo"),
+                mediaCount = 4,
+            )
+        },
+        hasMoreResults = hasMore,
+        nextOffset = nextOffset,
+    )
 
     private fun page(
         count: Int,

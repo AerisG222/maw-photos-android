@@ -32,6 +32,18 @@ class FaceApiClient
                 },
             )
 
+        suspend fun getPersonCategories(
+            personId: Uuid,
+            offset: Int,
+            favoritesOnly: Boolean,
+        ): ApiResult<SearchResults<Category>> =
+            makeApiCall(
+                ::getPersonCategories.name,
+                suspend {
+                    _faceApi.getPersonCategories(personId, offset, favoritesOnly.takeIf { it })
+            },
+        )
+
         suspend fun setPersonFavorite(
             personId: Uuid,
             isFavorite: Boolean,
@@ -120,4 +132,16 @@ class FaceApiClient
                     _faceApi.getClanMedia(clanId, offset, favoritesOnly.takeIf { it }, seed)
                 },
             )
+
+    suspend fun getClanCategories(
+        clanId: Uuid,
+        offset: Int,
+        favoritesOnly: Boolean,
+    ): ApiResult<SearchResults<Category>> =
+        makeApiCall(
+            ::getClanCategories.name,
+            suspend {
+                _faceApi.getClanCategories(clanId, offset, favoritesOnly.takeIf { it })
+            },
+        )
     }

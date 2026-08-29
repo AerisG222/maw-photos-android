@@ -123,6 +123,7 @@ fun ApiCategory.toDomainCategory(): Category =
         isFavorite = isFavorite,
         teaser = teaser.files.map { it.toDomainMediaFile() },
         mediaTypes = mediaTypes.map { getMediaType(it) },
+        mediaCount = mediaCount,
     )
 
 fun ApiMedia.toDomainMedia(): Media =

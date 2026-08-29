@@ -110,6 +110,9 @@
     <string name="face_feed_favorites_only">Show Favorites Only</string>
     <string name="face_feed_empty">No media to show</string>
     <string name="face_feed_no_favorites">No favorites here yet</string>
+    <string name="face_feed_show_categories">Show Categories</string>
+    <string name="face_feed_no_categories">No categories to show</string>
+    <string name="face_feed_no_favorite_categories">None of these categories have been marked as a favorite</string>
 
     <!-- settings -->
     <string name="clear_cache">Clear Cache</string>
