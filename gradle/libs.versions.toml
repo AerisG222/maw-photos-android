@@ -33,7 +33,7 @@ ksp = "2.3.11"
 mockk = "1.14.11"
 
 auth0 = "4.1.0"
-coil = "3.6.0"
+coil = "3.6.1"
 flowext = "1.0.0"
 markdown = "0.45.0"
 ratingbar = "2.1.1"
