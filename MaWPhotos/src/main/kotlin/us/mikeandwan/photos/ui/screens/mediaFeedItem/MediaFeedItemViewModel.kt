@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.screens.faceFeedItem
+package us.mikeandwan.photos.ui.screens.mediaFeedItem
 
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.ViewModel
@@ -18,13 +18,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
-import us.mikeandwan.photos.domain.FaceFeedRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.FaceHighlight
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.services.MediaListAction
 import us.mikeandwan.photos.domain.services.MediaListService
@@ -32,8 +32,8 @@ import us.mikeandwan.photos.domain.services.MediaListService
 // how close to the end of what has been loaded the pager gets before the next page is asked for
 private const val PAGING_THRESHOLD = 4
 
-data class FaceFeedItemUiState(
-    // the category the active media belongs to.  a face feed spans categories, so this changes as
+data class MediaFeedItemUiState(
+    // the category the active media belongs to.  a media feed spans categories, so this changes as
     // the pager moves rather than being fixed for the screen - it is what the title is drawn from.
     val category: Category? = null,
     val media: List<Media> = emptyList(),
@@ -50,15 +50,15 @@ data class FaceFeedItemUiState(
 )
 
 @HiltViewModel
-class FaceFeedItemViewModel
+class MediaFeedItemViewModel
     @Inject
     constructor(
-        private val faceFeedRepository: FaceFeedRepository,
+        private val mediaFeedRepository: MediaFeedRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
         val videoPlayerDataSourceFactory: HttpDataSource.Factory,
         private val mediaListService: MediaListService,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(FaceFeedItemUiState())
+        private val _uiState = MutableStateFlow(MediaFeedItemUiState())
         val uiState = _uiState.asStateFlow()
 
         init {
@@ -72,14 +72,14 @@ class FaceFeedItemViewModel
                 )
 
             mediaListService.initialize(
-                faceFeedRepository.media,
+                mediaFeedRepository.media,
                 slideshowDurationInMillisFlow,
             )
 
             mediaListService.state
                 .onEach { state ->
                     _uiState.update {
-                        FaceFeedItemUiState(
+                        MediaFeedItemUiState(
                             category = state.category,
                             media = state.media,
                             activeId = state.activeId,
@@ -107,12 +107,12 @@ class FaceFeedItemViewModel
          * without the grid having run.
          */
         fun initState(
-            subject: FaceFeedSubject,
+            subject: MediaFeedSubject,
             mediaId: Uuid,
         ) {
-            faceFeedRepository.initialize(subject)
+            mediaFeedRepository.initialize(subject)
 
-            if (faceFeedRepository.media.value.isEmpty()) {
+            if (mediaFeedRepository.media.value.isEmpty()) {
                 loadNextPage()
             }
 
@@ -187,7 +187,7 @@ class FaceFeedItemViewModel
         // other failed call is, and the pager simply stops at what it has
         private fun loadNextPage() {
             viewModelScope.launch {
-                faceFeedRepository
+                mediaFeedRepository
                     .loadNextPage()
                     .collect { }
             }

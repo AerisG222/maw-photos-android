@@ -3,7 +3,7 @@ package us.mikeandwan.photos.ui
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
@@ -18,8 +18,11 @@ interface MawAppActions {
 
     fun setActiveYear(year: Int)
 
-    /** Marks which person or clan the rail is currently showing, or null for the people grid. */
-    fun setActiveFaceSubject(subject: FaceFeedSubject?)
+    /**
+     * Marks which person, clan or place the rail is currently showing, or null while the listing
+     * they are chosen from is what is on screen.
+     */
+    fun setActiveFeedSubject(subject: MediaFeedSubject?)
 
     fun openDrawer()
 
@@ -46,10 +49,21 @@ interface MawAppActions {
 
     fun navigateToPeople()
 
-    fun navigateToFaceFeed(subject: FaceFeedSubject)
+    /** Opens the place tree where it was last left, the way the rail's other entries do. */
+    fun navigateToPlaces()
 
-    fun navigateToFaceFeedItem(
-        subject: FaceFeedSubject,
+    /**
+     * Moves to one level of the place tree, the root when [placeId] is null.
+     *
+     * A level already on the stack is unwound to rather than pushed again, which is what makes the
+     * breadcrumb a way back rather than a way deeper.
+     */
+    fun navigateToPlace(placeId: Uuid?)
+
+    fun navigateToMediaFeed(subject: MediaFeedSubject)
+
+    fun navigateToMediaFeedItem(
+        subject: MediaFeedSubject,
         mediaId: Uuid,
     )
 

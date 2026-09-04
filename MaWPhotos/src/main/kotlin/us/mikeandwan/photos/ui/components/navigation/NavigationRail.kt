@@ -10,11 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Clan
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Person
+import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.SearchHistory
 
 @Composable
@@ -24,7 +26,8 @@ fun NavigationRail(
     years: List<Int>,
     clans: List<Clan>,
     people: List<Person>,
-    activeFaceSubject: FaceFeedSubject?,
+    countries: List<Place>,
+    activeFeedSubject: MediaFeedSubject?,
     recentSearchTerms: List<SearchHistory>,
     navigateToSearchWithTerm: (String) -> Unit,
     clearSearchHistory: () -> Unit,
@@ -34,7 +37,9 @@ fun NavigationRail(
     navigateToCategories: () -> Unit,
     navigateToCategoriesByYear: (Int) -> Unit,
     navigateToPeople: () -> Unit,
-    navigateToFaceFeed: (FaceFeedSubject) -> Unit,
+    navigateToPlaces: () -> Unit,
+    navigateToPlace: (Uuid?) -> Unit,
+    navigateToMediaFeed: (MediaFeedSubject) -> Unit,
     navigateToRandom: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToUpload: () -> Unit,
@@ -65,6 +70,14 @@ fun NavigationRail(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
+
+            PrimaryNavigationLink(
+                iconId = R.drawable.ic_place,
+                descriptionStringId = R.string.places_icon_description,
+                isActiveArea = NavigationArea.Place == activeArea,
+                onNavigate = { navigateToPlaces() },
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
 
             PrimaryNavigationLink(
                 iconId = R.drawable.ic_search,
@@ -123,11 +136,19 @@ fun NavigationRail(
                     PeopleListMenu(
                         clans = clans,
                         people = people,
-                        activeSubject = activeFaceSubject,
-                        onClanSelected = { clan -> navigateToFaceFeed(FaceFeedSubject.Clan(clan.id)) },
+                        activeSubject = activeFeedSubject,
+                        onClanSelected = { clan -> navigateToMediaFeed(MediaFeedSubject.Clan(clan.id)) },
                         onPersonSelected = { person ->
-                            navigateToFaceFeed(FaceFeedSubject.Person(person.id))
+                            navigateToMediaFeed(MediaFeedSubject.Person(person.id))
                         },
+                    )
+                }
+
+                NavigationArea.Place -> {
+                    PlaceListMenu(
+                        countries = countries,
+                        onPlaceSelected = { place -> navigateToPlace(place.id) },
+                        onAllPlacesSelected = { navigateToPlace(null) },
                     )
                 }
 

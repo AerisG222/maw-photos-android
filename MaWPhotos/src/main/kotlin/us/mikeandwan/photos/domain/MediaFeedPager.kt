@@ -21,7 +21,7 @@ import us.mikeandwan.photos.domain.models.ExternalCallStatus
  * [idOf] is what an item is replaced by when something about it changes - a favorite toggled from
  * the screen showing it.
  */
-internal class FaceFeedPager<TApi, TDomain>(
+internal class MediaFeedPager<TApi, TDomain>(
     private val apiErrorHandler: ApiErrorHandler,
     private val errorMessage: String,
     private val idOf: (TDomain) -> Uuid,

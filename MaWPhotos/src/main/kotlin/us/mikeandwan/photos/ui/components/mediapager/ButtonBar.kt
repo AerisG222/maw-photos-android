@@ -81,7 +81,7 @@ fun ButtonBar(
                         contentDescription = stringResource(
                             id = R.string.toggle_face_highlights_icon_description,
                         ),
-                        // lit while the boxes are being drawn, the same way the face feed marks its
+                        // lit while the boxes are being drawn, the same way the media feed marks its
                         // own filters as on
                         tint = if (showFaceHighlights) {
                             MaterialTheme.colorScheme.primary

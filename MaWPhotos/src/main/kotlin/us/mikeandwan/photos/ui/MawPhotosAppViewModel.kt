@@ -45,10 +45,11 @@ import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.ErrorMessage
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.UserStatus
@@ -70,6 +71,7 @@ class MawPhotosAppViewModel
         private val randomMediaRepository: RandomMediaRepository,
         peopleRepository: PeopleRepository,
         clanRepository: ClanRepository,
+        placeRepository: PlaceRepository,
     ) : ViewModel() {
         val authenticationStatus = authService.authStatus
         val userStatus = configRepository.userStatus
@@ -105,13 +107,18 @@ class MawPhotosAppViewModel
             .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
         val clans = clanRepository.clans
 
+        // the countries the places screen has already listed, so the rail can offer another branch
+        // of the tree from any depth.  nothing is fetched here either: the places area cannot be
+        // reached without the screen that lists them.
+        val countries = placeRepository.countries
+
         private val _activeYear = MutableStateFlow(-1)
         val activeYear = _activeYear.asStateFlow()
 
-        // which person or clan the rail should mark as current, or null while the people grid
-        // itself is showing
-        private val _activeFaceSubject = MutableStateFlow<FaceFeedSubject?>(null)
-        val activeFaceSubject = _activeFaceSubject.asStateFlow()
+        // which person, clan or place the rail should mark as current, or null while the listing
+        // they are chosen from is what is on screen
+        private val _activeFeedSubject = MutableStateFlow<MediaFeedSubject?>(null)
+        val activeFeedSubject = _activeFeedSubject.asStateFlow()
 
         private val _navArea = MutableStateFlow(NavigationArea.Category)
         val navArea = _navArea.asStateFlow()
@@ -175,8 +182,8 @@ class MawPhotosAppViewModel
             _activeYear.update { year }
         }
 
-        fun setActiveFaceSubject(subject: FaceFeedSubject?) {
-            _activeFaceSubject.update { subject }
+    fun setActiveFeedSubject(subject: MediaFeedSubject?) {
+        _activeFeedSubject.update { subject }
         }
 
         fun dismissReauthorizePrompt() {
@@ -191,9 +198,9 @@ class MawPhotosAppViewModel
             dismissReauthorizePrompt()
 
             viewModelScope.launch {
-            authService.login(context)
+                authService.login(context)
+            }
         }
-    }
 
         fun clearSearchHistory() {
             viewModelScope.launch {

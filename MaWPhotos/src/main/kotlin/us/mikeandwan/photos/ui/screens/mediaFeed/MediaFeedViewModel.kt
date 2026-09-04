@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.screens.faceFeed
+package us.mikeandwan.photos.ui.screens.mediaFeed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,25 +25,30 @@ import timber.log.Timber
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
-import us.mikeandwan.photos.domain.FaceFeedRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.FaceFeedFilter
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFeedFilter
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
-data class FaceFeedUiState(
-    // the person's or clan's name, which is what the top bar is titled with.  empty until the list
-    // it comes from has been read, which is why the route waits for it rather than titling the
-    // screen with a placeholder.
+data class MediaFeedUiState(
+    // the subject's name, which is what the top bar is titled with.  empty until the listing it
+    // comes from has been read, which is why the route waits for it rather than titling the screen
+    // with a placeholder.
     val title: String = "",
+    // where in the place tree the subject sits, for the breadcrumb above the listing.  empty for a
+    // person or a clan, who are not anywhere in it.
+    val placeChain: List<PlaceAncestor> = emptyList(),
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
     val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val showFavoriteIndicator: Boolean = true,
@@ -63,6 +68,13 @@ data class FaceFeedUiState(
     val isEmpty: Boolean = false,
 )
 
+// what the screen says about the subject itself rather than about its media, folded together so the
+// state above can still be built in one combine
+private data class SubjectHeading(
+    val title: String = "",
+    val placeChain: List<PlaceAncestor> = emptyList(),
+)
+
 // the parts of the categories listing, folded together so the state above can be built in one
 // combine rather than two
 private data class CategoryListing(
@@ -73,40 +85,79 @@ private data class CategoryListing(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class FaceFeedViewModel
+class MediaFeedViewModel
     @Inject
     constructor(
-        private val faceFeedRepository: FaceFeedRepository,
+        private val mediaFeedRepository: MediaFeedRepository,
         private val peopleRepository: PeopleRepository,
         private val clanRepository: ClanRepository,
+        private val placeRepository: PlaceRepository,
         private val categoryRepository: CategoryRepository,
         categoryPreferenceRepository: CategoryPreferenceRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
         private val mediaFavoriteService: MediaFavoriteService,
     ) : ViewModel() {
-        private val _subject = MutableStateFlow<FaceFeedSubject?>(null)
+        private val _subject = MutableStateFlow<MediaFeedSubject?>(null)
         private val _isLoading = MutableStateFlow(true)
 
-        private val _uiState = MutableStateFlow(FaceFeedUiState())
+        private val _uiState = MutableStateFlow(MediaFeedUiState())
         val uiState = _uiState.asStateFlow()
 
-        // read from the list the subject lives in rather than fetched on its own: both lists are
-        // already held whole, and taking the name from there means a rename or a favorite toggle
-        // made elsewhere is reflected here without asking again
+        // read from whatever the subject was listed in rather than fetched on its own: those
+        // listings are already held, and taking the name from there means a rename or a favorite
+        // toggle made elsewhere is reflected here without asking again
         private val title = _subject
             .flatMapLatest { subject ->
                 when (subject) {
                     null -> flowOf("")
 
-                    is FaceFeedSubject.Person -> peopleRepository.people.map { people ->
+                    is MediaFeedSubject.Person -> peopleRepository.people.map { people ->
                         people.firstOrNull { it.id == subject.personId }?.name ?: ""
                     }
 
-                    is FaceFeedSubject.Clan -> clanRepository.clans.map { clans ->
+                    is MediaFeedSubject.Clan -> clanRepository.clans.map { clans ->
                         clans.firstOrNull { it.id == subject.clanId }?.name ?: ""
+                    }
+
+                    is MediaFeedSubject.Place -> placeRepository.placesById.map { places ->
+                        places[subject.placeId]?.name ?: ""
                     }
                 }
             }.stateIn(viewModelScope, WhileSubscribed(5000), "")
+
+    /*
+       The chain of places above and including the one being browsed.
+
+       Drawn over the feed as well as over the browse because a place with nothing inside it
+       opens its photographs directly - so for a city this is the only place the chain above it
+       is ever shown.  Failures are simply never emitted: the strip is a convenience over a feed
+       that is already on screen, and the browse says the same thing about a place that cannot
+       be read.
+     */
+    private val placeChain = _subject
+        .flatMapLatest { subject ->
+            when (subject) {
+                is MediaFeedSubject.Place -> {
+                    placeRepository
+                        .getAncestors(subject.placeId)
+                        .filterIsInstance<ExternalCallStatus.Success<List<PlaceAncestor>>>()
+                        .map { it.result }
+                }
+
+                else -> {
+                    flowOf(emptyList())
+                }
+            }
+        }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+
+    // every place read so far, which is where the breadcrumb finds its covers.  drilling to a
+    // place populated it on the way through; a cold start into a feed holds only the place
+    // itself, and the strip draws an icon for the rest.
+    val knownPlaces = placeRepository.placesById
+
+    private val subjectHeading = combine(title, placeChain) { title, chain ->
+        SubjectHeading(title, chain)
+    }
 
         init {
             val thumbnailSizeFlow = mediaPreferenceRepository
@@ -115,8 +166,8 @@ class FaceFeedViewModel
 
             // kotlinx's combine here - flowext's overloads start at six flows
             val categoryListing = combine(
-                faceFeedRepository.categories,
-                faceFeedRepository.hasMoreCategories,
+                mediaFeedRepository.categories,
+                mediaFeedRepository.hasMoreCategories,
                 categoryPreferenceRepository.getCategoryPreference(),
             ) { categories, hasMore, preference ->
                 CategoryListing(categories, hasMore, preference)
@@ -125,16 +176,16 @@ class FaceFeedViewModel
             // flowext's combine rather than the one in kotlinx: the typed overloads there stop at
             // five flows, and this state has more parts than that
             combine(
-                faceFeedRepository.media,
-                faceFeedRepository.hasMore,
-                faceFeedRepository.filter,
-                faceFeedRepository.showCategories,
+                mediaFeedRepository.media,
+                mediaFeedRepository.hasMore,
+                mediaFeedRepository.filter,
+                mediaFeedRepository.showCategories,
                 categoryListing,
-                title,
+                subjectHeading,
                 thumbnailSizeFlow,
                 mediaPreferenceRepository.getMediaPreference(),
                 _isLoading,
-            ) { media, hasMore, filter, showCategories, categoryListing, title, thumbnailSize, mediaPref, isLoading ->
+            ) { media, hasMore, filter, showCategories, categoryListing, heading, thumbnailSize, mediaPref, isLoading ->
                 // whichever listing is on screen is the one the loading, empty and paging flags
                 // are about
                 val isListingEmpty = when {
@@ -142,8 +193,9 @@ class FaceFeedViewModel
                     else -> media.isEmpty()
                 }
 
-                FaceFeedUiState(
-                    title = title,
+                MediaFeedUiState(
+                    title = heading.title,
+                    placeChain = heading.placeChain,
                     gridItems = media.map {
                         it.toMediaGridItem(
                             useLargeTeaser = thumbnailSize == GridThumbnailSize.Large,
@@ -166,13 +218,13 @@ class FaceFeedViewModel
             }.launchIn(viewModelScope)
         }
 
-        fun initState(subject: FaceFeedSubject) {
+    fun initState(subject: MediaFeedSubject) {
             if (_subject.value == subject) {
                 return
             }
 
             _subject.update { subject }
-            faceFeedRepository.initialize(subject)
+        mediaFeedRepository.initialize(subject)
 
             ensureSubjectIsNamed(subject)
             loadNextPage()
@@ -181,8 +233,8 @@ class FaceFeedViewModel
         fun loadNextPage() {
             viewModelScope.launch {
                 val listing = when {
-                    faceFeedRepository.showCategories.value -> faceFeedRepository.loadNextPageOfCategories()
-                    else -> faceFeedRepository.loadNextPage()
+                    mediaFeedRepository.showCategories.value -> mediaFeedRepository.loadNextPageOfCategories()
+                    else -> mediaFeedRepository.loadNextPage()
                 }
 
                 listing.collect { status ->
@@ -204,15 +256,15 @@ class FaceFeedViewModel
          * request only the first time each is asked for.
          */
         fun setShowCategories(showCategories: Boolean) {
-            if (faceFeedRepository.showCategories.value == showCategories) {
+            if (mediaFeedRepository.showCategories.value == showCategories) {
                 return
             }
 
             _isLoading.update { true }
-            faceFeedRepository.setShowCategories(showCategories)
+            mediaFeedRepository.setShowCategories(showCategories)
 
-        loadNextPage()
-    }
+            loadNextPage()
+        }
 
         fun setFavoritesOnly(favoritesOnly: Boolean) {
             applyFilter { it.copy(favoritesOnly = favoritesOnly) }
@@ -231,7 +283,7 @@ class FaceFeedViewModel
             viewModelScope.launch {
                 val isFavorite = mediaFavoriteService.setIsFavorite(media, !media.isFavorite)
 
-                faceFeedRepository.updateMedia(media.copy(isFavorite = isFavorite))
+                mediaFeedRepository.updateMedia(media.copy(isFavorite = isFavorite))
             }
         }
 
@@ -245,33 +297,38 @@ class FaceFeedViewModel
                 // person it was listed for, so only the flag that was asked to change is taken
                 // from it - the count of their media in it is left as it was
                 .collect { status ->
-                    faceFeedRepository.updateCategory(
+                    mediaFeedRepository.updateCategory(
                         category.copy(isFavorite = status.result.isFavorite),
                     )
                 }
         }
     }
 
-        private fun applyFilter(update: (FaceFeedFilter) -> FaceFeedFilter) {
-            val next = update(faceFeedRepository.filter.value)
+    private fun applyFilter(update: (MediaFeedFilter) -> MediaFeedFilter) {
+        val next = update(mediaFeedRepository.filter.value)
 
-            if (next == faceFeedRepository.filter.value) {
+        if (next == mediaFeedRepository.filter.value) {
                 return
             }
 
             _isLoading.update { true }
-            faceFeedRepository.setFilter(next)
+        mediaFeedRepository.setFilter(next)
 
             loadNextPage()
         }
 
-        // the name comes from a list this screen may have been opened without: a cold start
-        // restoring straight into a feed has neither list in hand yet
-        private fun ensureSubjectIsNamed(subject: FaceFeedSubject) {
+    // the name comes from a listing this screen may have been opened without: a cold start
+    // restoring straight into a feed holds none of them yet
+    private fun ensureSubjectIsNamed(subject: MediaFeedSubject) {
             viewModelScope.launch {
                 when (subject) {
-                    is FaceFeedSubject.Person -> peopleRepository.getPeople().collect { }
-                    is FaceFeedSubject.Clan -> clanRepository.getClans().collect { }
+                    is MediaFeedSubject.Person -> peopleRepository.getPeople().collect { }
+
+                    is MediaFeedSubject.Clan -> clanRepository.getClans().collect { }
+
+                    // one place rather than a listing: the tree is drilled through a level at a
+                    // time, so there is no one list a place is always found in
+                    is MediaFeedSubject.Place -> placeRepository.getPlace(subject.placeId).collect { }
                 }
             }
         }

@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.screens.faceFeed
+package us.mikeandwan.photos.ui.screens.mediaFeed
 
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import us.mikeandwan.photos.R
@@ -31,11 +32,15 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.Place
+import us.mikeandwan.photos.domain.models.PlaceAncestor
+import us.mikeandwan.photos.domain.models.PlaceKind
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.categorylist.CategoryListSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
+import us.mikeandwan.photos.ui.components.places.PlaceChain
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
 // how close to the end of what has been loaded the listing gets before the next page is asked for.
@@ -44,8 +49,11 @@ import us.mikeandwan.photos.ui.shared.toMediaGridItem
 private const val PAGING_THRESHOLD = 8
 
 @Composable
-fun FaceFeedScreen(
-    uiState: FaceFeedUiState,
+fun MediaFeedScreen(
+    uiState: MediaFeedUiState,
+    // the places already read, for the covers on the breadcrumb - see PlaceChain
+    knownPlaces: Map<Uuid, Place>,
+    onSelectPlace: (Uuid?) -> Unit,
     onMediaClicked: (Media) -> Unit,
     onCategoryClicked: (Category) -> Unit,
     onToggleFavorite: (Media) -> Unit,
@@ -57,6 +65,17 @@ fun FaceFeedScreen(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
+        // empty for a person or a clan, who are not anywhere in the place tree.  it is drawn here
+        // as well as over the browse because a place with nothing inside it opens its photographs
+        // directly - so for a city this is the only place the chain above it is ever shown.
+        if (uiState.placeChain.isNotEmpty()) {
+            PlaceChain(
+                chain = uiState.placeChain,
+                covers = knownPlaces,
+                onSelect = onSelectPlace,
+            )
+        }
+
         FilterBar(
             favoritesOnly = uiState.favoritesOnly,
             isShuffled = uiState.isShuffled,
@@ -98,7 +117,7 @@ fun FaceFeedScreen(
 
 @Composable
 private fun MediaListing(
-    uiState: FaceFeedUiState,
+    uiState: MediaFeedUiState,
     onMediaClicked: (Media) -> Unit,
     onToggleFavorite: (Media) -> Unit,
     onLoadMore: () -> Unit,
@@ -137,7 +156,7 @@ private fun MediaListing(
  */
 @Composable
 private fun CategoryListing(
-    uiState: FaceFeedUiState,
+    uiState: MediaFeedUiState,
     onCategoryClicked: (Category) -> Unit,
     onToggleFavorite: (Category) -> Unit,
     onLoadMore: () -> Unit,
@@ -228,7 +247,7 @@ private fun LoadMoreWhenScrolledNearEnd(
 }
 
 @Composable
-private fun Skeleton(uiState: FaceFeedUiState) {
+private fun Skeleton(uiState: MediaFeedUiState) {
     when {
         uiState.showCategories && uiState.categoryPreference.displayType == CategoryDisplayType.List -> {
             CategoryListSkeleton()
@@ -247,13 +266,13 @@ private fun Skeleton(uiState: FaceFeedUiState) {
 // narrowing to favorites and finding nothing is a real answer about a person the caller can see,
 // rather than an empty feed, and is worth saying differently
 @Composable
-private fun emptyMessage(uiState: FaceFeedUiState): String =
+private fun emptyMessage(uiState: MediaFeedUiState): String =
     stringResource(
         id = when {
-            uiState.showCategories && uiState.favoritesOnly -> R.string.face_feed_no_favorite_categories
-            uiState.showCategories -> R.string.face_feed_no_categories
-            uiState.favoritesOnly -> R.string.face_feed_no_favorites
-            else -> R.string.face_feed_empty
+            uiState.showCategories && uiState.favoritesOnly -> R.string.feed_no_favorite_categories
+            uiState.showCategories -> R.string.feed_no_categories
+            uiState.favoritesOnly -> R.string.feed_no_favorites
+            else -> R.string.feed_empty
         },
     )
 
@@ -277,7 +296,7 @@ private fun FilterBar(
         // first, because it decides what the toggles after it apply to
         FilterToggle(
             iconId = R.drawable.ic_collections,
-            descriptionId = R.string.face_feed_show_categories,
+            descriptionId = R.string.feed_show_categories,
             isActive = showCategories,
             onClick = { onSetShowCategories(!showCategories) },
         )
@@ -286,7 +305,7 @@ private fun FilterBar(
         if (!showCategories) {
             FilterToggle(
                 iconId = R.drawable.ic_shuffle,
-                descriptionId = R.string.face_feed_shuffle,
+                descriptionId = R.string.feed_shuffle,
                 isActive = isShuffled,
                 onClick = { onSetShuffled(!isShuffled) },
             )
@@ -294,7 +313,7 @@ private fun FilterBar(
 
         FilterToggle(
             iconId = if (favoritesOnly) R.drawable.ic_favorite else R.drawable.ic_favorite_border,
-            descriptionId = R.string.face_feed_favorites_only,
+            descriptionId = R.string.feed_favorites_only,
             isActive = favoritesOnly,
             onClick = { onSetFavoritesOnly(!favoritesOnly) },
         )
@@ -342,34 +361,52 @@ private fun Message(
 
 @Preview(showBackground = true)
 @Composable
-private fun FaceFeedScreenLoadingPreview() {
-    FaceFeedScreenPreview(FaceFeedUiState(isLoading = true))
+private fun MediaFeedScreenLoadingPreview() {
+    MediaFeedScreenPreview(MediaFeedUiState(isLoading = true))
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun FaceFeedScreenEmptyPreview() {
-    FaceFeedScreenPreview(FaceFeedUiState(isLoading = false, isEmpty = true))
+private fun MediaFeedScreenEmptyPreview() {
+    MediaFeedScreenPreview(MediaFeedUiState(isLoading = false, isEmpty = true))
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun FaceFeedScreenNoFavoritesPreview() {
-    FaceFeedScreenPreview(FaceFeedUiState(isLoading = false, isEmpty = true, favoritesOnly = true))
+private fun MediaFeedScreenNoFavoritesPreview() {
+    MediaFeedScreenPreview(MediaFeedUiState(isLoading = false, isEmpty = true, favoritesOnly = true))
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun FaceFeedScreenNoCategoriesPreview() {
-    FaceFeedScreenPreview(
-        FaceFeedUiState(isLoading = false, isEmpty = true, showCategories = true),
+private fun MediaFeedScreenNoCategoriesPreview() {
+    MediaFeedScreenPreview(
+        MediaFeedUiState(isLoading = false, isEmpty = true, showCategories = true),
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MediaFeedScreenOverAPlacePreview() {
+    MediaFeedScreenPreview(
+        MediaFeedUiState(
+            isLoading = false,
+            isEmpty = true,
+            placeChain = listOf(
+                PlaceAncestor(Uuid.random(), PlaceKind.Country, "United States"),
+                PlaceAncestor(Uuid.random(), PlaceKind.State, "Massachusetts"),
+                PlaceAncestor(Uuid.random(), PlaceKind.City, "Boston"),
+            ),
+        ),
     )
 }
 
 @Composable
-private fun FaceFeedScreenPreview(uiState: FaceFeedUiState) {
-    FaceFeedScreen(
+private fun MediaFeedScreenPreview(uiState: MediaFeedUiState) {
+    MediaFeedScreen(
         uiState = uiState,
+        knownPlaces = emptyMap(),
+        onSelectPlace = {},
         onMediaClicked = {},
         onCategoryClicked = {},
         onToggleFavorite = {},

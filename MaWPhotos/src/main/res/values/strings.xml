@@ -65,6 +65,7 @@
     <string name="help_icon_description">Help</string>
     <string name="settings_icon_description">Settings</string>
     <string name="people_icon_description">Browse by People</string>
+    <string name="places_icon_description">Browse by Places</string>
 
     <!-- people -->
     <string name="people_title">Browse by People</string>
@@ -106,13 +107,27 @@
     <string name="clan_error_invalid">One or more of those people could not be found</string>
     <string name="clan_error_failed">Unable to save the clan.  Please try again later.</string>
 
-    <string name="face_feed_shuffle">Shuffle</string>
-    <string name="face_feed_favorites_only">Show Favorites Only</string>
-    <string name="face_feed_empty">No media to show</string>
-    <string name="face_feed_no_favorites">No favorites here yet</string>
-    <string name="face_feed_show_categories">Show Categories</string>
-    <string name="face_feed_no_categories">No categories to show</string>
-    <string name="face_feed_no_favorite_categories">None of these categories have been marked as a favorite</string>
+    <!-- places -->
+    <string name="places_title">Browse by Places</string>
+    <string name="places_all">All Places</string>
+    <string name="places_view_media">Media Taken Here</string>
+    <string name="places_view_media_count">Media Taken Here (%1$d)</string>
+    <string name="places_leads_to_media">Opens the media taken here</string>
+    <string name="places_none_found">None of the media you can see has a location we recognized yet</string>
+    <string name="places_missing">This place is no longer here</string>
+    <string name="places_menu_none">No places yet</string>
+    <string name="place_cover_description">Cover</string>
+    <string name="place_kind_country">Country</string>
+    <string name="place_kind_state">State or Region</string>
+    <string name="place_kind_city">City</string>
+
+    <string name="feed_shuffle">Shuffle</string>
+    <string name="feed_favorites_only">Show Favorites Only</string>
+    <string name="feed_empty">No media to show</string>
+    <string name="feed_no_favorites">No favorites here yet</string>
+    <string name="feed_show_categories">Show Categories</string>
+    <string name="feed_no_categories">No categories to show</string>
+    <string name="feed_no_favorite_categories">None of these categories have been marked as a favorite</string>
 
     <!-- settings -->
     <string name="clear_cache">Clear Cache</string>

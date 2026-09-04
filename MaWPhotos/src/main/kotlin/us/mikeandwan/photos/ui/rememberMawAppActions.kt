@@ -8,7 +8,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.navigation.NavigationState
@@ -17,13 +17,16 @@ import us.mikeandwan.photos.ui.screens.about.AboutNavKey
 import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.category.CategoryNavKey
 import us.mikeandwan.photos.ui.screens.categoryItem.CategoryItemNavKey
-import us.mikeandwan.photos.ui.screens.faceFeed.ClanMediaNavKey
-import us.mikeandwan.photos.ui.screens.faceFeed.PersonMediaNavKey
-import us.mikeandwan.photos.ui.screens.faceFeedItem.ClanMediaItemNavKey
-import us.mikeandwan.photos.ui.screens.faceFeedItem.PersonMediaItemNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.login.LoginNavKey
+import us.mikeandwan.photos.ui.screens.mediaFeed.ClanMediaNavKey
+import us.mikeandwan.photos.ui.screens.mediaFeed.PersonMediaNavKey
+import us.mikeandwan.photos.ui.screens.mediaFeed.PlaceMediaNavKey
+import us.mikeandwan.photos.ui.screens.mediaFeedItem.ClanMediaItemNavKey
+import us.mikeandwan.photos.ui.screens.mediaFeedItem.PersonMediaItemNavKey
+import us.mikeandwan.photos.ui.screens.mediaFeedItem.PlaceMediaItemNavKey
 import us.mikeandwan.photos.ui.screens.people.PeopleNavKey
+import us.mikeandwan.photos.ui.screens.places.PlacesNavKey
 import us.mikeandwan.photos.ui.screens.random.RandomNavKey
 import us.mikeandwan.photos.ui.screens.randomItem.RandomItemNavKey
 import us.mikeandwan.photos.ui.screens.search.SearchNavKey
@@ -58,7 +61,7 @@ private class MawAppActionsImpl(
 
     override fun setActiveYear(year: Int) = vm.setActiveYear(year)
 
-    override fun setActiveFaceSubject(subject: FaceFeedSubject?) = vm.setActiveFaceSubject(subject)
+    override fun setActiveFeedSubject(subject: MediaFeedSubject?) = vm.setActiveFeedSubject(subject)
 
     override fun openDrawer() {
         coroutineScope.launch { drawerState.open() }
@@ -104,24 +107,51 @@ private class MawAppActionsImpl(
         navigate(PeopleNavKey)
     }
 
-    // one subject, two keys - see FaceFeedRoute for why the two feeds share a screen
-    override fun navigateToFaceFeed(subject: FaceFeedSubject) {
+    override fun navigateToPlaces() {
+        navigate(PlacesNavKey(null))
+    }
+
+    override fun navigateToPlace(placeId: Uuid?) {
+        closeDrawer()
+
+        // the tree is browsed inside its own area, so a level of it has to land on that area's
+        // stack rather than on whichever one happens to be in front
+        val root = PlacesNavKey(null)
+
+        if (navigationState.topLevelRoute != root) {
+            navigator.navigate(root)
+        }
+
+        // unwinding rather than pushing a second copy is what makes the breadcrumb a way back -
+        // and what lets "All Places" return to the root of the tree instead of burying the
+        // drill-down under another copy of it
+        val route = PlacesNavKey(placeId)
+
+        if (!navigator.navigateBackTo(route)) {
+            navigator.navigate(route)
+        }
+    }
+
+    // one subject, three keys - see MediaFeedRoute for why the feeds share a screen
+    override fun navigateToMediaFeed(subject: MediaFeedSubject) {
         navigate(
             when (subject) {
-                is FaceFeedSubject.Person -> PersonMediaNavKey(subject.personId)
-                is FaceFeedSubject.Clan -> ClanMediaNavKey(subject.clanId)
+                is MediaFeedSubject.Person -> PersonMediaNavKey(subject.personId)
+                is MediaFeedSubject.Clan -> ClanMediaNavKey(subject.clanId)
+                is MediaFeedSubject.Place -> PlaceMediaNavKey(subject.placeId)
             },
         )
     }
 
-    override fun navigateToFaceFeedItem(
-        subject: FaceFeedSubject,
+    override fun navigateToMediaFeedItem(
+        subject: MediaFeedSubject,
         mediaId: Uuid,
     ) {
         navigate(
             when (subject) {
-                is FaceFeedSubject.Person -> PersonMediaItemNavKey(subject.personId, mediaId)
-                is FaceFeedSubject.Clan -> ClanMediaItemNavKey(subject.clanId, mediaId)
+                is MediaFeedSubject.Person -> PersonMediaItemNavKey(subject.personId, mediaId)
+                is MediaFeedSubject.Clan -> ClanMediaItemNavKey(subject.clanId, mediaId)
+                is MediaFeedSubject.Place -> PlaceMediaItemNavKey(subject.placeId, mediaId)
             },
         )
     }

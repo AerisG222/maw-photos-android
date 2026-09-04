@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.screens.faceFeed
+package us.mikeandwan.photos.ui.screens.mediaFeed
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -23,43 +23,50 @@ import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.FaceApiClient
+import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.ApiErrorHandler
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
-import us.mikeandwan.photos.domain.FaceFeedRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.Person
+import us.mikeandwan.photos.domain.models.Place
+import us.mikeandwan.photos.domain.models.PlaceAncestor
+import us.mikeandwan.photos.domain.models.PlaceKind
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
 /*
-   Driven against a real FaceFeedRepository over a mocked api client: the parts worth pinning here -
+   Driven against a real MediaFeedRepository over a mocked api client: the parts worth pinning here -
    the seed staying put across pages, a filter change starting over - live in how the two are wired
    together, and would be asserted into existence by a mocked repository rather than tested.
 */
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-class FaceFeedViewModelTest {
+class MediaFeedViewModelTest {
     private lateinit var api: FaceApiClient
+    private lateinit var placeApi: PlaceApiClient
     private lateinit var apiErrorHandler: ApiErrorHandler
-    private lateinit var faceFeedRepository: FaceFeedRepository
+    private lateinit var mediaFeedRepository: MediaFeedRepository
     private lateinit var peopleRepository: PeopleRepository
     private lateinit var clanRepository: ClanRepository
+    private lateinit var placeRepository: PlaceRepository
     private lateinit var categoryRepository: CategoryRepository
     private lateinit var categoryPreferenceRepository: CategoryPreferenceRepository
     private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
     private lateinit var mediaFavoriteService: MediaFavoriteService
 
     private val personId = Uuid.random()
-    private val subject = FaceFeedSubject.Person(personId)
+    private val subject = MediaFeedSubject.Person(personId)
 
     private val person = Person(
         id = personId,
@@ -69,16 +76,39 @@ class FaceFeedViewModelTest {
         isFavorite = false,
     )
 
+    private val placeId = Uuid.random()
+    private val placeSubject = MediaFeedSubject.Place(placeId)
+
+    // a city, which is a leaf: tapping its tile opens this feed rather than a level of the tree, so
+    // the feed is the only screen that ever shows the chain above it
+    private val boston = Place(
+        id = placeId,
+        parentId = Uuid.random(),
+        kind = PlaceKind.City,
+        name = "Boston",
+        mediaCount = 921,
+        coverUrl = null,
+        childCount = 0,
+    )
+
+    private val bostonChain = listOf(
+        PlaceAncestor(Uuid.random(), PlaceKind.Country, "United States"),
+        PlaceAncestor(Uuid.random(), PlaceKind.State, "Massachusetts"),
+        PlaceAncestor(placeId, PlaceKind.City, "Boston"),
+    )
+
     @Before
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
 
         api = mockk()
+        placeApi = mockk()
         apiErrorHandler = mockk(relaxed = true)
-        faceFeedRepository = FaceFeedRepository(api, apiErrorHandler)
+        mediaFeedRepository = MediaFeedRepository(api, placeApi, apiErrorHandler)
 
         peopleRepository = mockk(relaxed = true)
         clanRepository = mockk(relaxed = true)
+        placeRepository = mockk(relaxed = true)
         categoryRepository = mockk(relaxed = true)
         categoryPreferenceRepository = mockk(relaxed = true)
         mediaPreferenceRepository = mockk(relaxed = true)
@@ -92,6 +122,13 @@ class FaceFeedViewModelTest {
         every { mediaPreferenceRepository.getPhotoGridItemSize() } returns
             flowOf(GridThumbnailSize.Medium)
         every { mediaPreferenceRepository.getMediaPreference() } returns flowOf(MediaPreference())
+        // the real repository caches what it reads, which is where a place feed takes its name
+        // from - see the note on the title flow
+        every { placeRepository.placesById } returns MutableStateFlow(mapOf(placeId to boston))
+        every { placeRepository.getPlace(any()) } returns
+            flowOf(ExternalCallStatus.Success(boston))
+        every { placeRepository.getAncestors(any()) } returns
+            flowOf(ExternalCallStatus.Success(bostonChain))
     }
 
     @After
@@ -144,7 +181,7 @@ class FaceFeedViewModelTest {
         vm.setShuffled(true)
         advanceUntilIdle()
 
-        val seed = faceFeedRepository.filter.value.seed
+        val seed = mediaFeedRepository.filter.value.seed
 
         assertTrue(seed != null)
 
@@ -170,7 +207,7 @@ class FaceFeedViewModelTest {
         vm.setShuffled(false)
         advanceUntilIdle()
 
-        assertEquals(null, faceFeedRepository.filter.value.seed)
+        assertEquals(null, mediaFeedRepository.filter.value.seed)
         assertFalse(vm.uiState.value.isShuffled)
     }
 
@@ -225,14 +262,14 @@ class FaceFeedViewModelTest {
         vm.initState(subject)
         advanceUntilIdle()
 
-        val media = faceFeedRepository.media.value.single()
+        val media = mediaFeedRepository.media.value.single()
 
         coEvery { mediaFavoriteService.setIsFavorite(media, true) } returns true
 
         vm.toggleFavorite(media)
         advanceUntilIdle()
 
-        assertTrue(faceFeedRepository.media.value.single().isFavorite)
+        assertTrue(mediaFeedRepository.media.value.single().isFavorite)
     }
 
     // ---- the categories listing ----
@@ -325,7 +362,7 @@ class FaceFeedViewModelTest {
         vm.setShowCategories(true)
         advanceUntilIdle()
 
-        val category = faceFeedRepository.categories.value.single()
+        val category = mediaFeedRepository.categories.value.single()
 
         // the answer describes the category on its own terms, and carries no count
         every { categoryRepository.setFavorite(category.id, true) } returns
@@ -336,17 +373,48 @@ class FaceFeedViewModelTest {
         advanceUntilIdle()
 
         // Assert
-        val updated = faceFeedRepository.categories.value.single()
+        val updated = mediaFeedRepository.categories.value.single()
 
         assertTrue(updated.isFavorite)
         assertEquals(4, updated.mediaCount)
     }
 
+    @Test
+    fun `a place feed carries the chain above it, which is the only screen a leaf's is drawn on`() = runTest {
+        coEvery { placeApi.getPlaceMedia(placeId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+
+        val vm = viewModel()
+
+        vm.initState(placeSubject)
+        advanceUntilIdle()
+
+        assertEquals("Boston", vm.uiState.value.title)
+        assertEquals(
+            listOf("United States", "Massachusetts", "Boston"),
+            vm.uiState.value.placeChain.map { it.name },
+        )
+    }
+
+    @Test
+    fun `a person feed has no chain, being nowhere in the place tree`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.placeChain.isEmpty())
+    }
+
     private fun viewModel() =
-        FaceFeedViewModel(
-            faceFeedRepository,
+        MediaFeedViewModel(
+            mediaFeedRepository,
             peopleRepository,
             clanRepository,
+            placeRepository,
             categoryRepository,
             categoryPreferenceRepository,
             mediaPreferenceRepository,

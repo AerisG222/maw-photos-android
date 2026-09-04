@@ -11,6 +11,7 @@ import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.FaceApiClient
 import us.mikeandwan.photos.api.MediaApiClient
+import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.database.CategoryDao
 import us.mikeandwan.photos.database.CategoryPreferenceDao
 import us.mikeandwan.photos.database.DeveloperLogDao
@@ -29,14 +30,15 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.ConfigRepository
 import us.mikeandwan.photos.domain.ErrorRepository
-import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaFaceRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.NotificationIdRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
@@ -96,14 +98,22 @@ object DomainModule {
         apiErrorHandler: ApiErrorHandler,
     ): ClanRepository = ClanRepository(api, apiErrorHandler)
 
+    @Provides
+    @Singleton
+    fun providePlaceRepository(
+        api: PlaceApiClient,
+        apiErrorHandler: ApiErrorHandler,
+    ): PlaceRepository = PlaceRepository(api, apiErrorHandler)
+
     // a singleton for the same reason the random feed is one: the grid and the pager are separate
     // screens over the one list of media the user is browsing
     @Provides
     @Singleton
-    fun provideFaceFeedRepository(
-        api: FaceApiClient,
+    fun provideMediaFeedRepository(
+        faceApi: FaceApiClient,
+        placeApi: PlaceApiClient,
         apiErrorHandler: ApiErrorHandler,
-    ): FaceFeedRepository = FaceFeedRepository(api, apiErrorHandler)
+    ): MediaFeedRepository = MediaFeedRepository(faceApi, placeApi, apiErrorHandler)
 
     @Provides
     @Singleton

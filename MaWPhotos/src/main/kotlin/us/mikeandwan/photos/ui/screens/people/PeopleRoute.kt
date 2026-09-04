@@ -10,7 +10,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.people.ClanDeleteDialog
@@ -35,7 +35,7 @@ private fun PeopleRoute(vm: PeopleViewModel = hiltViewModel()) {
     LaunchedEffect(title) {
         appActions.setNavArea(NavigationArea.People)
         // the grid is nobody in particular, so nothing in the rail's list is current
-        appActions.setActiveFaceSubject(null)
+        appActions.setActiveFeedSubject(null)
         appActions.updateTopBar(
             NavigationArea.People,
             TopBarState(title = title),
@@ -48,10 +48,10 @@ private fun PeopleRoute(vm: PeopleViewModel = hiltViewModel()) {
         onToggleSort = { vm.toggleSort() },
         onToggleFavorite = { vm.toggleFavorite(it) },
         onSelectPerson = { person ->
-            appActions.navigateToFaceFeed(FaceFeedSubject.Person(person.id))
+            appActions.navigateToMediaFeed(MediaFeedSubject.Person(person.id))
         },
         onSelectClan = { clan ->
-            appActions.navigateToFaceFeed(FaceFeedSubject.Clan(clan.id))
+            appActions.navigateToMediaFeed(MediaFeedSubject.Clan(clan.id))
         },
         onCreateClan = { vm.startCreateClan() },
         onEditClanMembers = { vm.startEditMembers(it) },

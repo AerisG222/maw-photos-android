@@ -26,8 +26,8 @@ import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.CategoryRepository
-import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeriodicJob
 import us.mikeandwan.photos.domain.RandomMediaRepository
@@ -115,7 +115,7 @@ class MediaListService
     constructor(
         private val categoryRepository: CategoryRepository,
         private val randomMediaRepository: RandomMediaRepository,
-        private val faceFeedRepository: FaceFeedRepository,
+        private val mediaFeedRepository: MediaFeedRepository,
         private val fileRepository: FileStorageRepository,
         private val mediaFavoriteService: MediaFavoriteService,
         private val mediaCommentService: MediaCommentService,
@@ -327,7 +327,7 @@ class MediaListService
                         // reflects what was just toggled in the pager
                         categoryRepository.tryUpdateCache(updatedItem)
                         randomMediaRepository.updateMedia(updatedItem)
-                        faceFeedRepository.updateMedia(updatedItem)
+                        mediaFeedRepository.updateMedia(updatedItem)
 
                         updatedMedia
                     } else {
@@ -389,7 +389,7 @@ class MediaListService
                     sourceMedia.collect { newList -> media.update { newList } }
                 }
 
-                // the title follows the item, which in a random or face feed means it changes as the
+                // the title follows the item, which in a random or media feed means it changes as the
                 // pager moves.  loadCategory is what keeps repeated asks for the same category from
                 // each starting their own lookup - this fires on every state change, not just on a
                 // new item.
@@ -435,9 +435,9 @@ class MediaListService
                 .onEach { mediaFaceService.clear() }
                 .collectLatest { mediaId ->
                     if (mediaId != null) {
-                    mediaFaceService.fetchFaces(mediaId)
+                        mediaFaceService.fetchFaces(mediaId)
+                    }
                 }
-            }
         }
 
         private fun loadCategory(categoryId: Uuid) {
@@ -461,9 +461,9 @@ class MediaListService
             categoryJob = null
             // forgotten as well as cancelled, so the next visit asks again rather than assuming the
             // category it was showing before is still loaded
-        requestedCategoryId = null
-        category.update { null }
-    }
+            requestedCategoryId = null
+            category.update { null }
+        }
 
         private fun moveNext() =
             flow<Unit> {

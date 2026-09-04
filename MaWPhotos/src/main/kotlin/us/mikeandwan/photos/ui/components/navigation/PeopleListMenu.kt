@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Clan
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.Person
 
 /**
@@ -36,13 +36,13 @@ import us.mikeandwan.photos.domain.models.Person
 fun PeopleListMenu(
     clans: List<Clan>,
     people: List<Person>,
-    activeSubject: FaceFeedSubject?,
+    activeSubject: MediaFeedSubject?,
     onClanSelected: (Clan) -> Unit,
     onPersonSelected: (Person) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val activeClanId = (activeSubject as? FaceFeedSubject.Clan)?.clanId
-    val activePersonId = (activeSubject as? FaceFeedSubject.Person)?.personId
+    val activeClanId = (activeSubject as? MediaFeedSubject.Clan)?.clanId
+    val activePersonId = (activeSubject as? MediaFeedSubject.Person)?.personId
 
     LazyColumn(
         modifier = modifier
@@ -132,7 +132,7 @@ private fun PeopleListMenuPreview() {
     PeopleListMenu(
         clans = listOf(Clan(Uuid.random(), "The Kids", people)),
         people = people,
-        activeSubject = FaceFeedSubject.Person(people[1].id),
+        activeSubject = MediaFeedSubject.Person(people[1].id),
         onClanSelected = {},
         onPersonSelected = {},
     )

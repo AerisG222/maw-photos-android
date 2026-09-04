@@ -26,6 +26,7 @@ import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.ConfigApiClient
 import us.mikeandwan.photos.api.FaceApiClient
 import us.mikeandwan.photos.api.MediaApiClient
+import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.api.UploadApiClient
 import us.mikeandwan.photos.authorization.AuthInterceptor
 import us.mikeandwan.photos.authorization.TokenAuthenticator
@@ -118,6 +119,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideMediaApiClient(retrofit: Retrofit): MediaApiClient = MediaApiClient(retrofit)
+
+    @Provides
+    @Singleton
+    fun providePlaceApiClient(retrofit: Retrofit): PlaceApiClient = PlaceApiClient(retrofit)
 
     @Provides
     @Singleton

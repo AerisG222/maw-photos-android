@@ -15,6 +15,9 @@ import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.domain.models.NotificationPreference
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
+import us.mikeandwan.photos.domain.models.Place
+import us.mikeandwan.photos.domain.models.PlaceAncestor
+import us.mikeandwan.photos.domain.models.PlaceKind
 import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.models.Scale
 import us.mikeandwan.photos.domain.models.SearchHistory
@@ -26,6 +29,8 @@ import us.mikeandwan.photos.api.Face as ApiFace
 import us.mikeandwan.photos.api.Media as ApiMedia
 import us.mikeandwan.photos.api.MediaFile as ApiMediaFile
 import us.mikeandwan.photos.api.Person as ApiPerson
+import us.mikeandwan.photos.api.Place as ApiPlace
+import us.mikeandwan.photos.api.PlaceAncestor as ApiPlaceAncestor
 import us.mikeandwan.photos.database.CategoryDetail as DbCategoryDetail
 import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
 import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
@@ -165,6 +170,26 @@ fun ApiClan.toDomainClan(): Clan =
         id = id,
         name = name,
         members = members.map { it.toDomainPerson() },
+    )
+
+fun ApiPlace.toDomainPlace(): Place =
+    Place(
+        id = id,
+        parentId = parentId,
+        kind = PlaceKind.fromApi(kind),
+        name = name,
+        mediaCount = mediaCount,
+        coverUrl = coverUrl,
+        childCount = childCount,
+    )
+
+// the slug, the parent and the depth are all dropped: the slug addresses a place in web urls, and
+// the chain arrives in order, so nothing here has to re-derive where a rung sits
+fun ApiPlaceAncestor.toDomainPlaceAncestor(): PlaceAncestor =
+    PlaceAncestor(
+        id = id,
+        kind = PlaceKind.fromApi(kind),
+        name = name,
     )
 
 fun ApiFace.toDomainDetectedFace(): DetectedFace =

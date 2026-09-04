@@ -31,9 +31,9 @@ import org.junit.Test
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.CategoryRepository
-import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaFaceRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
@@ -52,7 +52,7 @@ class MediaListServiceTest {
 
     private lateinit var categoryRepository: CategoryRepository
     private lateinit var randomMediaRepository: RandomMediaRepository
-    private lateinit var faceFeedRepository: FaceFeedRepository
+    private lateinit var mediaFeedRepository: MediaFeedRepository
     private lateinit var fileRepository: FileStorageRepository
     private lateinit var mediaFavoriteService: MediaFavoriteService
     private lateinit var mediaCommentService: MediaCommentService
@@ -77,7 +77,7 @@ class MediaListServiceTest {
 
         categoryRepository = mockk(relaxed = true)
         randomMediaRepository = mockk(relaxed = true)
-        faceFeedRepository = mockk(relaxed = true)
+        mediaFeedRepository = mockk(relaxed = true)
         fileRepository = mockk()
         mediaFavoriteService = mockk(relaxed = true)
         mediaCommentService = mockk(relaxed = true)
@@ -102,7 +102,7 @@ class MediaListServiceTest {
         service = MediaListService(
             categoryRepository,
             randomMediaRepository,
-            faceFeedRepository,
+            mediaFeedRepository,
             fileRepository,
             mediaFavoriteService,
             mediaCommentService,

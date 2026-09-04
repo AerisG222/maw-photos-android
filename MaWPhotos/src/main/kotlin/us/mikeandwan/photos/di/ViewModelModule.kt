@@ -7,9 +7,9 @@ import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.domain.CategoryRepository
-import us.mikeandwan.photos.domain.FaceFeedRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaFaceRepository
+import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.MediaRepository
 import us.mikeandwan.photos.domain.PeopleRepository
@@ -49,7 +49,7 @@ object ViewModelModule {
     fun provideMediaListService(
         categoryRepository: CategoryRepository,
         randomMediaRepository: RandomMediaRepository,
-        faceFeedRepository: FaceFeedRepository,
+        mediaFeedRepository: MediaFeedRepository,
         fileRepository: FileStorageRepository,
         mediaFavoriteService: MediaFavoriteService,
         mediaCommentService: MediaCommentService,
@@ -61,7 +61,7 @@ object ViewModelModule {
         MediaListService(
             categoryRepository,
             randomMediaRepository,
-            faceFeedRepository,
+            mediaFeedRepository,
             fileRepository,
             mediaFavoriteService,
             mediaCommentService,

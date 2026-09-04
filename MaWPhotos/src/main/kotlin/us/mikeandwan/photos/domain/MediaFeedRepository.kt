@@ -6,15 +6,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.api.FaceApiClient
+import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.domain.models.FaceFeedFilter
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFeedFilter
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
 /**
- * What one person - or anyone in a clan - appears in, accumulated a page at a time.
+ * What one person appears in, what anyone in a clan appears in, or what was taken at one place -
+ * accumulated a page at a time.
  *
  * Two listings over the one subject: the media itself, and the categories that media sits in. Both
  * are held so that switching between them keeps what has already been scrolled through, and both
@@ -24,10 +26,11 @@ import us.mikeandwan.photos.api.Media as ApiMedia
  * the same list of media, the same way the random feed is shared between its two. Only one feed is
  * on screen at a time, so one accumulation is enough.
  */
-class FaceFeedRepository
+class MediaFeedRepository
     @Inject
     constructor(
-        private val api: FaceApiClient,
+        private val faceApi: FaceApiClient,
+        private val placeApi: PlaceApiClient,
         apiErrorHandler: ApiErrorHandler,
     ) {
         companion object {
@@ -36,14 +39,14 @@ class FaceFeedRepository
                 "Unable to load categories at this time.  Please try again later."
         }
 
-        private val mediaPager = FaceFeedPager<ApiMedia, Media>(
+        private val mediaPager = MediaFeedPager<ApiMedia, Media>(
             apiErrorHandler = apiErrorHandler,
             errorMessage = ERR_MSG_LOAD_MEDIA,
             idOf = { it.id },
             toDomain = { it.toDomainMedia() },
         )
 
-        private val categoryPager = FaceFeedPager<ApiCategory, Category>(
+        private val categoryPager = MediaFeedPager<ApiCategory, Category>(
             apiErrorHandler = apiErrorHandler,
             errorMessage = ERR_MSG_LOAD_CATEGORIES,
             idOf = { it.id },
@@ -56,17 +59,17 @@ class FaceFeedRepository
         val categories = categoryPager.items
         val hasMoreCategories = categoryPager.hasMore
 
-        private val _subject = MutableStateFlow<FaceFeedSubject?>(null)
+        private val _subject = MutableStateFlow<MediaFeedSubject?>(null)
         val subject = _subject.asStateFlow()
 
-        private val _filter = MutableStateFlow(FaceFeedFilter())
+        private val _filter = MutableStateFlow(MediaFeedFilter())
         val filter = _filter.asStateFlow()
 
         // which of the two listings is being browsed.  it outlives the subject on purpose - it is
-        // how somebody wants to look at people rather than something about one of them, so moving
-        // from one person to the next stays on the listing they were reading.
+        // how somebody wants to look at a feed rather than something about one subject, so moving
+        // from one person, clan or place to the next stays on the listing they were reading.
         private val _showCategories = MutableStateFlow(false)
-    val showCategories = _showCategories.asStateFlow()
+        val showCategories = _showCategories.asStateFlow()
 
         /**
          * Points the feed at a subject, keeping what has already been accumulated when it is
@@ -79,20 +82,20 @@ class FaceFeedRepository
          * to an unfiltered first page and lose the item that was tapped.  A new subject is a new
          * feed, and starts unfiltered.
          */
-        fun initialize(subject: FaceFeedSubject) {
+        fun initialize(subject: MediaFeedSubject) {
             if (_subject.value == subject) {
                 return
             }
 
             _subject.update { subject }
-            _filter.update { FaceFeedFilter() }
+            _filter.update { MediaFeedFilter() }
 
             reset()
         }
 
         // narrowing to favorites or reshuffling changes which rows come back and in what order, so
         // the accumulated list cannot be kept
-        fun setFilter(filter: FaceFeedFilter) {
+        fun setFilter(filter: MediaFeedFilter) {
             val current = _filter.value
 
             if (current == filter) {
@@ -112,7 +115,7 @@ class FaceFeedRepository
         }
 
         fun setShowCategories(showCategories: Boolean) {
-        _showCategories.update { showCategories }
+            _showCategories.update { showCategories }
         }
 
         fun loadNextPage() =
@@ -123,31 +126,39 @@ class FaceFeedRepository
                     val filter = _filter.value
 
                     when (subject) {
-                        is FaceFeedSubject.Person -> {
-                            api.getPersonMedia(subject.personId, offset, filter.favoritesOnly, filter.seed)
+                        is MediaFeedSubject.Person -> {
+                            faceApi.getPersonMedia(subject.personId, offset, filter.favoritesOnly, filter.seed)
                         }
 
-                        is FaceFeedSubject.Clan -> {
-                            api.getClanMedia(subject.clanId, offset, filter.favoritesOnly, filter.seed)
+                        is MediaFeedSubject.Clan -> {
+                            faceApi.getClanMedia(subject.clanId, offset, filter.favoritesOnly, filter.seed)
+                        }
+
+                        is MediaFeedSubject.Place -> {
+                            placeApi.getPlaceMedia(subject.placeId, offset, filter.favoritesOnly, filter.seed)
                         }
                     }
                 }
             }
 
-    fun loadNextPageOfCategories() =
-        when (val subject = _subject.value) {
-            null -> emptyFlow()
+        fun loadNextPageOfCategories() =
+            when (val subject = _subject.value) {
+                null -> emptyFlow()
 
-            else -> categoryPager.loadNextPage { offset ->
-                val favoritesOnly = _filter.value.favoritesOnly
+                else -> categoryPager.loadNextPage { offset ->
+                    val favoritesOnly = _filter.value.favoritesOnly
 
                 when (subject) {
-                    is FaceFeedSubject.Person -> {
-                        api.getPersonCategories(subject.personId, offset, favoritesOnly)
+                    is MediaFeedSubject.Person -> {
+                        faceApi.getPersonCategories(subject.personId, offset, favoritesOnly)
                     }
 
-                    is FaceFeedSubject.Clan -> {
-                        api.getClanCategories(subject.clanId, offset, favoritesOnly)
+                    is MediaFeedSubject.Clan -> {
+                        faceApi.getClanCategories(subject.clanId, offset, favoritesOnly)
+                    }
+
+                    is MediaFeedSubject.Place -> {
+                        placeApi.getPlaceCategories(subject.placeId, offset, favoritesOnly)
                     }
                 }
             }
@@ -163,7 +174,7 @@ class FaceFeedRepository
 
     fun clear() {
         _subject.update { null }
-        _filter.update { FaceFeedFilter() }
+        _filter.update { MediaFeedFilter() }
 
         reset()
         }

@@ -21,6 +21,29 @@ class Navigator(
         }
     }
 
+    /**
+     * Moves to a route already on the current stack by unwinding to it, rather than pushing a
+     * second copy on top of it.  Answers whether it was there to unwind to.
+     *
+     * What it is for is a breadcrumb: every rung names a level the user drilled through, so tapping
+     * one is going back to it - and pushing would leave Back walking down the tree they just
+     * climbed out of.
+     */
+    fun navigateBackTo(route: NavKey): Boolean {
+        val stack = state.backStacks[state.topLevelRoute] ?: return false
+        val index = stack.indexOf(route)
+
+        if (index < 0) {
+            return false
+        }
+
+        while (stack.size > index + 1) {
+            stack.removeLastOrNull()
+        }
+
+        return true
+    }
+
     fun goBack() {
         val currentStack = state.backStacks[state.topLevelRoute]
             ?: error("Stack for ${state.topLevelRoute} not found")

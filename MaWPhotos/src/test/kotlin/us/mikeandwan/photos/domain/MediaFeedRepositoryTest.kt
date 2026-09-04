@@ -20,26 +20,29 @@ import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.FaceApiClient
+import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.FaceFeedFilter
-import us.mikeandwan.photos.domain.models.FaceFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFeedFilter
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
-class FaceFeedRepositoryTest {
+class MediaFeedRepositoryTest {
     private lateinit var api: FaceApiClient
+    private lateinit var placeApi: PlaceApiClient
     private lateinit var apiErrorHandler: ApiErrorHandler
-    private lateinit var repository: FaceFeedRepository
+    private lateinit var repository: MediaFeedRepository
 
     private val personId = Uuid.random()
-    private val subject = FaceFeedSubject.Person(personId)
+    private val subject = MediaFeedSubject.Person(personId)
 
     @Before
     fun setUp() {
         api = mockk()
+        placeApi = mockk()
         apiErrorHandler = mockk()
-        repository = FaceFeedRepository(api, apiErrorHandler)
+        repository = MediaFeedRepository(api, placeApi, apiErrorHandler)
     }
 
     @Test
@@ -119,7 +122,7 @@ class FaceFeedRepositoryTest {
 
         assertEquals(2, repository.media.value.size)
 
-        repository.setFilter(FaceFeedFilter(favoritesOnly = true))
+        repository.setFilter(MediaFeedFilter(favoritesOnly = true))
 
         // the previous subject's rows are gone the moment the filter changes, rather than lingering
         // under a filter they may not match
@@ -155,14 +158,14 @@ class FaceFeedRepositoryTest {
         repository.initialize(subject)
         repository.loadNextPage().toList()
 
-        repository.setFilter(FaceFeedFilter(favoritesOnly = true, seed = 42L))
+        repository.setFilter(MediaFeedFilter(favoritesOnly = true, seed = 42L))
         repository.loadNextPage().toList()
 
         // Act
         repository.initialize(subject)
 
         // Assert
-        assertEquals(FaceFeedFilter(favoritesOnly = true, seed = 42L), repository.filter.value)
+        assertEquals(MediaFeedFilter(favoritesOnly = true, seed = 42L), repository.filter.value)
         assertEquals(3, repository.media.value.size)
     }
 
@@ -175,11 +178,11 @@ class FaceFeedRepositoryTest {
 
         repository.initialize(subject)
         repository.loadNextPage().toList()
-        repository.setFilter(FaceFeedFilter(favoritesOnly = true, seed = 42L))
-        repository.initialize(FaceFeedSubject.Clan(otherId))
+        repository.setFilter(MediaFeedFilter(favoritesOnly = true, seed = 42L))
+        repository.initialize(MediaFeedSubject.Clan(otherId))
 
         assertTrue(repository.media.value.isEmpty())
-        assertEquals(FaceFeedFilter(), repository.filter.value)
+        assertEquals(MediaFeedFilter(), repository.filter.value)
     }
 
     // a feed the API answers whole comes back with no more results and an offset of zero.  reading
@@ -226,7 +229,7 @@ class FaceFeedRepositoryTest {
         runCurrent()
 
         // Act - the filter changes, and only then does the first request come back
-        repository.setFilter(FaceFeedFilter(favoritesOnly = true))
+        repository.setFilter(MediaFeedFilter(favoritesOnly = true))
         repository.loadNextPage().toList()
 
         staleRequestLanded.complete(Unit)
@@ -293,7 +296,7 @@ class FaceFeedRepositoryTest {
         repository.loadNextPageOfCategories().toList()
 
         // Act
-        repository.setFilter(FaceFeedFilter(favoritesOnly = true))
+        repository.setFilter(MediaFeedFilter(favoritesOnly = true))
 
         // Assert
         assertTrue(repository.media.value.isEmpty())
@@ -311,7 +314,7 @@ class FaceFeedRepositoryTest {
         repository.loadNextPageOfCategories().toList()
 
         // Act
-        repository.setFilter(FaceFeedFilter(seed = 42L))
+        repository.setFilter(MediaFeedFilter(seed = 42L))
 
         // Assert
         assertEquals(3, repository.categories.value.size)
@@ -326,7 +329,7 @@ class FaceFeedRepositoryTest {
         repository.loadNextPageOfCategories().toList()
 
         // Act
-        repository.initialize(FaceFeedSubject.Clan(Uuid.random()))
+        repository.initialize(MediaFeedSubject.Clan(Uuid.random()))
 
         // Assert
         assertTrue(repository.categories.value.isEmpty())
@@ -355,7 +358,7 @@ class FaceFeedRepositoryTest {
         coEvery { api.getClanCategories(clanId, 0, false) } returns
             ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
 
-        repository.initialize(FaceFeedSubject.Clan(clanId))
+        repository.initialize(MediaFeedSubject.Clan(clanId))
         repository.loadNextPageOfCategories().toList()
 
         assertEquals(1, repository.categories.value.size)

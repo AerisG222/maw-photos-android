@@ -54,14 +54,16 @@ import us.mikeandwan.photos.ui.screens.categories.CategoriesNavKey
 import us.mikeandwan.photos.ui.screens.categories.categories
 import us.mikeandwan.photos.ui.screens.category.category
 import us.mikeandwan.photos.ui.screens.categoryItem.categoryItem
-import us.mikeandwan.photos.ui.screens.faceFeed.faceFeed
-import us.mikeandwan.photos.ui.screens.faceFeedItem.faceFeedItem
 import us.mikeandwan.photos.ui.screens.inactiveUser.InactiveUserNavKey
 import us.mikeandwan.photos.ui.screens.inactiveUser.inactiveUser
 import us.mikeandwan.photos.ui.screens.login.LoginNavKey
 import us.mikeandwan.photos.ui.screens.login.login
+import us.mikeandwan.photos.ui.screens.mediaFeed.mediaFeed
+import us.mikeandwan.photos.ui.screens.mediaFeedItem.mediaFeedItem
 import us.mikeandwan.photos.ui.screens.people.PeopleNavKey
 import us.mikeandwan.photos.ui.screens.people.people
+import us.mikeandwan.photos.ui.screens.places.PlacesNavKey
+import us.mikeandwan.photos.ui.screens.places.places
 import us.mikeandwan.photos.ui.screens.random.RandomNavKey
 import us.mikeandwan.photos.ui.screens.random.random
 import us.mikeandwan.photos.ui.screens.randomItem.randomItem
@@ -84,6 +86,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
         setOf(
             CategoriesNavKey(null),
             PeopleNavKey,
+            PlacesNavKey(null),
             RandomNavKey,
             SearchNavKey(),
             SettingsNavKey,
@@ -115,7 +118,8 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
     val activeYear by vm.activeYear.collectAsStateWithLifecycle()
     val clans by vm.clans.collectAsStateWithLifecycle()
     val people by vm.people.collectAsStateWithLifecycle()
-    val activeFaceSubject by vm.activeFaceSubject.collectAsStateWithLifecycle()
+    val countries by vm.countries.collectAsStateWithLifecycle()
+    val activeFeedSubject by vm.activeFeedSubject.collectAsStateWithLifecycle()
     val authStatus by vm.authenticationStatus.collectAsStateWithLifecycle()
     val userStatus by vm.userStatus.collectAsStateWithLifecycle()
     val faceRecognitionAccess by vm.faceRecognitionAccess.collectAsStateWithLifecycle()
@@ -187,9 +191,10 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
         categories()
         category()
         categoryItem()
-        faceFeed()
-        faceFeedItem()
+        mediaFeed()
+        mediaFeedItem()
         people()
+        places()
         random()
         randomItem()
         search()
@@ -216,7 +221,8 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             activeYear = activeYear,
                             clans = clans,
                             people = people,
-                            activeFaceSubject = activeFaceSubject,
+                            countries = countries,
+                            activeFeedSubject = activeFeedSubject,
                             recentSearchTerms = recentSearchTerms,
                             fetchRandomPhotos = vm::fetchRandomPhotos,
                             clearRandomPhotos = vm::clearRandomPhotos,
@@ -224,7 +230,9 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             navigateToCategories = { appActions.navigateToCategories(null) },
                             navigateToCategoriesByYear = { appActions.navigateToCategories(it) },
                             navigateToPeople = { appActions.navigateToPeople() },
-                            navigateToFaceFeed = { appActions.navigateToFaceFeed(it) },
+                            navigateToPlaces = { appActions.navigateToPlaces() },
+                            navigateToPlace = { appActions.navigateToPlace(it) },
+                            navigateToMediaFeed = { appActions.navigateToMediaFeed(it) },
                             navigateToRandom = { appActions.navigateToRandom() },
                             navigateToSearch = { appActions.navigateToSearch() },
                             navigateToSearchWithTerm = { appActions.navigateToSearch(it) },

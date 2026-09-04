@@ -1,4 +1,4 @@
-package us.mikeandwan.photos.ui.screens.faceFeedItem
+package us.mikeandwan.photos.ui.screens.mediaFeedItem
 
 import android.graphics.drawable.Drawable
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,8 +24,8 @@ import us.mikeandwan.photos.ui.shared.shareMedia
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FaceFeedItemScreen(
-    uiState: FaceFeedItemUiState,
+fun MediaFeedItemScreen(
+    uiState: MediaFeedItemUiState,
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
     onSetActiveId: (Uuid) -> Unit,
     onToggleSlideshow: () -> Unit,
