@@ -26,17 +26,19 @@ import org.junit.runner.RunWith
  * This generator is defensive about auth state: if the app is logged out (login screen shown), it
  * captures a startup-only profile instead of failing, since it cannot drive the browser login.
  * When logged in, it walks the core browse journey (categories -> a category's media -> a single
- * media item) and then the people journey (rail -> people grid -> a person's media -> one item),
- * using stable test tags rather than blind screen coordinates. Every step is a null-safe find, so
- * an account with nothing to show simply contributes less to the profile instead of failing.
+ * media item), then the people journey (rail -> people grid -> a person's media -> one item), then
+ * the places journey (rail -> the place tree, drilled to the bottom -> that place's media -> one
+ * item), using stable test tags rather than blind screen coordinates. Every step is a null-safe
+ * find, so an account with nothing to show simply contributes less to the profile instead of
+ * failing.
  *
  * The tag strings below mirror the app's `testTag` constants (MEDIA_GRID_TAG, MEDIA_GRID_ITEM_TAG,
- * LOGIN_SCREEN_TAG, PEOPLE_GRID_TAG, PERSON_CARD_TAG, APP_MENU_TAG). They are duplicated as
- * literals because this `com.android.test` module does not have the app module on its compile
- * classpath, and must be kept in sync manually. They are surfaced to UiAutomator via
- * `testTagsAsResourceId`, enabled at the app's Compose root. The one content description is
- * likewise a copy of a string resource: the navigation rail's entries carry no test tags, and do
- * not need them - each entry is itself the clickable node.
+ * LOGIN_SCREEN_TAG, PEOPLE_GRID_TAG, PERSON_CARD_TAG, PLACES_GRID_TAG, PLACE_CARD_TAG,
+ * APP_MENU_TAG). They are duplicated as literals because this `com.android.test` module does not
+ * have the app module on its compile classpath, and must be kept in sync manually. They are
+ * surfaced to UiAutomator via `testTagsAsResourceId`, enabled at the app's Compose root. The
+ * content descriptions are likewise copies of string resources: the navigation rail's entries carry
+ * no test tags, and do not need them - each entry is itself the clickable node.
  *
  * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are
  * supported. The minimum required version of androidx.benchmark is 1.2.0.
@@ -88,32 +90,9 @@ class BaselineProfileGenerator {
             device.pressBack()
             device.waitForIdle()
 
-            // 6. Open the navigation drawer and switch to browsing by person.
-            //
-            // Found by tag rather than by description: the app bar's description sits on the icon,
-            // and the icon is not what takes the click - UiAutomator clicks it, logs "Clicking on
-            // non-clickable object", and the drawer stays shut. The tag is on the button itself.
-            // The retry covers a back press the media pager consumed itself, which leaves one more
-            // screen to unwind than expected.
-            val appMenu = device.wait(Until.findObject(By.res(APP_MENU_TAG)), UI_TIMEOUT_MS)
-                ?: run {
-                    device.pressBack()
-                    device.waitForIdle()
-                    device.wait(Until.findObject(By.res(APP_MENU_TAG)), UI_TIMEOUT_MS)
-                }
-
-            appMenu?.click()
-            device.waitForIdle()
-
-            // The drawer slides in, and waitForIdle does not wait for that: Compose animations are
-            // not what it idles on. Finding the entry is no proof it can be clicked either - the
-            // rail is composed even while the drawer is shut - and a click that lands before the
-            // sheet has arrived hits the scrim, which dismisses the drawer instead. So settle
-            // first, then click, then confirm the people grid actually came up rather than
-            // trusting the tap.
-            Thread.sleep(DRAWER_SETTLE_MS)
-            device.wait(Until.findObject(By.desc(PEOPLE_NAV_DESCRIPTION)), UI_TIMEOUT_MS)?.click()
-            device.waitForIdle()
+            // 6. Open the navigation drawer and switch to browsing by person, then confirm the
+            // people grid actually came up rather than trusting the tap.
+            openNavigationEntry(PEOPLE_NAV_DESCRIPTION)
 
             if (!device.wait(Until.hasObject(By.res(PEOPLE_GRID_TAG)), UI_TIMEOUT_MS)) {
                 device.findObject(By.desc(PEOPLE_NAV_DESCRIPTION))?.click()
@@ -135,7 +114,61 @@ class BaselineProfileGenerator {
             device.waitForIdle()
             device.pressBack()
             device.waitForIdle()
+
+            // 10. Browsing by place: the drill-down, and the feed at the bottom of it.
+            openNavigationEntry(PLACES_NAV_DESCRIPTION)
+
+            // Walk down the tree. Each level is checked for rather than assumed: a branch can be
+            // shorter than three, and a tile at the bottom opens the photographs instead of another
+            // level - either way the loop simply stops and the feed below picks up.
+            for (level in 1..PLACE_TREE_DEPTH) {
+                if (!device.wait(Until.hasObject(By.res(PLACES_GRID_TAG)), UI_TIMEOUT_MS)) {
+                    break
+                }
+
+                scrollGrid(PLACES_GRID_TAG)
+                device.wait(Until.findObject(By.res(PLACE_CARD_TAG)), UI_TIMEOUT_MS)?.click()
+                device.waitForIdle()
+            }
+
+            // 11. That place's media, which is the same grid and pager the rest of the app browses.
+            scrollGrid()
+            device.wait(Until.findObject(By.res(MEDIA_GRID_ITEM_TAG)), UI_TIMEOUT_MS)?.click()
+            device.waitForIdle()
+
+            device.pressBack()
+            device.waitForIdle()
         }
+    }
+
+    /**
+     * Opens the drawer and follows one of the rail's primary entries.
+     *
+     * The drawer slides in, and `waitForIdle` does not wait for that - Compose animations are not
+     * what it idles on. Finding the entry is no proof it can be clicked either, since the rail is
+     * composed even while the drawer is shut, and a click that lands before the sheet has arrived
+     * hits the scrim and dismisses the drawer instead. So settle first, then click.
+     *
+     * The app menu is found by tag rather than by description: the app bar's description sits on the
+     * icon, and the icon is not what takes the click - UiAutomator clicks it, logs "Clicking on
+     * non-clickable object", and the drawer stays shut. The tag is on the button itself. The retry
+     * covers a back press the media pager consumed itself, which leaves one more screen to unwind
+     * than expected.
+     */
+    private fun MacrobenchmarkScope.openNavigationEntry(description: String) {
+        val appMenu = device.wait(Until.findObject(By.res(APP_MENU_TAG)), UI_TIMEOUT_MS)
+            ?: run {
+                device.pressBack()
+                device.waitForIdle()
+                device.wait(Until.findObject(By.res(APP_MENU_TAG)), UI_TIMEOUT_MS)
+            }
+
+        appMenu?.click()
+        device.waitForIdle()
+
+        Thread.sleep(DRAWER_SETTLE_MS)
+        device.wait(Until.findObject(By.desc(description)), UI_TIMEOUT_MS)?.click()
+        device.waitForIdle()
     }
 
     private fun MacrobenchmarkScope.scrollGrid(tag: String = MEDIA_GRID_TAG) {
@@ -160,10 +193,21 @@ class BaselineProfileGenerator {
         const val LOGIN_SCREEN_TAG = "loginScreen"
         const val PEOPLE_GRID_TAG = "peopleGrid"
         const val PERSON_CARD_TAG = "personCard"
+        const val PLACES_GRID_TAG = "placesGrid"
+        const val PLACE_CARD_TAG = "placeCard"
         const val APP_MENU_TAG = "appMenu"
 
+        // countries, then their states, then their cities. how deep a branch actually goes varies -
+        // Macao and Hong Kong have no state level - so this is the most levels to try rather than
+        // the number there will be.
+        const val PLACE_TREE_DEPTH = 3
+
         // The rail's entries carry no tags, but each one is itself the clickable node, so the
-        // description it announces is enough. Mirrors R.string.people_icon_description.
-        const val PEOPLE_NAV_DESCRIPTION = "Browse by Person"
+        // description it announces is enough. These mirror R.string.people_icon_description and
+        // R.string.places_icon_description, and have to match them exactly: every find below is
+        // null-safe, so a description that has drifted does not fail - the leg behind it silently
+        // does nothing, and the profile comes out missing those screens.
+        const val PEOPLE_NAV_DESCRIPTION = "Browse by People"
+        const val PLACES_NAV_DESCRIPTION = "Browse by Places"
     }
 }

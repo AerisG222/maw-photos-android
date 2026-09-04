@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -36,6 +37,11 @@ import us.mikeandwan.photos.ui.components.places.PlaceChain
 // wide enough for a 4:3 cover with a name under it to stay legible, narrow enough that a phone
 // still gets two of them across
 private val TILE_MIN_WIDTH = 150.dp
+
+// Stable selector for UI automation (baseline profile generation), like the people grid's.
+// Surfaced to UiAutomator via `testTagsAsResourceId` enabled at the app root. Keep in sync with the
+// matching literal in the :baselineprofile module's BaselineProfileGenerator.
+const val PLACES_GRID_TAG = "placesGrid"
 
 /**
  * One level of the place tree: where you are, what is inside it, and the photographs of the whole
@@ -98,7 +104,9 @@ fun PlacesScreen(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     contentPadding = PaddingValues(8.dp),
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag(PLACES_GRID_TAG),
                 ) {
                     items(uiState.places, key = { it.id }) { place ->
                         PlaceCard(

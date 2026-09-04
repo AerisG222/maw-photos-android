@@ -48,7 +48,7 @@ class PeoplePreferenceRepository
 
         suspend fun setShowCategoryTitle(show: Boolean) {
             setPreference { it.copy(showCategoryTitle = show) }
-    }
+        }
 
         private suspend fun setPeoplePreference(pref: PeoplePreference) {
             val dbPref = us.mikeandwan.photos.database.PeoplePreference(

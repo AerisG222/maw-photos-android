@@ -176,7 +176,7 @@ class MediaFeedRepository
             _subject.update { null }
             _filter.update { MediaFeedFilter() }
 
-        reset()
+            reset()
         }
 
         private fun reset() {

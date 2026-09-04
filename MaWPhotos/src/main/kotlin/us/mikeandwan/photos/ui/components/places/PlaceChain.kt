@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,7 +62,20 @@ fun PlaceChain(
     onSelect: (Uuid?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
+
+    // three rungs and a root chip do not fit across a phone, and the rung you are on is the last
+    // one - so the strip opens at its end rather than showing the country you started from and
+    // hiding the place you are actually looking at.  the list clamps at the end of its content,
+    // which leaves as much of the path in view as there is room for.
+    LaunchedEffect(chain.lastOrNull()?.id) {
+        if (chain.isNotEmpty()) {
+            listState.scrollToItem(chain.size)
+        }
+    }
+
     LazyRow(
+        state = listState,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         contentPadding = PaddingValues(horizontal = 8.dp),
@@ -149,7 +164,8 @@ private fun Rung(
                 } else {
                     MaterialTheme.colorScheme.surface
                 },
-            ).border(1.dp, borderColor, CHIP_SHAPE)
+            )
+            .border(1.dp, borderColor, CHIP_SHAPE)
             .clickable { onSelect() }
             .padding(end = 8.dp),
     ) {

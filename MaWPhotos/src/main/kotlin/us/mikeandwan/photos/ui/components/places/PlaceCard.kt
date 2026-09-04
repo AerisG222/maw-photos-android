@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +34,11 @@ import us.mikeandwan.photos.domain.models.PlaceKind
 private const val COVER_ASPECT_RATIO = 4f / 3f
 
 private val BADGE_SHAPE = RoundedCornerShape(4.dp)
+
+// Stable selector for UI automation (baseline profile generation), like the person card's.
+// Surfaced to UiAutomator via `testTagsAsResourceId` enabled at the app root. Keep in sync with the
+// matching literal in the :baselineprofile module's BaselineProfileGenerator.
+const val PLACE_CARD_TAG = "placeCard"
 
 /**
  * One place in the browse.
@@ -59,6 +65,7 @@ fun PlaceCard(
         colors = colors,
         modifier = modifier
             .fillMaxWidth()
+            .testTag(PLACE_CARD_TAG)
             .clickable { onSelect(place) },
     ) {
         Box(
@@ -95,7 +102,8 @@ fun PlaceCard(
                         .clip(BADGE_SHAPE)
                         .background(
                             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f),
-                        ).padding(3.dp),
+                        )
+                        .padding(3.dp),
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_image),

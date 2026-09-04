@@ -358,8 +358,8 @@ class SettingsViewModel
         fun setPlaceShowCategoryTitle(show: Boolean) {
             viewModelScope.launch {
                 placePreferenceRepository.setShowCategoryTitle(show)
+            }
         }
-    }
 
         fun setPeopleShowClans(show: Boolean) {
             viewModelScope.launch {

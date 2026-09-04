@@ -185,11 +185,11 @@ class MediaFeedViewModel
         // every place read so far, which is where the breadcrumb finds its covers.  drilling to a
         // place populated it on the way through; a cold start into a feed holds only the place
         // itself, and the strip draws an icon for the rest.
-    val knownPlaces = placeRepository.placesById
+        val knownPlaces = placeRepository.placesById
 
-    private val subjectHeading = combine(title, placeChain) { title, chain ->
-        SubjectHeading(title, chain)
-    }
+        private val subjectHeading = combine(title, placeChain) { title, chain ->
+            SubjectHeading(title, chain)
+        }
 
         init {
             val thumbnailSizeFlow = mediaPreferenceRepository
@@ -252,13 +252,13 @@ class MediaFeedViewModel
             }.launchIn(viewModelScope)
         }
 
-    fun initState(subject: MediaFeedSubject) {
+        fun initState(subject: MediaFeedSubject) {
             if (_subject.value == subject) {
                 return
             }
 
             _subject.update { subject }
-        mediaFeedRepository.initialize(subject)
+            mediaFeedRepository.initialize(subject)
 
             ensureSubjectIsNamed(subject)
             loadNextPage()
