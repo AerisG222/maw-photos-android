@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui.components.categorylist
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,7 @@ fun CategoryListItem(
     showYear: Boolean,
     onSelectCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
+    showName: Boolean = true,
     onToggleFavorite: ((Category) -> Unit)? = null,
 ) {
     val haptics = LocalHapticFeedback.current
@@ -96,13 +98,19 @@ fun CategoryListItem(
             )
         }
 
-        Text(
-            style = MaterialTheme.typography.titleMedium,
-            text = category.name,
-            modifier = Modifier
-                .padding(8.dp)
-                .weight(1f),
-        )
+        // the spacer stands in when the name is hidden, so the count and the heart stay where they
+        // were rather than sliding in against the year
+        if (showName) {
+            Text(
+                style = MaterialTheme.typography.titleMedium,
+                text = category.name,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1f),
+            )
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+        }
 
         // only the person and clan listings carry a count - there it is how much of the category
         // they are in, which is the whole reason for listing it.  everywhere else the category is

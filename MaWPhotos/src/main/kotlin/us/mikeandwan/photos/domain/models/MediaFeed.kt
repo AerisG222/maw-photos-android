@@ -52,3 +52,18 @@ data class MediaFeedFilter(
     val favoritesOnly: Boolean = false,
     val seed: Long? = null,
 )
+
+/**
+ * What a category says about itself in a feed's category listing, beyond its teaser.
+ *
+ * Both start on. The list view has always drawn them, so this only ever takes something away
+ * there; the grid is where they are new, and a wall of unlabelled teasers is the harder of the two
+ * to read when the categories span years.
+ *
+ * Held for the feed rather than saved, like the choice of listing itself: it is how somebody wants
+ * to read this screen, not a setting about categories everywhere.
+ */
+data class CategoryLabels(
+    val showYear: Boolean = true,
+    val showTitle: Boolean = true,
+)

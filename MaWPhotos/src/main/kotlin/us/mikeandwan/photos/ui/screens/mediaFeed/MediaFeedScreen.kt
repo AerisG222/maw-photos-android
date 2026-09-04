@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.filter
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
+import us.mikeandwan.photos.domain.models.CategoryLabels
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Place
@@ -61,6 +62,8 @@ fun MediaFeedScreen(
     onSetFavoritesOnly: (Boolean) -> Unit,
     onSetShuffled: (Boolean) -> Unit,
     onSetShowCategories: (Boolean) -> Unit,
+    onSetShowCategoryYear: (Boolean) -> Unit,
+    onSetShowCategoryTitle: (Boolean) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -80,9 +83,12 @@ fun MediaFeedScreen(
             favoritesOnly = uiState.favoritesOnly,
             isShuffled = uiState.isShuffled,
             showCategories = uiState.showCategories,
+            categoryLabels = uiState.categoryLabels,
             onSetFavoritesOnly = onSetFavoritesOnly,
             onSetShuffled = onSetShuffled,
             onSetShowCategories = onSetShowCategories,
+            onSetShowCategoryYear = onSetShowCategoryYear,
+            onSetShowCategoryTitle = onSetShowCategoryTitle,
         )
 
         when {
@@ -189,6 +195,7 @@ private fun CategoryListing(
                     it.toMediaGridItem(
                         useLargeTeaser = preferences.gridThumbnailSize == GridThumbnailSize.Large,
                         showMediaTypeIndicator = preferences.showMediaTypeIndicator,
+                        label = it.gridLabel(uiState.categoryLabels),
                     )
                 },
                 thumbnailSize = preferences.gridThumbnailSize,
@@ -216,8 +223,10 @@ private fun CategoryListing(
 
             CategoryList(
                 categories = uiState.categories,
-                // a person turns up across years, so the year is what tells two summers apart
-                showYear = true,
+                // a feed spans years, so the year is what tells two summers apart - but it is the
+                // reader's call, and the toggles above say which of the two they want
+                showYear = uiState.categoryLabels.showYear,
+                showName = uiState.categoryLabels.showTitle,
                 onSelectCategory = onCategoryClicked,
                 onToggleFavorite = toggleFavorite,
                 listState = listState,
@@ -225,6 +234,18 @@ private fun CategoryListing(
         }
     }
 }
+
+/**
+ * What a category tile says it is, or null when the toggles have turned both halves off.
+ *
+ * The year leads, the way it reads on a folder: "2024 - A Long Weekend Away".
+ */
+private fun Category.gridLabel(labels: CategoryLabels): String? =
+    listOfNotNull(
+        year.takeIf { labels.showYear }?.toString(),
+        name.takeIf { labels.showTitle },
+    ).joinToString(" - ")
+        .ifEmpty { null }
 
 /**
  * Asks for the next page from how far the listing has been scrolled rather than from its last item
@@ -281,9 +302,12 @@ private fun FilterBar(
     favoritesOnly: Boolean,
     isShuffled: Boolean,
     showCategories: Boolean,
+    categoryLabels: CategoryLabels,
     onSetFavoritesOnly: (Boolean) -> Unit,
     onSetShuffled: (Boolean) -> Unit,
     onSetShowCategories: (Boolean) -> Unit,
+    onSetShowCategoryYear: (Boolean) -> Unit,
+    onSetShowCategoryTitle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -301,8 +325,24 @@ private fun FilterBar(
             onClick = { onSetShowCategories(!showCategories) },
         )
 
-        // a list of categories has no order to shuffle, and the API takes no seed for one
-        if (!showCategories) {
+        // what a category says about itself is only a question when categories are what is listed;
+        // a photograph has neither a year of its own nor a name
+        if (showCategories) {
+            FilterToggle(
+                iconId = R.drawable.ic_calendar,
+                descriptionId = R.string.feed_show_category_year,
+                isActive = categoryLabels.showYear,
+                onClick = { onSetShowCategoryYear(!categoryLabels.showYear) },
+            )
+
+            FilterToggle(
+                iconId = R.drawable.ic_title,
+                descriptionId = R.string.feed_show_category_title,
+                isActive = categoryLabels.showTitle,
+                onClick = { onSetShowCategoryTitle(!categoryLabels.showTitle) },
+            )
+        } else {
+            // a list of categories has no order to shuffle, and the API takes no seed for one
             FilterToggle(
                 iconId = R.drawable.ic_shuffle,
                 descriptionId = R.string.feed_shuffle,
@@ -414,6 +454,8 @@ private fun MediaFeedScreenPreview(uiState: MediaFeedUiState) {
         onSetFavoritesOnly = {},
         onSetShuffled = {},
         onSetShowCategories = {},
+        onSetShowCategoryYear = {},
+        onSetShowCategoryTitle = {},
         onLoadMore = {},
     )
 }

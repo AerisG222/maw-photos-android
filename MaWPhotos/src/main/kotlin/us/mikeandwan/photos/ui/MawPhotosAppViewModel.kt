@@ -182,8 +182,8 @@ class MawPhotosAppViewModel
             _activeYear.update { year }
         }
 
-    fun setActiveFeedSubject(subject: MediaFeedSubject?) {
-        _activeFeedSubject.update { subject }
+        fun setActiveFeedSubject(subject: MediaFeedSubject?) {
+            _activeFeedSubject.update { subject }
         }
 
         fun dismissReauthorizePrompt() {

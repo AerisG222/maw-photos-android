@@ -30,6 +30,7 @@ import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.CategoryLabels
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
@@ -60,6 +61,8 @@ data class MediaFeedUiState(
     // the categories are drawn the way the rest of the app draws categories, so whoever prefers a
     // list of them to a wall of teasers gets one here too
     val categoryPreference: CategoryPreference = CategoryPreference(),
+    // what each of those categories says about itself beyond its teaser
+    val categoryLabels: CategoryLabels = CategoryLabels(),
     // both of these describe whichever listing is on screen, so the screen does not have to ask
     // which one it is showing before it can page or say there is nothing here
     val hasMore: Boolean = false,
@@ -81,6 +84,7 @@ private data class CategoryListing(
     val categories: List<Category> = emptyList(),
     val hasMore: Boolean = false,
     val preference: CategoryPreference = CategoryPreference(),
+    val labels: CategoryLabels = CategoryLabels(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -134,15 +138,15 @@ class MediaFeedViewModel
        that is already on screen, and the browse says the same thing about a place that cannot
        be read.
      */
-    private val placeChain = _subject
-        .flatMapLatest { subject ->
-            when (subject) {
-                is MediaFeedSubject.Place -> {
-                    placeRepository
-                        .getAncestors(subject.placeId)
-                        .filterIsInstance<ExternalCallStatus.Success<List<PlaceAncestor>>>()
-                        .map { it.result }
-                }
+        private val placeChain = _subject
+            .flatMapLatest { subject ->
+                when (subject) {
+                    is MediaFeedSubject.Place -> {
+                        placeRepository
+                            .getAncestors(subject.placeId)
+                            .filterIsInstance<ExternalCallStatus.Success<List<PlaceAncestor>>>()
+                            .map { it.result }
+                    }
 
                 else -> {
                     flowOf(emptyList())
@@ -169,8 +173,9 @@ class MediaFeedViewModel
                 mediaFeedRepository.categories,
                 mediaFeedRepository.hasMoreCategories,
                 categoryPreferenceRepository.getCategoryPreference(),
-            ) { categories, hasMore, preference ->
-                CategoryListing(categories, hasMore, preference)
+                mediaFeedRepository.categoryLabels,
+            ) { categories, hasMore, preference, labels ->
+                CategoryListing(categories, hasMore, preference, labels)
             }
 
             // flowext's combine rather than the one in kotlinx: the typed overloads there stop at
@@ -209,6 +214,7 @@ class MediaFeedViewModel
                     showCategories = showCategories,
                     categories = categoryListing.categories,
                     categoryPreference = categoryListing.preference,
+                    categoryLabels = categoryListing.labels,
                     hasMore = if (showCategories) categoryListing.hasMore else hasMore,
                     isLoading = isLoading && isListingEmpty,
                     isEmpty = !isLoading && isListingEmpty,
@@ -265,6 +271,24 @@ class MediaFeedViewModel
 
             loadNextPage()
         }
+
+    /**
+     * Turns the year or the title on the listed categories on and off.
+     *
+     * Nothing is refetched: this changes what a category says about itself, not which ones came
+     * back, so the accumulated pages stand.
+     */
+    fun setShowCategoryYear(showYear: Boolean) {
+        applyCategoryLabels { it.copy(showYear = showYear) }
+    }
+
+    fun setShowCategoryTitle(showTitle: Boolean) {
+        applyCategoryLabels { it.copy(showTitle = showTitle) }
+    }
+
+    private fun applyCategoryLabels(update: (CategoryLabels) -> CategoryLabels) {
+        mediaFeedRepository.setCategoryLabels(update(mediaFeedRepository.categoryLabels.value))
+    }
 
         fun setFavoritesOnly(favoritesOnly: Boolean) {
             applyFilter { it.copy(favoritesOnly = favoritesOnly) }

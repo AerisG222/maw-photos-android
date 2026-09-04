@@ -126,6 +126,8 @@
     <string name="feed_empty">No media to show</string>
     <string name="feed_no_favorites">No favorites here yet</string>
     <string name="feed_show_categories">Show Categories</string>
+    <string name="feed_show_category_year">Show Category Year</string>
+    <string name="feed_show_category_title">Show Category Title</string>
     <string name="feed_no_categories">No categories to show</string>
     <string name="feed_no_favorite_categories">None of these categories have been marked as a favorite</string>
 

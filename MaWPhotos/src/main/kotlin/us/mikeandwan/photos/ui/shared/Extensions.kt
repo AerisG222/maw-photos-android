@@ -40,6 +40,10 @@ fun Media.getMediaUrl(): String {
 fun Category.toMediaGridItem(
     useLargeTeaser: Boolean,
     showMediaTypeIndicator: Boolean = true,
+    // what the tile says it is, when the screen listing it asks for anything.  built by the caller
+    // rather than here: only the feeds offer the choice, and everywhere else a category is listed
+    // among its own year's, where the year would be on every tile and say nothing
+    label: String? = null,
 ): MediaGridItem<Category> =
     MediaGridItem(
         this.id,
@@ -47,6 +51,7 @@ fun Category.toMediaGridItem(
         if (showMediaTypeIndicator) this.mediaTypes else emptyList(),
         this,
         this.isFavorite,
+        label,
     )
 
 fun <T> ApiResult<T>.toExternalCallStatus(): ExternalCallStatus<T> =

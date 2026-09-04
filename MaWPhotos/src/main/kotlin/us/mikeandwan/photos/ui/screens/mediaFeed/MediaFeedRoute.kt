@@ -96,6 +96,8 @@ private fun MediaFeedRoute(
         onSetFavoritesOnly = { vm.setFavoritesOnly(it) },
         onSetShuffled = { vm.setShuffled(it) },
         onSetShowCategories = { vm.setShowCategories(it) },
+        onSetShowCategoryYear = { vm.setShowCategoryYear(it) },
+        onSetShowCategoryTitle = { vm.setShowCategoryTitle(it) },
         onLoadMore = { vm.loadNextPage() },
     )
 }

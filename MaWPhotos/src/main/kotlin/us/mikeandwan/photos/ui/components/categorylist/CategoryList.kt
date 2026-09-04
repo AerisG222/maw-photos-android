@@ -18,6 +18,7 @@ fun CategoryList(
     showYear: Boolean,
     onSelectCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
+    showName: Boolean = true,
     onToggleFavorite: ((Category) -> Unit)? = null,
     // hoisted for the callers that need to watch it - a paged listing asks for the next page from
     // how far it has been scrolled
@@ -35,6 +36,7 @@ fun CategoryList(
                 CategoryListItem(
                     category = category,
                     showYear = showYear,
+                    showName = showName,
                     onSelectCategory = onSelectCategory,
                     onToggleFavorite = onToggleFavorite,
                 )

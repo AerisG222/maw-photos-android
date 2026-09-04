@@ -275,6 +275,35 @@ class MediaFeedViewModelTest {
     // ---- the categories listing ----
 
     @Test
+    fun `hiding a category's year or title leaves the rows that came back alone`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        vm.setShowCategories(true)
+        advanceUntilIdle()
+
+        // both start on: the list view has always drawn them, so a toggle only ever takes one away
+        assertTrue(vm.uiState.value.categoryLabels.showYear)
+        assertTrue(vm.uiState.value.categoryLabels.showTitle)
+
+        vm.setShowCategoryYear(false)
+        vm.setShowCategoryTitle(false)
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.categoryLabels.showYear)
+        assertFalse(vm.uiState.value.categoryLabels.showTitle)
+        assertEquals(3, vm.uiState.value.categories.size)
+
+        // what a category says about itself is not what came back, so nothing is asked for again
+        coVerify(exactly = 1) { api.getPersonCategories(personId, 0, false) }
+    }
+
+    @Test
     fun `switching to the categories loads them and reports on that listing`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
