@@ -42,6 +42,14 @@ class PeoplePreferenceRepository
             setPreference { it.copy(showClans = show) }
         }
 
+        suspend fun setShowCategoryYear(show: Boolean) {
+            setPreference { it.copy(showCategoryYear = show) }
+        }
+
+        suspend fun setShowCategoryTitle(show: Boolean) {
+            setPreference { it.copy(showCategoryTitle = show) }
+    }
+
         private suspend fun setPeoplePreference(pref: PeoplePreference) {
             val dbPref = us.mikeandwan.photos.database.PeoplePreference(
                 PREFERENCE_ID,
@@ -50,6 +58,8 @@ class PeoplePreferenceRepository
                 pref.showNames,
                 pref.showMediaCounts,
                 pref.showClans,
+                pref.showCategoryYear,
+                pref.showCategoryTitle,
             )
 
             dao.setPeoplePreference(dbPref)

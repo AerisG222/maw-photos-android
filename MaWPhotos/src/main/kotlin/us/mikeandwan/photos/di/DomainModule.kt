@@ -19,6 +19,7 @@ import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.MediaPreferenceDao
 import us.mikeandwan.photos.database.NotificationPreferenceDao
 import us.mikeandwan.photos.database.PeoplePreferenceDao
+import us.mikeandwan.photos.database.PlacePreferenceDao
 import us.mikeandwan.photos.database.RandomPreferenceDao
 import us.mikeandwan.photos.database.ScaleDao
 import us.mikeandwan.photos.database.SearchHistoryDao
@@ -38,6 +39,7 @@ import us.mikeandwan.photos.domain.NotificationIdRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
@@ -164,6 +166,11 @@ object DomainModule {
     @Singleton
     fun providePeoplePreferenceRepository(peoplePreferenceDao: PeoplePreferenceDao): PeoplePreferenceRepository =
         PeoplePreferenceRepository(peoplePreferenceDao)
+
+    @Provides
+    @Singleton
+    fun providePlacePreferenceRepository(placePreferenceDao: PlacePreferenceDao): PlacePreferenceRepository =
+        PlacePreferenceRepository(placePreferenceDao)
 
     @Provides
     @Singleton

@@ -75,6 +75,10 @@ fun SettingsScreen(
     onPeopleShowNamesChange: (Boolean) -> Unit,
     onPeopleShowMediaCountsChange: (Boolean) -> Unit,
     onPeopleShowClansChange: (Boolean) -> Unit,
+    onPeopleShowCategoryYearChange: (Boolean) -> Unit,
+    onPeopleShowCategoryTitleChange: (Boolean) -> Unit,
+    onPlaceShowCategoryYearChange: (Boolean) -> Unit,
+    onPlaceShowCategoryTitleChange: (Boolean) -> Unit,
     onMediaShowFaceHighlightsChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
@@ -347,11 +351,42 @@ fun SettingsScreen(
                 isChecked = uiState.mediaShowFaceHighlights,
                 onChange = onMediaShowFaceHighlightsChange,
             )
+            // the same pair of switches the feed itself offers, so whoever finds them here and
+            // whoever finds them there are setting the one thing
+            SwitchPreference(
+                labelStringId = R.string.pref_show_category_year,
+                isChecked = uiState.peopleShowCategoryYear,
+                onChange = onPeopleShowCategoryYearChange,
+            )
+            SwitchPreference(
+                labelStringId = R.string.pref_show_category_title,
+                isChecked = uiState.peopleShowCategoryTitle,
+                onChange = onPeopleShowCategoryTitleChange,
+            )
             HorizontalDivider(
                 modifier = dividerModifier,
                 color = MaterialTheme.colorScheme.inverseOnSurface,
             )
         }
+
+        // --- PLACES ----
+        // unconditional, unlike people: browsing by where a photograph was taken needs nothing
+        // beyond being signed in, so there is no scope that can withdraw it
+        Heading(stringId = R.string.pref_places_display_header)
+        SwitchPreference(
+            labelStringId = R.string.pref_show_category_year,
+            isChecked = uiState.placeShowCategoryYear,
+            onChange = onPlaceShowCategoryYearChange,
+        )
+        SwitchPreference(
+            labelStringId = R.string.pref_show_category_title,
+            isChecked = uiState.placeShowCategoryTitle,
+            onChange = onPlaceShowCategoryTitleChange,
+        )
+        HorizontalDivider(
+            modifier = dividerModifier,
+            color = MaterialTheme.colorScheme.inverseOnSurface,
+        )
 
         // --- ADVANCED ----
         Heading(stringId = R.string.pref_advanced_display_header)
@@ -559,6 +594,10 @@ private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
         onPeopleShowNamesChange = {},
         onPeopleShowMediaCountsChange = {},
         onPeopleShowClansChange = {},
+        onPeopleShowCategoryYearChange = {},
+        onPeopleShowCategoryTitleChange = {},
+        onPlaceShowCategoryYearChange = {},
+        onPlaceShowCategoryTitleChange = {},
         onMediaShowFaceHighlightsChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},

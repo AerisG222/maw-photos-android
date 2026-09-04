@@ -18,6 +18,7 @@ import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.models.PlaceKind
+import us.mikeandwan.photos.domain.models.PlacePreference
 import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.models.Scale
 import us.mikeandwan.photos.domain.models.SearchHistory
@@ -37,6 +38,7 @@ import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
 import us.mikeandwan.photos.database.MediaPreference as DbMediaPreference
 import us.mikeandwan.photos.database.NotificationPreference as DbNotificationPreference
 import us.mikeandwan.photos.database.PeoplePreference as DbPeoplePreference
+import us.mikeandwan.photos.database.PlacePreference as DbPlacePreference
 import us.mikeandwan.photos.database.RandomPreference as DbRandomPreference
 import us.mikeandwan.photos.database.Scale as DbScale
 import us.mikeandwan.photos.database.SearchHistory as DbSearchHistory
@@ -107,6 +109,14 @@ fun DbPeoplePreference.toDomainPeoplePreference(): PeoplePreference =
         showNames = showNames,
         showMediaCounts = showMediaCounts,
         showClans = showClans,
+        showCategoryYear = showCategoryYear,
+        showCategoryTitle = showCategoryTitle,
+    )
+
+fun DbPlacePreference.toDomainPlacePreference(): PlacePreference =
+    PlacePreference(
+        showCategoryYear = showCategoryYear,
+        showCategoryTitle = showCategoryTitle,
     )
 
 fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =

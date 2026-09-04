@@ -68,7 +68,8 @@ fun <T> MediaGridImage(
             .graphicsLayer {
                 scaleX = pressScale
                 scaleY = pressScale
-            }.clickable(
+            }
+            .clickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
             ) { onSelectImage(item) },
@@ -148,8 +149,7 @@ fun <T> MediaGridImage(
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                         shape = CircleShape,
-                    )
-                    .clickable {
+                    ).clickable {
                         haptics.performHapticFeedback(
                             if (item.isFavorite) {
                                 HapticFeedbackType.ToggleOff

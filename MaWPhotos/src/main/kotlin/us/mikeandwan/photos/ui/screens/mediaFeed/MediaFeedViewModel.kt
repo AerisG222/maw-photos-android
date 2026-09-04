@@ -27,7 +27,9 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
+import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryLabels
@@ -97,6 +99,8 @@ class MediaFeedViewModel
         private val clanRepository: ClanRepository,
         private val placeRepository: PlaceRepository,
         private val categoryRepository: CategoryRepository,
+        private val peoplePreferenceRepository: PeoplePreferenceRepository,
+        private val placePreferenceRepository: PlacePreferenceRepository,
         categoryPreferenceRepository: CategoryPreferenceRepository,
         mediaPreferenceRepository: MediaPreferenceRepository,
         private val mediaFavoriteService: MediaFavoriteService,
@@ -148,15 +152,39 @@ class MediaFeedViewModel
                             .map { it.result }
                     }
 
-                else -> {
-                    flowOf(emptyList())
+                    else -> {
+                        flowOf(emptyList())
+                    }
+                }
+            }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+
+    /*
+       Whether the listed categories carry their year and their title.
+
+       Read from whichever area the subject belongs to, and written back the same way - the two
+       areas share this feed but are read differently, so a choice made while walking a country is
+       not one made about a person.
+     */
+        private val categoryLabels = _subject
+            .flatMapLatest { subject ->
+                when (subject) {
+                    is MediaFeedSubject.Place -> {
+                        placePreferenceRepository
+                            .getPlacePreference()
+                            .map { CategoryLabels(it.showCategoryYear, it.showCategoryTitle) }
+                    }
+
+                    else -> {
+                        peoplePreferenceRepository
+                            .getPeoplePreference()
+                            .map { CategoryLabels(it.showCategoryYear, it.showCategoryTitle) }
+                    }
                 }
             }
-        }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
-    // every place read so far, which is where the breadcrumb finds its covers.  drilling to a
-    // place populated it on the way through; a cold start into a feed holds only the place
-    // itself, and the strip draws an icon for the rest.
+        // every place read so far, which is where the breadcrumb finds its covers.  drilling to a
+        // place populated it on the way through; a cold start into a feed holds only the place
+        // itself, and the strip draws an icon for the rest.
     val knownPlaces = placeRepository.placesById
 
     private val subjectHeading = combine(title, placeChain) { title, chain ->
@@ -173,7 +201,7 @@ class MediaFeedViewModel
                 mediaFeedRepository.categories,
                 mediaFeedRepository.hasMoreCategories,
                 categoryPreferenceRepository.getCategoryPreference(),
-                mediaFeedRepository.categoryLabels,
+                categoryLabels,
             ) { categories, hasMore, preference, labels ->
                 CategoryListing(categories, hasMore, preference, labels)
             }
@@ -273,21 +301,29 @@ class MediaFeedViewModel
         }
 
     /**
-     * Turns the year or the title on the listed categories on and off.
+     * Turns the year or the title on the listed categories on and off, for the area this feed is
+     * being browsed from.
      *
-     * Nothing is refetched: this changes what a category says about itself, not which ones came
-     * back, so the accumulated pages stand.
+     * Saved rather than held, so this and the switch on the settings screen are the one setting.
+     * Nothing is refetched: it changes what a category says about itself, not which ones came back,
+     * so the accumulated pages stand.
      */
     fun setShowCategoryYear(showYear: Boolean) {
-        applyCategoryLabels { it.copy(showYear = showYear) }
+        viewModelScope.launch {
+            when (_subject.value) {
+                is MediaFeedSubject.Place -> placePreferenceRepository.setShowCategoryYear(showYear)
+                else -> peoplePreferenceRepository.setShowCategoryYear(showYear)
+            }
+        }
     }
 
     fun setShowCategoryTitle(showTitle: Boolean) {
-        applyCategoryLabels { it.copy(showTitle = showTitle) }
-    }
-
-    private fun applyCategoryLabels(update: (CategoryLabels) -> CategoryLabels) {
-        mediaFeedRepository.setCategoryLabels(update(mediaFeedRepository.categoryLabels.value))
+        viewModelScope.launch {
+            when (_subject.value) {
+                is MediaFeedSubject.Place -> placePreferenceRepository.setShowCategoryTitle(showTitle)
+                else -> peoplePreferenceRepository.setShowCategoryTitle(showTitle)
+            }
+        }
     }
 
         fun setFavoritesOnly(favoritesOnly: Boolean) {

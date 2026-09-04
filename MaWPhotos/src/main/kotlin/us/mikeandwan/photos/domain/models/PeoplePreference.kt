@@ -6,4 +6,6 @@ data class PeoplePreference(
     val showNames: Boolean = true,
     val showMediaCounts: Boolean = true,
     val showClans: Boolean = true,
+    val showCategoryYear: Boolean = true,
+    val showCategoryTitle: Boolean = true,
 )

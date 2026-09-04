@@ -21,11 +21,13 @@ import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.NotificationPreferenceRepository
 import us.mikeandwan.photos.domain.PeoplePreferenceRepository
+import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.PeoplePreference
+import us.mikeandwan.photos.domain.models.PlacePreference
 
 data class SettingsUiState(
     val notificationDoNotify: Boolean = false,
@@ -52,6 +54,12 @@ data class SettingsUiState(
     val peopleShowNames: Boolean = true,
     val peopleShowMediaCounts: Boolean = true,
     val peopleShowClans: Boolean = true,
+    // what a category says about itself when a person's, a clan's or a place's categories are being
+    // listed.  kept per area, because the two are read differently - see CategoryLabels
+    val peopleShowCategoryYear: Boolean = true,
+    val peopleShowCategoryTitle: Boolean = true,
+    val placeShowCategoryYear: Boolean = true,
+    val placeShowCategoryTitle: Boolean = true,
     // stored with the media preferences rather than the people ones - it applies wherever media is
     // shown - but offered beside the rest of the face settings, since it is face data it draws
     val mediaShowFaceHighlights: Boolean = false,
@@ -69,6 +77,7 @@ class SettingsViewModel
         private val notificationPreferenceRepository: NotificationPreferenceRepository,
         private val mediaPreferenceRepository: MediaPreferenceRepository,
         private val peoplePreferenceRepository: PeoplePreferenceRepository,
+        private val placePreferenceRepository: PlacePreferenceRepository,
         private val randomPreferenceRepository: RandomPreferenceRepository,
         private val searchPreferenceRepository: SearchPreferenceRepository,
         private val widgetRandomPhotoService: us.mikeandwan.photos.domain.services.WidgetRandomPhotoService,
@@ -99,10 +108,12 @@ class SettingsViewModel
                 errorRepository.developerLogs,
                 authService.faceRecognitionAccess,
                 peoplePreferenceRepository.getPeoplePreference(),
+                placePreferenceRepository.getPlacePreference(),
             ) { args: Array<Any?> ->
                 @Suppress("UNCHECKED_CAST")
                 val developerLogs = args[16] as List<DeveloperLog>
                 val peoplePreference = args[18] as PeoplePreference
+                val placePreference = args[19] as PlacePreference
 
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
@@ -138,6 +149,10 @@ class SettingsViewModel
                     peopleShowNames = peoplePreference.showNames,
                     peopleShowMediaCounts = peoplePreference.showMediaCounts,
                     peopleShowClans = peoplePreference.showClans,
+                    peopleShowCategoryYear = peoplePreference.showCategoryYear,
+                    peopleShowCategoryTitle = peoplePreference.showCategoryTitle,
+                    placeShowCategoryYear = placePreference.showCategoryYear,
+                    placeShowCategoryTitle = placePreference.showCategoryTitle,
                     mediaShowFaceHighlights = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
                         .showFaceHighlights,
                     isDeveloperMode = args[15] as Boolean,
@@ -321,6 +336,30 @@ class SettingsViewModel
                 peoplePreferenceRepository.setShowMediaCounts(show)
             }
         }
+
+        fun setPeopleShowCategoryYear(show: Boolean) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setShowCategoryYear(show)
+            }
+        }
+
+        fun setPeopleShowCategoryTitle(show: Boolean) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setShowCategoryTitle(show)
+            }
+        }
+
+        fun setPlaceShowCategoryYear(show: Boolean) {
+            viewModelScope.launch {
+                placePreferenceRepository.setShowCategoryYear(show)
+            }
+        }
+
+        fun setPlaceShowCategoryTitle(show: Boolean) {
+            viewModelScope.launch {
+                placePreferenceRepository.setShowCategoryTitle(show)
+        }
+    }
 
         fun setPeopleShowClans(show: Boolean) {
             viewModelScope.launch {

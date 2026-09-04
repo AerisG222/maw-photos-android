@@ -31,17 +31,21 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
+import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.MediaPreference
+import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.models.PlaceKind
+import us.mikeandwan.photos.domain.models.PlacePreference
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
@@ -60,6 +64,8 @@ class MediaFeedViewModelTest {
     private lateinit var peopleRepository: PeopleRepository
     private lateinit var clanRepository: ClanRepository
     private lateinit var placeRepository: PlaceRepository
+    private lateinit var peoplePreferenceRepository: PeoplePreferenceRepository
+    private lateinit var placePreferenceRepository: PlacePreferenceRepository
     private lateinit var categoryRepository: CategoryRepository
     private lateinit var categoryPreferenceRepository: CategoryPreferenceRepository
     private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
@@ -109,6 +115,10 @@ class MediaFeedViewModelTest {
         peopleRepository = mockk(relaxed = true)
         clanRepository = mockk(relaxed = true)
         placeRepository = mockk(relaxed = true)
+        peoplePreferenceRepository = mockk(relaxed = true)
+        placePreferenceRepository = mockk(relaxed = true)
+        peoplePreferenceRepository = mockk(relaxed = true)
+        placePreferenceRepository = mockk(relaxed = true)
         categoryRepository = mockk(relaxed = true)
         categoryPreferenceRepository = mockk(relaxed = true)
         mediaPreferenceRepository = mockk(relaxed = true)
@@ -129,6 +139,10 @@ class MediaFeedViewModelTest {
             flowOf(ExternalCallStatus.Success(boston))
         every { placeRepository.getAncestors(any()) } returns
             flowOf(ExternalCallStatus.Success(bostonChain))
+        // the category labels are read from whichever area the subject belongs to, and a relaxed
+        // mock answers with a flow that never emits - which would leave the whole state waiting
+        every { peoplePreferenceRepository.getPeoplePreference() } returns flowOf(PeoplePreference())
+        every { placePreferenceRepository.getPlacePreference() } returns flowOf(PlacePreference())
     }
 
     @After
@@ -275,7 +289,7 @@ class MediaFeedViewModelTest {
     // ---- the categories listing ----
 
     @Test
-    fun `hiding a category's year or title leaves the rows that came back alone`() = runTest {
+    fun `a person's category labels are saved against the people area`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
         coEvery { api.getPersonCategories(personId, 0, false) } returns
@@ -295,12 +309,34 @@ class MediaFeedViewModelTest {
         vm.setShowCategoryTitle(false)
         advanceUntilIdle()
 
-        assertFalse(vm.uiState.value.categoryLabels.showYear)
-        assertFalse(vm.uiState.value.categoryLabels.showTitle)
-        assertEquals(3, vm.uiState.value.categories.size)
+        coVerify { peoplePreferenceRepository.setShowCategoryYear(false) }
+        coVerify { peoplePreferenceRepository.setShowCategoryTitle(false) }
+        coVerify(exactly = 0) { placePreferenceRepository.setShowCategoryYear(any()) }
 
         // what a category says about itself is not what came back, so nothing is asked for again
+        assertEquals(3, vm.uiState.value.categories.size)
         coVerify(exactly = 1) { api.getPersonCategories(personId, 0, false) }
+    }
+
+    @Test
+    fun `a place's category labels are saved against the places area instead`() = runTest {
+        coEvery { placeApi.getPlaceMedia(placeId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { placeApi.getPlaceCategories(placeId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(placeSubject)
+        vm.setShowCategories(true)
+        advanceUntilIdle()
+
+        vm.setShowCategoryYear(false)
+        advanceUntilIdle()
+
+        // the two areas share this feed but are read differently, so the choice is kept apart
+        coVerify { placePreferenceRepository.setShowCategoryYear(false) }
+        coVerify(exactly = 0) { peoplePreferenceRepository.setShowCategoryYear(any()) }
     }
 
     @Test
@@ -445,6 +481,8 @@ class MediaFeedViewModelTest {
             clanRepository,
             placeRepository,
             categoryRepository,
+            peoplePreferenceRepository,
+            placePreferenceRepository,
             categoryPreferenceRepository,
             mediaPreferenceRepository,
             mediaFavoriteService,

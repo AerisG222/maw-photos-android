@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.api.FaceApiClient
 import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.domain.models.CategoryLabels
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
@@ -72,12 +71,6 @@ class MediaFeedRepository
         private val _showCategories = MutableStateFlow(false)
         val showCategories = _showCategories.asStateFlow()
 
-        // what those categories say about themselves.  it outlives the subject for the same reason
-        // the choice of listing does, and is deliberately not part of the filter: nothing about it
-        // changes which rows come back or in what order, so nothing is refetched when it changes.
-        private val _categoryLabels = MutableStateFlow(CategoryLabels())
-        val categoryLabels = _categoryLabels.asStateFlow()
-
         /**
          * Points the feed at a subject, keeping what has already been accumulated when it is
          * already the one being shown - which is what lets the pager hand back to the grid without
@@ -125,10 +118,6 @@ class MediaFeedRepository
             _showCategories.update { showCategories }
         }
 
-        fun setCategoryLabels(labels: CategoryLabels) {
-            _categoryLabels.update { labels }
-    }
-
         fun loadNextPage() =
             when (val subject = _subject.value) {
                 null -> emptyFlow()
@@ -175,17 +164,17 @@ class MediaFeedRepository
                 }
             }
 
-    fun updateMedia(updated: Media) {
-        mediaPager.update(updated)
-    }
+        fun updateMedia(updated: Media) {
+            mediaPager.update(updated)
+        }
 
-    fun updateCategory(updated: Category) {
-        categoryPager.update(updated)
-    }
+        fun updateCategory(updated: Category) {
+            categoryPager.update(updated)
+        }
 
-    fun clear() {
-        _subject.update { null }
-        _filter.update { MediaFeedFilter() }
+        fun clear() {
+            _subject.update { null }
+            _filter.update { MediaFeedFilter() }
 
         reset()
         }

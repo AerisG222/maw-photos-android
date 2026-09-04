@@ -163,6 +163,9 @@
     <string name="pref_people_show_media_counts">Show Media Counts</string>
     <string name="pref_people_show_clans">Show Clans</string>
     <string name="pref_people_show_face_highlights">Highlight Faces on Media</string>
+    <string name="pref_places_display_header">Places Display</string>
+    <string name="pref_show_category_year">Show Category Year</string>
+    <string name="pref_show_category_title">Show Category Title</string>
     <string name="pref_face_recognition_header">Browse by People</string>
     <string name="pref_advanced_display_header">Advanced</string>
     <string name="pref_show_media_type_indicator">Show Media Type Badge</string>

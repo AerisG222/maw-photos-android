@@ -16,4 +16,8 @@ data class PeoplePreference(
     // the clan row costs about a quarter of a phone screen before a single face is drawn, so it can
     // be folded away by whoever is here to look at people rather than at their groups
     @ColumnInfo(name = "show_clans", defaultValue = "1") val showClans: Boolean,
+    // what a category says about itself when a person's or clan's categories are being listed.  a
+    // face feed spans years, so both start on - see CategoryLabels
+    @ColumnInfo(name = "show_category_year", defaultValue = "1") val showCategoryYear: Boolean,
+    @ColumnInfo(name = "show_category_title", defaultValue = "1") val showCategoryTitle: Boolean,
 )

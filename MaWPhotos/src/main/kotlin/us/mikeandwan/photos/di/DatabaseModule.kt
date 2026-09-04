@@ -14,6 +14,7 @@ import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.database.MediaPreferenceDao
 import us.mikeandwan.photos.database.NotificationPreferenceDao
 import us.mikeandwan.photos.database.PeoplePreferenceDao
+import us.mikeandwan.photos.database.PlacePreferenceDao
 import us.mikeandwan.photos.database.RandomPreferenceDao
 import us.mikeandwan.photos.database.ScaleDao
 import us.mikeandwan.photos.database.SearchHistoryDao
@@ -54,6 +55,9 @@ object DatabaseModule {
 
     @Provides
     fun providePeoplePreferenceDao(mawDatabase: MawDatabase): PeoplePreferenceDao = mawDatabase.peoplePreferenceDao()
+
+    @Provides
+    fun providePlacePreferenceDao(mawDatabase: MawDatabase): PlacePreferenceDao = mawDatabase.placePreferenceDao()
 
     @Provides
     fun providePhotoPreferenceDao(mawDatabase: MawDatabase): MediaPreferenceDao = mawDatabase.mediaPreferenceDao()

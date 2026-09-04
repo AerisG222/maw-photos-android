@@ -13,13 +13,14 @@ import androidx.room.TypeConverters
         MediaPreference::class,
         NotificationPreference::class,
         PeoplePreference::class,
+        PlacePreference::class,
         RandomPreference::class,
         Scale::class,
         SearchHistory::class,
         SearchPreference::class,
         Year::class,
     ],
-    version = 20,
+    version = 21,
 )
 @TypeConverters(
     Converters::class,
@@ -40,6 +41,8 @@ abstract class MawDatabase : RoomDatabase() {
     abstract fun notificationPreferenceDao(): NotificationPreferenceDao
 
     abstract fun peoplePreferenceDao(): PeoplePreferenceDao
+
+    abstract fun placePreferenceDao(): PlacePreferenceDao
 
     abstract fun randomPreferenceDao(): RandomPreferenceDao
 
