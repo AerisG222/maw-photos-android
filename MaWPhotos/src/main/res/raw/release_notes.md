@@ -1,5 +1,9 @@
 # Release Notes
 
+## v9.11 : 09/05/2026
+
+- allow browsing categories or media by the place where they were taken
+
 ## v9.10 : 08/29/2026
 
 - allow browsing categories or media in the people section
