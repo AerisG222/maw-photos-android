@@ -58,6 +58,43 @@ With the above steps, this seems to work pretty reliably, though I don't underst
 why
 simply setting the dns server on the emulator command line is not sufficient to get this to work anymore.
 
+## Baseline Profile notes
+
+Here's the workflow, straight from the module's own docs and build config:
+
+Generate the profile
+
+./gradlew :MaWPhotos:generateDevelopmentReleaseBaselineProfile
+
+The key precondition: log in first. The app needs an authenticated Auth0 session, and that browser
+flow can't be automated. So:
+
+1. Start the emulator (./start_emulator.sh, and ./start_dns.sh if you need the dev host mapping).
+2. Install/run a development debug build and complete the Auth0 login.
+3. Run the gradle task above. MaWPhotos/build.gradle.kts:104-122 re-signs the development flavor's
+   nonMinifiedRelease/benchmarkRelease variants with the debug key precisely so generation installs
+   as a same-signature update and your session survives.
+
+If it does end up logged out, the generator doesn't fail — it falls back to a startup-only profile,
+which is your tell that step 2 didn't stick.
+
+Generation is manual by design; automaticGenerationDuringBuild is commented out at
+MaWPhotos/build.gradle.kts:86.
+
+Verify it helped
+
+./gradlew :baselineprofile:connectedDevelopmentBenchmarkReleaseAndroidTest
+
+That runs StartupBenchmarks, comparing CompilationMode.None vs Partial. Ideally on a physical
+device — emulator numbers aren't representative. Emulator errors are suppressed via
+androidx.benchmark.suppressErrors=EMULATOR in baselineprofile/build.gradle.kts:17, so it will run on
+one, just don't trust the timings.
+
+One caveat worth remembering: the journey walks the browse → people → places flows using testTag
+string literals duplicated in BaselineProfileGenerator.kt (the test module has no compile dependency
+on the app). If you rename a tag constant in the app, nothing breaks at compile time — the profile
+just silently gets thinner.
+
 ## Original DNS Instructions
 The second step is to adjust the DNS configuration so that the emulator can find the dev sites on
 your local pc.  By default, the Android emulator will use your local DNS server to access the

@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
  * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
  * with this Gradle task:
  * ```
- * ./gradlew :baselineprofile:connectedDevelopmentReleaseAndroidTest
+ * ./gradlew :baselineprofile:connectedDevelopmentBenchmarkReleaseAndroidTest
  * ```
  *
  * You should run the benchmarks on a physical device, not an Android emulator, because the
