@@ -67,6 +67,7 @@
     <!-- navigation rail -->
     <string name="categories_icon_description">Categories</string>
     <string name="search_icon_description">Search</string>
+    <string name="search_clear">Clear search</string>
     <string name="random_photos_icon_description">Random Photos</string>
     <string name="upload_queue_icon_description">Upload Queue</string>
     <string name="help_icon_description">Help</string>
@@ -77,6 +78,7 @@
     <!-- people -->
     <string name="people_title">Browse by People</string>
     <string name="people_filter_hint">Find a person</string>
+    <string name="people_filter_clear">Clear filter</string>
     <string name="people_sort_by_name">Sorted by Name</string>
     <string name="people_sort_by_media_count">Sorted by Media Count</string>
     <string name="people_none_found">No people have been identified yet</string>

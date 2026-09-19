@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,6 +18,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -63,6 +69,20 @@ fun PeopleScreen(
     onToggleClansExpanded: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val gridState = rememberLazyGridState()
+    var previousFilter by remember { mutableStateOf(uiState.filter) }
+
+    // the grid holds its place by key, so widening the list back out would otherwise leave it
+    // parked wherever the first match happens to sit in the full list.  runs once the new list is
+    // in hand, since scrolling any earlier would be undone by that same key-keeping
+    LaunchedEffect(uiState.filter) {
+        if (uiState.filter.isEmpty() && previousFilter.isNotEmpty()) {
+            gridState.scrollToItem(0)
+        }
+
+        previousFilter = uiState.filter
+    }
+
     if (uiState.isLoading) {
         MediaGridSkeleton(modifier = modifier)
 
@@ -127,6 +147,7 @@ fun PeopleScreen(
 
             else -> {
                 LazyVerticalGrid(
+                    state = gridState,
                     columns = GridCells.Adaptive(minSize = MEDIA_GRID_ITEM_SIZE),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -197,6 +218,19 @@ private fun FilterBar(
             singleLine = true,
             label = { Text(text = stringResource(id = R.string.people_filter_hint)) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            // only offered once there is something to clear, so an empty field stays uncluttered
+            trailingIcon = if (filter.isEmpty()) {
+                null
+            } else {
+                {
+                    IconButton(onClick = { onFilterChange("") }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_close),
+                            contentDescription = stringResource(id = R.string.people_filter_clear),
+                        )
+                    }
+                }
+            },
             modifier = Modifier.weight(1f),
         )
 

@@ -65,6 +65,15 @@ class SearchRepository
             searchHistoryDao.clearHistory()
         }
 
+        // the request goes too, not just what is on screen - otherwise searching the same term
+        // again would look like a repeat of the current query and be skipped
+        fun clearSearch() {
+            _searchRequest.update { SearchRequest("", SearchSource.None) }
+            _activeSearchTerm.update { "" }
+            _searchResults.update { emptyList() }
+            _hasMoreResults.update { false }
+        }
+
         fun performSearch(
             query: String,
             searchSource: SearchSource,

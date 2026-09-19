@@ -272,6 +272,7 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                                 onExpandNavMenu = { appActions.openDrawer() },
                                 onBackClicked = { navigator.goBack() },
                                 onSearch = { appActions.navigateToSearch(it) },
+                                onClearSearch = { vm.clearSearch() },
                             )
                         }
                     },

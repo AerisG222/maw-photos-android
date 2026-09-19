@@ -45,6 +45,7 @@ fun TopBar(
     onExpandNavMenu: () -> Unit,
     onBackClicked: () -> Unit,
     onSearch: (String) -> Unit,
+    onClearSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     TopAppBar(
@@ -64,6 +65,7 @@ fun TopBar(
                     TopSearchBar(
                         initialSearchTerm = state.initialSearchTerm,
                         onSearch = onSearch,
+                        onClear = onClearSearch,
                     )
                 }
             } else {
@@ -124,6 +126,7 @@ private fun TopBarPreview() {
             onExpandNavMenu = {},
             onBackClicked = {},
             onSearch = {},
+            onClearSearch = {},
         )
     }
 }
@@ -142,6 +145,7 @@ private fun TopBarBackPreview() {
             onExpandNavMenu = {},
             onBackClicked = {},
             onSearch = {},
+            onClearSearch = {},
         )
     }
 }

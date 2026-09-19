@@ -202,6 +202,10 @@ class MawPhotosAppViewModel
             }
         }
 
+        fun clearSearch() {
+            searchRepository.clearSearch()
+        }
+
         fun clearSearchHistory() {
             viewModelScope.launch {
                 searchRepository.clearHistory()
