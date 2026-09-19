@@ -54,7 +54,7 @@ class PlaceApiClient
                 suspend {
                     _placeApi.getMediaPlaces(mediaId)
                 },
-        )
+            )
 
         suspend fun getPlaceCategories(
             placeId: Uuid,

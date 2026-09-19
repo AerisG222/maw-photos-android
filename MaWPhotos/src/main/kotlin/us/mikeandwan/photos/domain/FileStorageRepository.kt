@@ -159,24 +159,24 @@ class FileStorageRepository
             return File(dir, filename)
         }
 
-    // coil keys what it fetched by the url, and keeps the response body exactly as it arrived
-    private fun copyFromImageCache(
-        url: String,
-        target: File,
-    ): Boolean {
-        val diskCache = imageLoader.diskCache ?: return false
-        val snapshot = diskCache.openSnapshot(url) ?: return false
+        // coil keys what it fetched by the url, and keeps the response body exactly as it arrived
+        private fun copyFromImageCache(
+            url: String,
+            target: File,
+        ): Boolean {
+            val diskCache = imageLoader.diskCache ?: return false
+            val snapshot = diskCache.openSnapshot(url) ?: return false
 
-        snapshot.use {
-            diskCache.fileSystem.source(it.data).buffer().use { source ->
-                target.sink().buffer().use { sink -> sink.writeAll(source) }
+            snapshot.use {
+                diskCache.fileSystem.source(it.data).buffer().use { source ->
+                    target.sink().buffer().use { sink -> sink.writeAll(source) }
+                }
             }
+
+            return true
         }
 
-        return true
-    }
-
-    private fun isJpeg(file: File) = file.extension.lowercase() in JPEG_EXTENSIONS
+        private fun isJpeg(file: File) = file.extension.lowercase() in JPEG_EXTENSIONS
 
     // the original is only ever an intermediate here, so it goes whether or not this succeeds
     private fun convertToJpeg(source: File): File {

@@ -366,32 +366,32 @@ class MediaListService
             }
         }
 
-    // a slideshow that keeps going while somebody is zoomed in on a detail would carry the
-    // photo away mid-look
-    private fun setIsZoomed(zoomed: Boolean) {
-        if (zoomed == isZoomed.value) {
-            return
-        }
+        // a slideshow that keeps going while somebody is zoomed in on a detail would carry the
+        // photo away mid-look
+        private fun setIsZoomed(zoomed: Boolean) {
+            if (zoomed == isZoomed.value) {
+                return
+            }
 
-        isZoomed.update { zoomed }
+            isZoomed.update { zoomed }
 
-        if (zoomed) {
-            pauseSlideshow()
+            if (zoomed) {
+                pauseSlideshow()
             } else {
-            resumeSlideshowIfUnpaused()
+                resumeSlideshowIfUnpaused()
+            }
         }
-    }
 
-    private fun pauseSlideshow() {
-        if (slideshowJob.isRunning.value) {
-            resumeSlideshowWhenUnpaused.update { true }
+        private fun pauseSlideshow() {
+            if (slideshowJob.isRunning.value) {
+                resumeSlideshowWhenUnpaused.update { true }
                 slideshowJob.stop()
             }
-    }
+        }
 
-    private fun resumeSlideshowIfUnpaused() {
-        if (resumeSlideshowWhenUnpaused.value && !showDetailSheet.value && !isZoomed.value) {
-            resumeSlideshowWhenUnpaused.update { false }
+        private fun resumeSlideshowIfUnpaused() {
+            if (resumeSlideshowWhenUnpaused.value && !showDetailSheet.value && !isZoomed.value) {
+                resumeSlideshowWhenUnpaused.update { false }
             slideshowJob.start()
         }
         }
@@ -494,8 +494,8 @@ class MediaListService
         private fun fetchPlaces() {
             scope.launch {
                 state.value.activeMedia?.let { mediaPlaceService.fetchPlaces(it.id) }
+            }
         }
-    }
 
         /**
          * Points this at the feed a pager is being opened over.

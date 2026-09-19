@@ -158,8 +158,7 @@ fun MediaPager(
                         .zoomable(
                             zoomState,
                             scrollGesturePropagation = ScrollGesturePropagation.NotZoomed,
-                        )
-                        .then(swipeAnimation)
+                        ).then(swipeAnimation)
                         .rotate(activeRotation),
                 ) {
                     AsyncImage(

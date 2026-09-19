@@ -156,7 +156,7 @@ class CategoryItemViewModel
 
         fun fetchPlaces() {
             mediaListService.onAction(MediaListAction.FetchPlaces)
-    }
+        }
 
         fun addComment(comment: String) {
             mediaListService.onAction(MediaListAction.AddComment(comment))
