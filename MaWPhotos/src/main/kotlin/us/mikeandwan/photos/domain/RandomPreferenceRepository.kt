@@ -1,31 +1,21 @@
 package us.mikeandwan.photos.domain
 
+import androidx.datastore.core.DataStore
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import us.mikeandwan.photos.database.RandomPreferenceDao
+import us.mikeandwan.photos.datastore.UserPreferences
+import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.RandomPreference
 
 @Singleton
 class RandomPreferenceRepository
     @Inject
     constructor(
-        private val dao: RandomPreferenceDao,
+        private val dataStore: DataStore<UserPreferences>,
     ) {
-        companion object {
-            private const val PREFERENCE_ID = 1
-        }
+        fun getRandomPreferences() = dataStore.select { it.random }
 
-        fun getRandomPreferences() =
-            dao
-                .getRandomPreference(PREFERENCE_ID)
-                .map { it.toDomainRandomPreference() }
-
-        fun getSlideshowIntervalSeconds() =
-            dao
-                .getRandomPreference(PREFERENCE_ID)
-                .map { it.slideshowIntervalSeconds }
+        fun getSlideshowIntervalSeconds() = dataStore.select { it.random.slideshowIntervalSeconds }
 
         suspend fun setSlideshowIntervalSeconds(seconds: Int) {
             setPreference { it.copy(slideshowIntervalSeconds = seconds) }
@@ -35,19 +25,7 @@ class RandomPreferenceRepository
             setPreference { it.copy(showWidgetInfo = show) }
         }
 
-        private suspend fun setRandomPreferences(pref: RandomPreference) {
-            val dbPref = us.mikeandwan.photos.database.RandomPreference(
-                id = PREFERENCE_ID,
-                slideshowIntervalSeconds = pref.slideshowIntervalSeconds,
-                showWidgetInfo = pref.showWidgetInfo,
-            )
-
-            dao.setRandomPreference(dbPref)
-        }
-
         private suspend fun setPreference(update: (pref: RandomPreference) -> RandomPreference) {
-            val pref = getRandomPreferences().first()
-
-            setRandomPreferences(update(pref))
+            dataStore.updateData { it.copy(random = update(it.random)) }
         }
     }

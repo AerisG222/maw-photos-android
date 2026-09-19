@@ -3,26 +3,19 @@ package us.mikeandwan.photos.domain
 import java.net.HttpURLConnection
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.Clan
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.DetectedFace
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFile
 import us.mikeandwan.photos.domain.models.MediaFileType
-import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.MediaType
-import us.mikeandwan.photos.domain.models.NotificationPreference
-import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.models.PlaceKind
-import us.mikeandwan.photos.domain.models.PlacePreference
-import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.models.Scale
 import us.mikeandwan.photos.domain.models.SearchHistory
-import us.mikeandwan.photos.domain.models.SearchPreference
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Clan as ApiClan
 import us.mikeandwan.photos.api.Comment as ApiComment
@@ -33,16 +26,9 @@ import us.mikeandwan.photos.api.Person as ApiPerson
 import us.mikeandwan.photos.api.Place as ApiPlace
 import us.mikeandwan.photos.api.PlaceAncestor as ApiPlaceAncestor
 import us.mikeandwan.photos.database.CategoryDetail as DbCategoryDetail
-import us.mikeandwan.photos.database.CategoryPreference as DbCategoryPreference
 import us.mikeandwan.photos.database.MediaFileAndScale as DbMediaFileAndScale
-import us.mikeandwan.photos.database.MediaPreference as DbMediaPreference
-import us.mikeandwan.photos.database.NotificationPreference as DbNotificationPreference
-import us.mikeandwan.photos.database.PeoplePreference as DbPeoplePreference
-import us.mikeandwan.photos.database.PlacePreference as DbPlacePreference
-import us.mikeandwan.photos.database.RandomPreference as DbRandomPreference
 import us.mikeandwan.photos.database.Scale as DbScale
 import us.mikeandwan.photos.database.SearchHistory as DbSearchHistory
-import us.mikeandwan.photos.database.SearchPreference as DbSearchPreference
 
 fun DbCategoryDetail.toDomainCategory(): Category =
     Category(
@@ -77,45 +63,6 @@ fun DbScale.toDomainScale(): Scale =
         width = width,
         height = height,
         fillsDimensions = fillsDimensions,
-    )
-
-fun DbCategoryPreference.toDomainCategoryPreference(): CategoryPreference =
-    CategoryPreference(
-        displayType = displayType,
-    )
-
-fun DbNotificationPreference.toDomainNotificationPreference(): NotificationPreference =
-    NotificationPreference(
-        doNotify = doNotify,
-        doVibrate = doVibrate,
-    )
-
-fun DbMediaPreference.toDomainPhotoPreference(): MediaPreference =
-    MediaPreference(
-        slideshowIntervalSeconds = slideshowIntervalSeconds,
-        showFaceHighlights = showFaceHighlights,
-    )
-
-fun DbPeoplePreference.toDomainPeoplePreference(): PeoplePreference =
-    PeoplePreference(
-        sortBy = sortBy,
-        showNames = showNames,
-        showMediaCounts = showMediaCounts,
-        showClans = showClans,
-        showCategoryYear = showCategoryYear,
-        showCategoryTitle = showCategoryTitle,
-    )
-
-fun DbPlacePreference.toDomainPlacePreference(): PlacePreference =
-    PlacePreference(
-        showCategoryYear = showCategoryYear,
-        showCategoryTitle = showCategoryTitle,
-    )
-
-fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =
-    RandomPreference(
-        slideshowIntervalSeconds = slideshowIntervalSeconds,
-        showWidgetInfo = showWidgetInfo,
     )
 
 fun ApiCategory.toDomainCategory(): Category =
@@ -215,13 +162,6 @@ fun DbSearchHistory.toDomainSearchHistory(): SearchHistory =
     SearchHistory(
         term = term,
         searchDate = searchDate,
-    )
-
-fun DbSearchPreference.toDomainSearchPreference(): SearchPreference =
-    SearchPreference(
-        id = id,
-        recentQueryCountToSave = recentQueryCount,
-        displayType = displayType,
     )
 
 fun ApiResult.Error.isUnauthorized(): Boolean = errorCode == HttpURLConnection.HTTP_UNAUTHORIZED

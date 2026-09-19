@@ -1,7 +1,9 @@
 package us.mikeandwan.photos.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class SearchPreference(
-    val id: Int,
-    val recentQueryCountToSave: Int,
-    val displayType: CategoryDisplayType,
+    val recentQueryCountToSave: Int = 20,
+    val displayType: CategoryDisplayType = CategoryDisplayType.Grid,
 )

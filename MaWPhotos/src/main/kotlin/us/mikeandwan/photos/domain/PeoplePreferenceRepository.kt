@@ -1,10 +1,10 @@
 package us.mikeandwan.photos.domain
 
+import androidx.datastore.core.DataStore
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import us.mikeandwan.photos.database.PeoplePreferenceDao
+import us.mikeandwan.photos.datastore.UserPreferences
+import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.PersonSort
 
@@ -12,16 +12,9 @@ import us.mikeandwan.photos.domain.models.PersonSort
 class PeoplePreferenceRepository
     @Inject
     constructor(
-        private val dao: PeoplePreferenceDao,
+        private val dataStore: DataStore<UserPreferences>,
     ) {
-        companion object {
-            private const val PREFERENCE_ID = 1
-        }
-
-        fun getPeoplePreference() =
-            dao
-                .getPeoplePreference(PREFERENCE_ID)
-                .map { it.toDomainPeoplePreference() }
+        fun getPeoplePreference() = dataStore.select { it.people }
 
         suspend fun setSortBy(sortBy: PersonSort) {
             setPreference { it.copy(sortBy = sortBy) }
@@ -47,23 +40,7 @@ class PeoplePreferenceRepository
             setPreference { it.copy(showCategoryTitle = show) }
         }
 
-        private suspend fun setPeoplePreference(pref: PeoplePreference) {
-            val dbPref = us.mikeandwan.photos.database.PeoplePreference(
-                PREFERENCE_ID,
-                pref.sortBy,
-                pref.showNames,
-                pref.showMediaCounts,
-                pref.showClans,
-                pref.showCategoryYear,
-                pref.showCategoryTitle,
-            )
-
-            dao.setPeoplePreference(dbPref)
-        }
-
         private suspend fun setPreference(update: (pref: PeoplePreference) -> PeoplePreference) {
-            val pref = getPeoplePreference().first()
-
-            setPeoplePreference(update(pref))
+            dataStore.updateData { it.copy(people = update(it.people)) }
         }
     }

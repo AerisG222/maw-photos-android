@@ -1,31 +1,21 @@
 package us.mikeandwan.photos.domain
 
+import androidx.datastore.core.DataStore
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import us.mikeandwan.photos.database.NotificationPreferenceDao
+import us.mikeandwan.photos.datastore.UserPreferences
+import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.NotificationPreference
 
 @Singleton
 class NotificationPreferenceRepository
     @Inject
     constructor(
-        private val dao: NotificationPreferenceDao,
+        private val dataStore: DataStore<UserPreferences>,
     ) {
-        companion object {
-            private const val PREFERENCE_ID = 1
-        }
+        fun getDoNotify() = dataStore.select { it.notification.doNotify }
 
-        fun getDoNotify() =
-            dao
-                .getNotificationPreference(PREFERENCE_ID)
-                .map { it.doNotify }
-
-        fun getDoVibrate() =
-            dao
-                .getNotificationPreference(PREFERENCE_ID)
-                .map { it.doVibrate }
+        fun getDoVibrate() = dataStore.select { it.notification.doVibrate }
 
         suspend fun setDoNotify(doNotify: Boolean) {
             setPreference { it.copy(doNotify = doNotify) }
@@ -35,21 +25,7 @@ class NotificationPreferenceRepository
             setPreference { it.copy(doVibrate = doVibrate) }
         }
 
-        private fun getNotificationPreferences() =
-            dao
-                .getNotificationPreference(PREFERENCE_ID)
-                .map { it.toDomainNotificationPreference() }
-
-        private suspend fun setNotificationPreferences(pref: NotificationPreference) {
-            val dbPref = us.mikeandwan.photos.database
-                .NotificationPreference(PREFERENCE_ID, pref.doNotify, pref.doVibrate)
-
-            dao.setNotificationPreference(dbPref)
-        }
-
         private suspend fun setPreference(update: (pref: NotificationPreference) -> NotificationPreference) {
-            val pref = getNotificationPreferences().first()
-
-            setNotificationPreferences(update(pref))
+            dataStore.updateData { it.copy(notification = update(it.notification)) }
         }
     }

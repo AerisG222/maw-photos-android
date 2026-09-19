@@ -1,10 +1,10 @@
 package us.mikeandwan.photos.domain
 
+import androidx.datastore.core.DataStore
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import us.mikeandwan.photos.database.SearchPreferenceDao
+import us.mikeandwan.photos.datastore.UserPreferences
+import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.SearchPreference
 
@@ -12,26 +12,13 @@ import us.mikeandwan.photos.domain.models.SearchPreference
 class SearchPreferenceRepository
     @Inject
     constructor(
-        private val dao: SearchPreferenceDao,
+        private val dataStore: DataStore<UserPreferences>,
     ) {
-        companion object {
-            private const val PREFERENCE_ID = 1
-        }
+        fun getSearchesToSaveCount() = dataStore.select { it.search.recentQueryCountToSave }
 
-        fun getSearchesToSaveCount() =
-            dao
-                .getSearchPreference(PREFERENCE_ID)
-                .map { it.recentQueryCount }
+        fun getSearchDisplayType() = dataStore.select { it.search.displayType }
 
-        fun getSearchDisplayType() =
-            dao
-                .getSearchPreference(PREFERENCE_ID)
-                .map { it.displayType }
-
-        fun getSearchPreference() =
-            dao
-                .getSearchPreference(PREFERENCE_ID)
-                .map { it.toDomainSearchPreference() }
+        fun getSearchPreference() = dataStore.select { it.search }
 
         suspend fun setSearchesToSaveCount(count: Int) {
             setPreference { it.copy(recentQueryCountToSave = count) }
@@ -41,24 +28,7 @@ class SearchPreferenceRepository
             setPreference { it.copy(displayType = mode) }
         }
 
-        private fun getSearchPreferences() =
-            dao
-                .getSearchPreference(PREFERENCE_ID)
-                .map { it.toDomainSearchPreference() }
-
-        private suspend fun setSearchPreferences(pref: SearchPreference) {
-            val dbPref = us.mikeandwan.photos.database.SearchPreference(
-                PREFERENCE_ID,
-                pref.recentQueryCountToSave,
-                pref.displayType,
-            )
-
-            dao.setSearchPreference(dbPref)
-        }
-
         private suspend fun setPreference(update: (pref: SearchPreference) -> SearchPreference) {
-            val pref = getSearchPreferences().first()
-
-            setSearchPreferences(update(pref))
+            dataStore.updateData { it.copy(search = update(it.search)) }
         }
     }

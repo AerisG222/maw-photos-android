@@ -32,7 +32,6 @@ import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
-import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.PlacePreferenceRepository
@@ -40,7 +39,6 @@ import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
-import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.Place
@@ -69,7 +67,6 @@ class MediaFeedViewModelTest {
     private lateinit var placePreferenceRepository: PlacePreferenceRepository
     private lateinit var categoryRepository: CategoryRepository
     private lateinit var categoryPreferenceRepository: CategoryPreferenceRepository
-    private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
     private lateinit var mediaFavoriteService: MediaFavoriteService
 
     private val personId = Uuid.random()
@@ -122,7 +119,6 @@ class MediaFeedViewModelTest {
         placePreferenceRepository = mockk(relaxed = true)
         categoryRepository = mockk(relaxed = true)
         categoryPreferenceRepository = mockk(relaxed = true)
-        mediaPreferenceRepository = mockk(relaxed = true)
         mediaFavoriteService = mockk(relaxed = true)
 
         every { peopleRepository.people } returns MutableStateFlow(listOf(person))
@@ -130,7 +126,6 @@ class MediaFeedViewModelTest {
             flowOf(ExternalCallStatus.Success(listOf(person)))
         every { categoryPreferenceRepository.getCategoryPreference() } returns
             flowOf(CategoryPreference())
-        every { mediaPreferenceRepository.getMediaPreference() } returns flowOf(MediaPreference())
         // the real repository caches what it reads, which is where a place feed takes its name
         // from - see the note on the title flow
         every { placeRepository.placesById } returns MutableStateFlow(mapOf(placeId to boston))
@@ -485,7 +480,6 @@ class MediaFeedViewModelTest {
             peoplePreferenceRepository,
             placePreferenceRepository,
             categoryPreferenceRepository,
-            mediaPreferenceRepository,
             mediaFavoriteService,
         ).also { vm -> backgroundScope.launch { vm.uiState.collect { } } }
 

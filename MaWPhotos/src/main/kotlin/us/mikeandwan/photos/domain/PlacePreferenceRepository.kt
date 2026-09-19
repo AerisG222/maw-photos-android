@@ -1,26 +1,19 @@
 package us.mikeandwan.photos.domain
 
+import androidx.datastore.core.DataStore
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import us.mikeandwan.photos.database.PlacePreferenceDao
+import us.mikeandwan.photos.datastore.UserPreferences
+import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.PlacePreference
 
 @Singleton
 class PlacePreferenceRepository
     @Inject
     constructor(
-        private val dao: PlacePreferenceDao,
+        private val dataStore: DataStore<UserPreferences>,
     ) {
-        companion object {
-            private const val PREFERENCE_ID = 1
-        }
-
-        fun getPlacePreference() =
-            dao
-                .getPlacePreference(PREFERENCE_ID)
-                .map { it.toDomainPlacePreference() }
+        fun getPlacePreference() = dataStore.select { it.place }
 
         suspend fun setShowCategoryYear(show: Boolean) {
             setPreference { it.copy(showCategoryYear = show) }
@@ -31,14 +24,6 @@ class PlacePreferenceRepository
         }
 
         private suspend fun setPreference(update: (pref: PlacePreference) -> PlacePreference) {
-            val pref = update(getPlacePreference().first())
-
-            dao.setPlacePreference(
-                us.mikeandwan.photos.database.PlacePreference(
-                    PREFERENCE_ID,
-                    pref.showCategoryYear,
-                    pref.showCategoryTitle,
-                ),
-            )
+            dataStore.updateData { it.copy(place = update(it.place)) }
         }
     }

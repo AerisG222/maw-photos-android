@@ -61,7 +61,6 @@ class SearchViewModelTest {
         every { searchPreferenceRepository.getSearchPreference() } returns
             flowOf(
                 SearchPreference(
-                    id = 1,
                     recentQueryCountToSave = 20,
                     displayType = CategoryDisplayType.Grid,
                 ),
