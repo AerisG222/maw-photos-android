@@ -109,8 +109,6 @@ private fun MediaFeedItemRoute(
         onFetchPlaces = { vm.fetchPlaces() },
         onSelectPerson = { appActions.navigateToMediaFeed(MediaFeedSubject.Person(it)) },
         onSelectPlace = { appActions.navigateToPlace(it) },
-        onSaveMediaToShare = { drawable, filename, onComplete ->
-            vm.saveFileToShare(drawable, filename, onComplete)
-        },
+        onSaveMediaToShare = { url, onComplete -> vm.saveFileToShare(url, onComplete) },
     )
 }

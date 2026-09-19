@@ -2,31 +2,18 @@ package us.mikeandwan.photos.ui.shared
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
+import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import coil3.SingletonImageLoader
-import coil3.asDrawable
-import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import coil3.request.allowHardware
 import java.io.File
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.domain.models.Media
-import us.mikeandwan.photos.utils.getFilenameFromUrl
 
-suspend fun shareMedia(
+fun shareMedia(
     ctx: Context,
-    saveMediaToShare: (drawable: Drawable, filename: String, onComplete: (File) -> Unit) -> Unit,
+    saveMediaToShare: (url: String, onComplete: (File) -> Unit) -> Unit,
     media: Media,
 ) {
-    val drawable = getMediaToShare(ctx, media)
-
-    saveMediaToShare(
-        drawable,
-        getFilenameFromUrl(media.getMediaUrl()),
-    ) { fileToShare ->
+    saveMediaToShare(media.getMediaUrl()) { fileToShare ->
         val contentUri = FileProvider.getUriForFile(
             ctx,
             "${BuildConfig.APPLICATION_ID}.fileprovider",
@@ -34,7 +21,9 @@ suspend fun shareMedia(
         )
         val sendIntent = Intent(Intent.ACTION_SEND)
 
-        sendIntent.setDataAndType(contentUri, "image/*")
+        // the receiving app is told the type the file actually is rather than being left to work
+        // out what an image/* holds
+        sendIntent.setDataAndType(contentUri, getMimeType(fileToShare))
         sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         sendIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
 
@@ -44,20 +33,5 @@ suspend fun shareMedia(
     }
 }
 
-private suspend fun getMediaToShare(
-    ctx: Context,
-    media: Media,
-): Drawable =
-    withContext(Dispatchers.IO) {
-        val loader = SingletonImageLoader.get(ctx)
-        val request = ImageRequest
-            .Builder(ctx)
-            .data(media.getMediaUrl())
-            .allowHardware(false) // Disable hardware bitmaps.
-            .build()
-
-        when (val result = loader.execute(request)) {
-            is SuccessResult -> result.image.asDrawable(ctx.resources)
-            else -> throw IllegalStateException("Failed to load media drawable: $result")
-        }
-    }
+private fun getMimeType(file: File): String =
+    MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase()) ?: "image/*"

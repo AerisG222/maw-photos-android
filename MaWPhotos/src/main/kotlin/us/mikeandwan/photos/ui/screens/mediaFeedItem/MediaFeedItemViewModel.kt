@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.ui.screens.mediaFeedItem
 
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.HttpDataSource
@@ -173,13 +172,10 @@ class MediaFeedItemViewModel
         }
 
         fun saveFileToShare(
-            drawable: Drawable,
-            filename: String,
+            url: String,
             onComplete: (File) -> Unit,
         ) {
-            mediaListService.onAction(
-                MediaListAction.SaveFileToShare(drawable, filename, onComplete),
-            )
+            mediaListService.onAction(MediaListAction.SaveFileToShare(url, onComplete))
         }
 
         fun reset() {

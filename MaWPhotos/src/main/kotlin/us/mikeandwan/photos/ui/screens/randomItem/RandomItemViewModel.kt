@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.ui.screens.randomItem
 
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.HttpDataSource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -160,12 +159,9 @@ class RandomItemViewModel
         }
 
         fun saveFileToShare(
-            drawable: Drawable,
-            filename: String,
+            url: String,
             onComplete: (File) -> Unit,
         ) {
-            mediaListService.onAction(
-                MediaListAction.SaveFileToShare(drawable, filename, onComplete),
-            )
+            mediaListService.onAction(MediaListAction.SaveFileToShare(url, onComplete))
         }
     }

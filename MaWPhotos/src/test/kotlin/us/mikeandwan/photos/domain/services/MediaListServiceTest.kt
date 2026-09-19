@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.domain.services
 
-import android.graphics.drawable.Drawable
 import android.webkit.MimeTypeMap
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -10,6 +9,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
 import java.io.File
+import java.io.IOException
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +31,7 @@ import org.junit.Test
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaFaceRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
@@ -66,6 +67,7 @@ class MediaListServiceTest {
     private lateinit var placeRepository: PlaceRepository
     private lateinit var mediaPlaceService: MediaPlaceService
     private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
+    private lateinit var errorRepository: ErrorRepository
     private lateinit var authService: AuthService
     private lateinit var service: MediaListService
 
@@ -96,6 +98,7 @@ class MediaListServiceTest {
         placeRepository = mockk(relaxed = true)
         mediaPlaceService = MediaPlaceService(placeRepository)
         mediaPreferenceRepository = mockk(relaxed = true)
+        errorRepository = mockk(relaxed = true)
         authService = mockk(relaxed = true)
 
         every { authService.faceRecognitionAccess } returns faceRecognitionAccess
@@ -117,6 +120,7 @@ class MediaListServiceTest {
             mediaFaceService,
             mediaPlaceService,
             mediaPreferenceRepository,
+            errorRepository,
             authService,
         )
     }
@@ -210,21 +214,42 @@ class MediaListServiceTest {
     @Test
     fun `SaveFileToShare action calls repository and triggers callback`() = runTest {
         // Arrange
-        val drawable = mockk<Drawable>()
-        val filename = "test.jpg"
+        val url = "https://photos.example/test.avif"
         val expectedFile = mockk<File>()
         var capturedFile: File? = null
 
-        coEvery { fileRepository.savePhotoToShare(drawable, filename) } returns expectedFile
+        coEvery { fileRepository.saveMediaToShare(url) } returns expectedFile
 
         // Act
-        service.onAction(MediaListAction.SaveFileToShare(drawable, filename) {
-            capturedFile = it
-        })
+        service.onAction(
+            MediaListAction.SaveFileToShare(url) {
+                capturedFile = it
+            },
+        )
 
         // Assert
-        coVerify { fileRepository.savePhotoToShare(drawable, filename) }
+        coVerify { fileRepository.saveMediaToShare(url) }
         assertEquals(expectedFile, capturedFile)
+    }
+
+    @Test
+    fun `SaveFileToShare reports a failure instead of sharing`() = runTest {
+        // Arrange
+        val url = "https://photos.example/test.avif"
+        var callbackInvoked = false
+
+        coEvery { fileRepository.saveMediaToShare(url) } throws IOException("offline")
+
+        // Act
+        service.onAction(
+            MediaListAction.SaveFileToShare(url) {
+                callbackInvoked = true
+            },
+        )
+
+        // Assert
+        assertFalse(callbackInvoked)
+        verify { errorRepository.showError(any()) }
     }
 
     @Test

@@ -1,10 +1,10 @@
 package us.mikeandwan.photos.domain.services
 
-import android.graphics.drawable.Drawable
 import com.hoc081098.flowext.combine
 import dagger.hilt.android.scopes.ViewModelScoped
 import java.io.File
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +27,7 @@ import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.FileStorageRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
@@ -92,8 +93,7 @@ sealed class MediaListAction {
     ) : MediaListAction()
 
     data class SaveFileToShare(
-        val drawable: Drawable,
-        val filename: String,
+        val url: String,
         val onComplete: (File) -> Unit,
     ) : MediaListAction()
 }
@@ -165,8 +165,13 @@ class MediaListService
         private val mediaFaceService: MediaFaceService,
         private val mediaPlaceService: MediaPlaceService,
         private val mediaPreferenceRepository: MediaPreferenceRepository,
+        private val errorRepository: ErrorRepository,
         authService: AuthService,
     ) {
+        companion object {
+            private const val ERR_MSG_SHARE = "Unable to share this photo at this time.  Please try again later."
+        }
+
         private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
         // the two halves of "can this be switched on, and is it" travel together so the state below
@@ -283,7 +288,7 @@ class MediaListService
                 }
 
                 is MediaListAction.SaveFileToShare -> {
-                    saveFileToShare(action.drawable, action.filename, action.onComplete)
+                    saveFileToShare(action.url, action.onComplete)
                 }
             }
         }
@@ -348,12 +353,20 @@ class MediaListService
         }
 
         private fun saveFileToShare(
-            drawable: Drawable,
-            filename: String,
+            url: String,
             onComplete: (File) -> Unit,
         ) {
             scope.launch {
-                val file = fileRepository.savePhotoToShare(drawable, filename)
+                val file = try {
+                    fileRepository.saveMediaToShare(url)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    errorRepository.logError("Unable to prepare $url to share", e)
+                    errorRepository.showError(ERR_MSG_SHARE)
+                    return@launch
+                }
+
                 onComplete(file)
             }
         }
