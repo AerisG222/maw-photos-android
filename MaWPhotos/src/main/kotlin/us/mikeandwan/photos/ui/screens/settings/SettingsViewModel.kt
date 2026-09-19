@@ -193,10 +193,6 @@ class SettingsViewModel
             }
         }
 
-        fun showError(message: String) {
-            errorRepository.showError(message)
-        }
-
         fun setPeopleShowNames(show: Boolean) {
             viewModelScope.launch {
                 peoplePreferenceRepository.setShowNames(show)

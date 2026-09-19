@@ -24,7 +24,6 @@ import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
-import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.PlacePreferenceRepository
@@ -97,7 +96,6 @@ class MediaFeedViewModel
         private val peoplePreferenceRepository: PeoplePreferenceRepository,
         private val placePreferenceRepository: PlacePreferenceRepository,
         categoryPreferenceRepository: CategoryPreferenceRepository,
-        mediaPreferenceRepository: MediaPreferenceRepository,
         private val mediaFavoriteService: MediaFavoriteService,
     ) : ViewModel() {
         private val _subject = MutableStateFlow<MediaFeedSubject?>(null)
