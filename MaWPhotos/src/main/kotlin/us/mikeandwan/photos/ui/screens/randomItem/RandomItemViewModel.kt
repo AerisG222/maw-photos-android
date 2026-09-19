@@ -122,6 +122,10 @@ class RandomItemViewModel
             mediaListService.onAction(MediaListAction.ToggleSlideshow)
         }
 
+        fun setIsZoomed(isZoomed: Boolean) {
+            mediaListService.onAction(MediaListAction.SetIsZoomed(isZoomed))
+        }
+
         fun toggleShowDetails() {
             mediaListService.onAction(MediaListAction.ToggleShowDetails)
         }

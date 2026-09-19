@@ -59,6 +59,7 @@ private fun RandomItemRoute(
         onNavigateToCategory = { appActions.navigateToCategory(it.id) },
         onSetActiveId = { vm.setActiveId(it) },
         onToggleSlideshow = { vm.toggleSlideshow() },
+        onZoomChanged = { vm.setIsZoomed(it) },
         onToggleFavorite = { vm.toggleFavorite() },
         onToggleFaceHighlights = { vm.toggleFaceHighlights() },
         onToggleDetails = { vm.toggleShowDetails() },

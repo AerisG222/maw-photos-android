@@ -67,6 +67,10 @@ sealed class MediaListAction {
 
     data object ToggleShowDetails : MediaListAction()
 
+    data class SetIsZoomed(
+        val isZoomed: Boolean,
+    ) : MediaListAction()
+
     data class SetIsFavorite(
         val isFavorite: Boolean,
     ) : MediaListAction()
@@ -189,7 +193,12 @@ class MediaListService
         private val media = MutableStateFlow<List<Media>>(emptyList())
         private val activeId = MutableStateFlow(Uuid.NIL)
         private val slideshowJob = PeriodicJob { moveNext() }
-        private val resumeSlideshowAfterShowingDetails = MutableStateFlow(false)
+        private val isZoomed = MutableStateFlow(false)
+
+        // whether the slideshow was running when something paused it.  both the detail sheet and
+        // zooming in pause it, and it only picks up again once neither is in the way - closing the
+        // sheet while still zoomed must not start moving the photo out from under somebody.
+        private val resumeSlideshowWhenUnpaused = MutableStateFlow(false)
         private val showDetailSheet = MutableStateFlow(false)
 
         // everything [initialize] wires up, held as one job so pointing this at another feed
@@ -259,6 +268,10 @@ class MediaListService
                     toggleShowDetails()
                 }
 
+                is MediaListAction.SetIsZoomed -> {
+                    setIsZoomed(action.isZoomed)
+                }
+
                 is MediaListAction.SetIsFavorite -> {
                     setIsFavorite(action.isFavorite)
                 }
@@ -302,7 +315,8 @@ class MediaListService
             // visit to the pager waits forever for media it already had.
             activeId.update { Uuid.NIL }
             showDetailSheet.update { false }
-            resumeSlideshowAfterShowingDetails.update { false }
+            isZoomed.update { false }
+            resumeSlideshowWhenUnpaused.update { false }
             mediaFaceService.clear()
             mediaPlaceService.clear()
         }
@@ -324,6 +338,9 @@ class MediaListService
         }
 
         private fun toggleSlideshow() {
+            // an explicit play or stop settles it - nothing paused is waiting to be resumed any more
+            resumeSlideshowWhenUnpaused.update { false }
+
             if (slideshowJob.isRunning.value) {
                 stopSlideshow()
             } else {
@@ -341,15 +358,42 @@ class MediaListService
 
         private fun toggleShowDetails() {
             if (showDetailSheet.value) {
-                if (resumeSlideshowAfterShowingDetails.value) {
-                    slideshowJob.start()
-                }
+                showDetailSheet.update { false }
+                resumeSlideshowIfUnpaused()
             } else {
-                resumeSlideshowAfterShowingDetails.update { slideshowJob.isRunning.value }
+                pauseSlideshow()
+                showDetailSheet.update { true }
+            }
+        }
+
+    // a slideshow that keeps going while somebody is zoomed in on a detail would carry the
+    // photo away mid-look
+    private fun setIsZoomed(zoomed: Boolean) {
+        if (zoomed == isZoomed.value) {
+            return
+        }
+
+        isZoomed.update { zoomed }
+
+        if (zoomed) {
+            pauseSlideshow()
+            } else {
+            resumeSlideshowIfUnpaused()
+        }
+    }
+
+    private fun pauseSlideshow() {
+        if (slideshowJob.isRunning.value) {
+            resumeSlideshowWhenUnpaused.update { true }
                 slideshowJob.stop()
             }
+    }
 
-            showDetailSheet.update { !it }
+    private fun resumeSlideshowIfUnpaused() {
+        if (resumeSlideshowWhenUnpaused.value && !showDetailSheet.value && !isZoomed.value) {
+            resumeSlideshowWhenUnpaused.update { false }
+            slideshowJob.start()
+        }
         }
 
         private fun saveFileToShare(

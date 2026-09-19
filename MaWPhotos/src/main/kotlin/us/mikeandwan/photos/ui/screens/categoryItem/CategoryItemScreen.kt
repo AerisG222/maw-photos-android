@@ -28,6 +28,7 @@ fun CategoryItemScreen(
     videoPlayerDataSourceFactory: HttpDataSource.Factory,
     onSetActiveId: (Uuid) -> Unit,
     onToggleSlideshow: () -> Unit,
+    onZoomChanged: (Boolean) -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleFaceHighlights: () -> Unit,
     onToggleDetails: () -> Unit,
@@ -122,6 +123,7 @@ fun CategoryItemScreen(
             setActiveId = onSetActiveId,
             activeRotation = rotationState.activeRotation,
             faces = uiState.faces,
+            onZoomChanged = onZoomChanged,
         )
     }
 }

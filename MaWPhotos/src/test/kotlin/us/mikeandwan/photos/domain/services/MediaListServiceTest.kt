@@ -173,6 +173,90 @@ class MediaListServiceTest {
     }
 
     @Test
+    fun `zooming in pauses the slideshow and zooming out resumes it`() = runTest {
+        // Arrange
+        service.onAction(MediaListAction.ToggleSlideshow)
+        assertTrue(service.state.value.isSlideshowPlaying)
+
+        // Act
+        service.onAction(MediaListAction.SetIsZoomed(true))
+
+        // Assert
+        assertFalse(service.state.value.isSlideshowPlaying)
+
+        // Act
+        service.onAction(MediaListAction.SetIsZoomed(false))
+
+        // Assert
+        assertTrue(service.state.value.isSlideshowPlaying)
+    }
+
+    @Test
+    fun `zooming out does not start a slideshow that was not running`() = runTest {
+        // Act
+        service.onAction(MediaListAction.SetIsZoomed(true))
+        service.onAction(MediaListAction.SetIsZoomed(false))
+
+        // Assert
+        assertFalse(service.state.value.isSlideshowPlaying)
+    }
+
+    @Test
+    fun `closing the details while still zoomed leaves the slideshow paused`() = runTest {
+        // Arrange
+        service.onAction(MediaListAction.ToggleSlideshow)
+        service.onAction(MediaListAction.SetIsZoomed(true))
+        service.onAction(MediaListAction.ToggleShowDetails)
+
+        // Act
+        service.onAction(MediaListAction.ToggleShowDetails)
+
+        // Assert
+        assertFalse(service.state.value.isSlideshowPlaying)
+
+        // Act
+        service.onAction(MediaListAction.SetIsZoomed(false))
+
+        // Assert
+        assertTrue(service.state.value.isSlideshowPlaying)
+    }
+
+    @Test
+    fun `zooming out with the details still open leaves the slideshow paused`() = runTest {
+        // Arrange
+        service.onAction(MediaListAction.ToggleSlideshow)
+        service.onAction(MediaListAction.ToggleShowDetails)
+        service.onAction(MediaListAction.SetIsZoomed(true))
+
+        // Act
+        service.onAction(MediaListAction.SetIsZoomed(false))
+
+        // Assert
+        assertFalse(service.state.value.isSlideshowPlaying)
+
+        // Act
+        service.onAction(MediaListAction.ToggleShowDetails)
+
+        // Assert
+        assertTrue(service.state.value.isSlideshowPlaying)
+    }
+
+    @Test
+    fun `stopping the slideshow while zoomed is not undone by zooming out`() = runTest {
+        // Arrange - paused by the zoom, then started and stopped again by hand
+        service.onAction(MediaListAction.ToggleSlideshow)
+        service.onAction(MediaListAction.SetIsZoomed(true))
+        service.onAction(MediaListAction.ToggleSlideshow)
+        service.onAction(MediaListAction.ToggleSlideshow)
+
+        // Act
+        service.onAction(MediaListAction.SetIsZoomed(false))
+
+        // Assert
+        assertFalse(service.state.value.isSlideshowPlaying)
+    }
+
+    @Test
     fun `Reset action clears state`() = runTest {
         // Arrange
         val mediaId = Uuid.random()

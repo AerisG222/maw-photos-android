@@ -76,6 +76,7 @@ private fun CategoryItemRoute(
         videoPlayerDataSourceFactory = vm.videoPlayerDataSourceFactory,
         onSetActiveId = { vm.setActiveId(it) },
         onToggleSlideshow = { vm.toggleSlideshow() },
+        onZoomChanged = { vm.setIsZoomed(it) },
         onToggleFavorite = { vm.toggleFavorite() },
         onToggleFaceHighlights = { vm.toggleFaceHighlights() },
         onToggleDetails = { vm.toggleShowDetails() },
