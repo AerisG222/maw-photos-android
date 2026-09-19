@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+#
+# Runs the same ktlint check ci does, for each module that has kotlin staged in this commit, so a
+# formatting slip is caught here rather than a couple of minutes into a ci run.
+#
+# Enable it once per clone with:   git config core.hooksPath .githooks
+# Skip it for a single commit with: git commit --no-verify
+#
+# ktlint reads the working tree rather than the index, so a file that is only partly staged is
+# checked as it stands on disk.  That errs towards failing, never towards letting something through.
+
+set -euo pipefail
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.kt' '*.kts')
+
+if [[ -z "$staged" ]]; then
+    exit 0
+fi
+
+tasks=()
+
+grep -q '^MaWPhotos/' <<< "$staged" && tasks+=(":MaWPhotos:ktlintCheck")
+grep -q '^baselineprofile/' <<< "$staged" && tasks+=(":baselineprofile:ktlintCheck")
+# the root project's own ktlintCheck only covers its build scripts
+grep -qv '/' <<< "$staged" && tasks+=(":ktlintCheck")
+
+if [[ ${#tasks[@]} -eq 0 ]]; then
+    exit 0
+fi
+
+echo "pre-commit: ktlint (${tasks[*]})"
+
+if ! ./gradlew --quiet "${tasks[@]}"; then
+    echo
+    echo "pre-commit: ktlint found formatting problems - the commit was not made."
+    echo "pre-commit: fix them with ./gradlew ${tasks[*]//Check/Format}, restage, and commit again."
+    exit 1
+fi

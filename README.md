@@ -4,6 +4,23 @@
 
 Android version of the photos section of mikeandwan.us
 
+# Git hooks
+
+A pre-commit hook in `.githooks/` runs the same ktlint check as CI for any module with Kotlin
+staged, so formatting problems stop the commit instead of failing the CI run. Enable it once per
+clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Fix anything it reports with `./gradlew :MaWPhotos:ktlintFormat` (or the module it names), and
+skip it for a single commit with `git commit --no-verify`.
+
+Android Studio's **Reformat code** commit check uses the IDE's own formatter, which disagrees
+with ktlint on how this project indents classes with an `@Inject constructor`. Leave that check
+off - the ktlint plugin already formats as you edit.
+
 # Running in Emulator
 
 There are a few steps required to get this running in an emulator on a developer machine.

@@ -178,48 +178,48 @@ class FileStorageRepository
 
         private fun isJpeg(file: File) = file.extension.lowercase() in JPEG_EXTENSIONS
 
-    // the original is only ever an intermediate here, so it goes whether or not this succeeds
-    private fun convertToJpeg(source: File): File {
-        val target = File(source.parentFile, "${source.nameWithoutExtension}.jpg")
-
-        try {
-            // null for anything the platform cannot decode - avif below android 12 among them
-            val bitmap = BitmapFactory.decodeFile(source.path)
-                ?: throw IOException("Unable to decode ${source.name}")
+        // the original is only ever an intermediate here, so it goes whether or not this succeeds
+        private fun convertToJpeg(source: File): File {
+            val target = File(source.parentFile, "${source.nameWithoutExtension}.jpg")
 
             try {
-                target.outputStream().use { output ->
-                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)) {
-                        throw IOException("Unable to convert ${source.name} to jpeg")
+                // null for anything the platform cannot decode - avif below android 12 among them
+                val bitmap = BitmapFactory.decodeFile(source.path)
+                    ?: throw IOException("Unable to decode ${source.name}")
+
+                try {
+                    target.outputStream().use { output ->
+                        if (!bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)) {
+                            throw IOException("Unable to convert ${source.name} to jpeg")
+                        }
                     }
+                } finally {
+                    bitmap.recycle()
                 }
+            } catch (e: Exception) {
+                target.delete()
+                throw e
             } finally {
-                bitmap.recycle()
-            }
-        } catch (e: Exception) {
-            target.delete()
-            throw e
-        } finally {
-            source.delete()
-        }
-
-        return target
-    }
-
-    private fun download(
-        url: String,
-        target: File,
-    ) {
-        val request = Request.Builder().url(url).build()
-
-        httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw IOException("Unable to download $url: HTTP ${response.code}")
+                source.delete()
             }
 
-            target.outputStream().use { response.body.byteStream().copyTo(it) }
+            return target
         }
-    }
+
+        private fun download(
+            url: String,
+            target: File,
+        ) {
+            val request = Request.Builder().url(url).build()
+
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw IOException("Unable to download $url: HTTP ${response.code}")
+                }
+
+                target.outputStream().use { response.body.byteStream().copyTo(it) }
+            }
+        }
 
         private fun getUploadDirectory(): File? = context.getExternalFilesDir(DIR_UPLOAD)
 

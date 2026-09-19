@@ -392,8 +392,8 @@ class MediaListService
         private fun resumeSlideshowIfUnpaused() {
             if (resumeSlideshowWhenUnpaused.value && !showDetailSheet.value && !isZoomed.value) {
                 resumeSlideshowWhenUnpaused.update { false }
-            slideshowJob.start()
-        }
+                slideshowJob.start()
+            }
         }
 
         private fun saveFileToShare(
