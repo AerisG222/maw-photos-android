@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import us.mikeandwan.photos.database.SearchPreferenceDao
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.SearchPreference
 
 @Singleton
@@ -23,11 +22,6 @@ class SearchPreferenceRepository
             dao
                 .getSearchPreference(PREFERENCE_ID)
                 .map { it.recentQueryCount }
-
-        fun getSearchGridItemSize() =
-            dao
-                .getSearchPreference(PREFERENCE_ID)
-                .map { it.gridThumbnailSize }
 
         fun getSearchDisplayType() =
             dao
@@ -47,18 +41,6 @@ class SearchPreferenceRepository
             setPreference { it.copy(displayType = mode) }
         }
 
-        suspend fun setSearchGridItemSize(size: GridThumbnailSize) {
-            setPreference { it.copy(gridThumbnailSize = size) }
-        }
-
-        suspend fun setShowMediaTypeIndicator(show: Boolean) {
-            setPreference { it.copy(showMediaTypeIndicator = show) }
-        }
-
-        suspend fun setShowFavoriteIndicator(show: Boolean) {
-            setPreference { it.copy(showFavoriteIndicator = show) }
-        }
-
         private fun getSearchPreferences() =
             dao
                 .getSearchPreference(PREFERENCE_ID)
@@ -69,9 +51,6 @@ class SearchPreferenceRepository
                 PREFERENCE_ID,
                 pref.recentQueryCountToSave,
                 pref.displayType,
-                pref.gridThumbnailSize,
-                pref.showMediaTypeIndicator,
-                pref.showFavoriteIndicator,
             )
 
             dao.setSearchPreference(dbPref)

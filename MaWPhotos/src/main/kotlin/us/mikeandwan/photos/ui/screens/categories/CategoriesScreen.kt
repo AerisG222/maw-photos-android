@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.categorylist.CategoryListSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
@@ -28,10 +27,7 @@ fun CategoriesScreen(
     if (uiState.isLoading) {
         when (uiState.preferences.displayType) {
             CategoryDisplayType.Grid -> {
-                MediaGridSkeleton(
-                    thumbnailSize = uiState.preferences.gridThumbnailSize,
-                    modifier = modifier,
-                )
+                MediaGridSkeleton(modifier = modifier)
             }
 
             CategoryDisplayType.List -> {
@@ -45,19 +41,9 @@ fun CategoriesScreen(
     val pullToRefreshState = rememberPullToRefreshState()
 
     val gridState = rememberMediaGridState(
-        gridItems = uiState.categories.map {
-            it.toMediaGridItem(
-                useLargeTeaser = uiState.preferences.gridThumbnailSize == GridThumbnailSize.Large,
-                showMediaTypeIndicator = uiState.preferences.showMediaTypeIndicator,
-            )
-        },
-        thumbnailSize = uiState.preferences.gridThumbnailSize,
+        gridItems = uiState.categories.map { it.toMediaGridItem() },
         onSelectGridItem = { onNavigateToCategory(it.data) },
-        onToggleFavorite = if (uiState.preferences.showFavoriteIndicator) {
-            { onToggleFavorite(it.data) }
-        } else {
-            null
-        },
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     PullToRefreshBox(
@@ -76,9 +62,7 @@ fun CategoriesScreen(
                     categories = uiState.categories,
                     showYear = false,
                     onSelectCategory = onNavigateToCategory,
-                    onToggleFavorite = onToggleFavorite.takeIf {
-                        uiState.preferences.showFavoriteIndicator
-                    },
+                    onToggleFavorite = onToggleFavorite,
                 )
             }
         }

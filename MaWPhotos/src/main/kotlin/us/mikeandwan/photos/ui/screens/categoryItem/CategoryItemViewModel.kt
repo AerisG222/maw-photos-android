@@ -16,7 +16,9 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.FaceHighlight
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFaces
 import us.mikeandwan.photos.domain.models.MediaPreference
+import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.services.MediaListAction
 import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.category.BaseCategoryViewModel
@@ -31,6 +33,10 @@ data class CategoryItemUiState(
     val exif: kotlinx.serialization.json.JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val faces: List<FaceHighlight> = emptyList(),
+    // everyone the pipeline found here, which is not the same as the boxes above: the
+    // details sheet names them whether or not the overlay is drawing anything
+    val mediaFaces: MediaFaces? = null,
+    val places: List<Place>? = null,
     val showFaceHighlights: Boolean = false,
     val canHighlightFaces: Boolean = false,
     val isLoading: Boolean = true,
@@ -60,7 +66,9 @@ class CategoryItemViewModel
                     showDetailSheet = mediaListState.showDetailSheet,
                     exif = mediaListState.exif,
                     comments = mediaListState.comments,
-                    faces = mediaListState.faces,
+                    faces = mediaListState.facesToHighlight,
+                    mediaFaces = mediaListState.mediaFaces,
+                    places = mediaListState.places,
                     showFaceHighlights = mediaListState.showFaceHighlights,
                     canHighlightFaces = mediaListState.canHighlightFaces,
                     isLoading = mediaListState.isLoading,
@@ -138,6 +146,14 @@ class CategoryItemViewModel
         fun fetchCommentDetails() {
             mediaListService.onAction(MediaListAction.FetchComments)
         }
+
+        fun fetchFaces() {
+            mediaListService.onAction(MediaListAction.FetchFaces)
+        }
+
+        fun fetchPlaces() {
+            mediaListService.onAction(MediaListAction.FetchPlaces)
+    }
 
         fun addComment(comment: String) {
             mediaListService.onAction(MediaListAction.AddComment(comment))

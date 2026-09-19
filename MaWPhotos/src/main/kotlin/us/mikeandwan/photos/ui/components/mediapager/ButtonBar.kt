@@ -92,16 +92,6 @@ fun ButtonBar(
                 }
             }
 
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    painter = painterResource(id = favoriteIcon),
-                    contentDescription = stringResource(
-                        id = R.string.toggle_favorite_icon_description,
-                    ),
-                    tint = color,
-                )
-            }
-
             IconButton(onClick = onToggleSlideshow) {
                 Icon(
                     painter = painterResource(id = slideshowIcon),
@@ -116,11 +106,23 @@ fun ButtonBar(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_share),
                     contentDescription = stringResource(
-                        id = R.string.toggle_slideshow_icon_description,
+                        id = R.string.share_photo_icon_description,
                     ),
                     tint = color,
                 )
             }
+        }
+
+        // outside the block above: a video can be favourited just as a photo can, and the only
+        // buttons that cannot are the ones that act on the pixels - rotation and the face overlay
+        IconButton(onClick = onToggleFavorite) {
+            Icon(
+                painter = painterResource(id = favoriteIcon),
+                contentDescription = stringResource(
+                    id = R.string.toggle_favorite_icon_description,
+                ),
+                tint = color,
+            )
         }
 
         IconButton(onClick = onViewDetails) {

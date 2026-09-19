@@ -62,9 +62,9 @@ fun SegmentedPreference(
 @Composable
 private fun SegmentedPreferencePreview() {
     SegmentedPreference(
-        labelStringId = R.string.grid_thumbnail_size,
-        options = listOf("Small", "Medium", "Large"),
-        selectedValue = "Medium",
+        labelStringId = R.string.display_type,
+        options = listOf("Grid", "List"),
+        selectedValue = "Grid",
         onSelect = {},
     )
 }

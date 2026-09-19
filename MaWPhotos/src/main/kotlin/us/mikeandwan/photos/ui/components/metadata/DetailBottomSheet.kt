@@ -15,6 +15,9 @@ fun DetailBottomSheet(
     activeMedia: Media,
     exifState: ExifState,
     commentState: CommentState,
+    whoState: WhoState,
+    whereState: WhereState,
+    canShowWho: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -28,6 +31,9 @@ fun DetailBottomSheet(
             activeMedia = activeMedia,
             exifState = exifState,
             commentState = commentState,
+            whoState = whoState,
+            whereState = whereState,
+            canShowWho = canShowWho,
         )
     }
 }

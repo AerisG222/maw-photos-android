@@ -52,7 +52,7 @@ class MediaFaceServiceTest {
         service.fetchFaces(mediaId)
 
         // Assert
-        val faces = service.faces.first()
+        val faces = service.faces.first()!!.highlights
         assertEquals(1, faces.size)
         assertEquals(face.id, faces.first().id)
         assertEquals(face.boxX, faces.first().boxX, 0.0001f)
@@ -71,13 +71,17 @@ class MediaFaceServiceTest {
             flowOf(ExternalCallStatus.Success(listOf(face)))
 
         service.fetchFaces(mediaId)
-        assertNull(service.faces.first().first().name)
+        assertNull(service.faces.first()!!.highlights.first().name)
 
         // Act - the people list is read after the faces were
         people.value = listOf(Person(personId, "Mike Morano", null, 12, false))
 
         // Assert
-        assertEquals("Mike Morano", service.faces.first().first().name)
+        val faces = service.faces.first()!!
+        assertEquals("Mike Morano", faces.highlights.first().name)
+        // and the same resolution answers the Who card, so the two cannot disagree
+        assertEquals(listOf("Mike Morano"), faces.people.map { it.name })
+        assertEquals(0, faces.unnamedCount)
     }
 
     // unassigned, or a person this caller may not know about - the API makes those two
@@ -96,8 +100,12 @@ class MediaFaceServiceTest {
         service.fetchFaces(mediaId)
 
         // Assert
-        assertNull(service.faces.first().first().name)
-        assertNull(service.faces.first().first().personId)
+        val faces = service.faces.first()!!
+        assertNull(faces.highlights.first().name)
+        assertNull(faces.highlights.first().personId)
+        // nobody to list, but the card still has to say somebody is there
+        assertTrue(faces.people.isEmpty())
+        assertEquals(1, faces.unnamedCount)
     }
 
     // the pager can be opened from a category, which never touches the people list - without this
@@ -133,7 +141,7 @@ class MediaFaceServiceTest {
         service.fetchFaces(mediaId)
 
         // Assert
-        assertTrue(service.faces.first().isEmpty())
+        assertTrue(service.faces.first()!!.highlights.isEmpty())
     }
 
     @Test
@@ -148,12 +156,12 @@ class MediaFaceServiceTest {
         )
 
         service.fetchFaces(mediaId)
-        assertTrue(service.faces.first().isNotEmpty())
+        assertTrue(service.faces.first()!!.highlights.isNotEmpty())
 
         // Act
         service.clear()
 
-        // Assert
-        assertTrue(service.faces.first().isEmpty())
+        // Assert - nothing read rather than nobody found, which the Who card tells apart
+        assertNull(service.faces.first())
     }
 }

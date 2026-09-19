@@ -26,7 +26,6 @@ import kotlinx.datetime.toLocalDateTime
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
@@ -74,19 +73,9 @@ fun SearchScreen(
             when (uiState.displayType) {
                 CategoryDisplayType.Grid -> {
                     val gridState = rememberMediaGridState(
-                        gridItems = uiState.results.map {
-                            it.toMediaGridItem(
-                                useLargeTeaser = uiState.thumbnailSize == GridThumbnailSize.Large,
-                                showMediaTypeIndicator = uiState.showMediaTypeIndicator,
-                            )
-                        },
-                        thumbnailSize = uiState.thumbnailSize,
+                        gridItems = uiState.results.map { it.toMediaGridItem() },
                         onSelectGridItem = { onNavigateToCategory(it.data) },
-                        onToggleFavorite = if (uiState.showFavoriteIndicator) {
-                            { onToggleFavorite(it.data) }
-                        } else {
-                            null
-                        },
+                        onToggleFavorite = { onToggleFavorite(it.data) },
                     )
 
                     MediaGrid(gridState, modifier = modifier)
@@ -98,7 +87,7 @@ fun SearchScreen(
                         showYear = true,
                         onSelectCategory = onNavigateToCategory,
                         modifier = modifier,
-                        onToggleFavorite = onToggleFavorite.takeIf { uiState.showFavoriteIndicator },
+                        onToggleFavorite = onToggleFavorite,
                     )
                 }
             }

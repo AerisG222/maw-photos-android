@@ -24,7 +24,6 @@ import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.SearchPreference
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -59,17 +58,12 @@ class SearchViewModelTest {
         every { searchRepository.activeSearchTerm } returns MutableStateFlow("test")
         every { searchPreferenceRepository.getSearchDisplayType() } returns
             flowOf(CategoryDisplayType.Grid)
-        every { searchPreferenceRepository.getSearchGridItemSize() } returns
-            flowOf(GridThumbnailSize.Medium)
         every { searchPreferenceRepository.getSearchPreference() } returns
             flowOf(
                 SearchPreference(
                     id = 1,
                     recentQueryCountToSave = 20,
                     displayType = CategoryDisplayType.Grid,
-                    gridThumbnailSize = GridThumbnailSize.Medium,
-                    showMediaTypeIndicator = true,
-                    showFavoriteIndicator = true,
                 ),
             )
     }

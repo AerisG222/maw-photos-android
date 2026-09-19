@@ -40,6 +40,14 @@ internal interface PlaceApi {
         @Query("seed") seed: Long?,
     ): Response<SearchResults<Media>>
 
+    // the places one media item was geocoded into - so a photograph taken in Boston answers with
+    // the city, its state and its country, rather than with the city alone.  it hangs off media
+    // rather than places, but it is answered in the same shape as every other listing here.
+    @GET("media/{mediaId}/places")
+    suspend fun getMediaPlaces(
+        @Path("mediaId") mediaId: Uuid,
+    ): Response<List<Place>>
+
     // the same media, rolled up to the categories holding it - no seed, because a shuffled list of
     // categories would mean nothing
     @GET("places/{placeId}/categories")

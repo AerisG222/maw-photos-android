@@ -2,18 +2,13 @@ package us.mikeandwan.photos.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import us.mikeandwan.photos.domain.CategoryRepository
@@ -22,16 +17,12 @@ import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.SearchSource
 
 data class SearchUiState(
     val results: List<Category> = emptyList(),
     val hasMore: Boolean = false,
     val displayType: CategoryDisplayType = CategoryDisplayType.Grid,
-    val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val showMediaTypeIndicator: Boolean = true,
-    val showFavoriteIndicator: Boolean = true,
     val activeTerm: String = "",
 )
 
@@ -48,17 +39,12 @@ class SearchViewModel
                 searchRepository.searchResults,
                 searchRepository.hasMoreResults,
                 searchPreferenceRepository.getSearchDisplayType(),
-                searchPreferenceRepository.getSearchGridItemSize(),
-                searchPreferenceRepository.getSearchPreference(),
                 searchRepository.activeSearchTerm,
-            ) { results, hasMore, displayType, thumbSize, searchPref, activeTerm ->
+            ) { results, hasMore, displayType, activeTerm ->
                 SearchUiState(
                     results = results,
                     hasMore = hasMore,
                     displayType = displayType,
-                    thumbnailSize = thumbSize,
-                    showMediaTypeIndicator = searchPref.showMediaTypeIndicator,
-                    showFavoriteIndicator = searchPref.showFavoriteIndicator,
                     activeTerm = activeTerm,
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), SearchUiState())

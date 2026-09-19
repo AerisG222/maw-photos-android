@@ -36,6 +36,7 @@ import us.mikeandwan.photos.domain.MediaFaceRepository
 import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
+import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.RandomMediaRepository
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.DetectedFace
@@ -43,6 +44,8 @@ import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.MediaType
+import us.mikeandwan.photos.domain.models.Place
+import us.mikeandwan.photos.domain.models.PlaceKind
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MediaListServiceTest {
@@ -60,6 +63,8 @@ class MediaListServiceTest {
     private lateinit var mediaFaceRepository: MediaFaceRepository
     private lateinit var peopleRepository: PeopleRepository
     private lateinit var mediaFaceService: MediaFaceService
+    private lateinit var placeRepository: PlaceRepository
+    private lateinit var mediaPlaceService: MediaPlaceService
     private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
     private lateinit var authService: AuthService
     private lateinit var service: MediaListService
@@ -88,6 +93,8 @@ class MediaListServiceTest {
         every { peopleRepository.people } returns MutableStateFlow(emptyList())
 
         mediaFaceService = MediaFaceService(mediaFaceRepository, peopleRepository)
+        placeRepository = mockk(relaxed = true)
+        mediaPlaceService = MediaPlaceService(placeRepository)
         mediaPreferenceRepository = mockk(relaxed = true)
         authService = mockk(relaxed = true)
 
@@ -108,6 +115,7 @@ class MediaListServiceTest {
             mediaCommentService,
             mediaExifService,
             mediaFaceService,
+            mediaPlaceService,
             mediaPreferenceRepository,
             authService,
         )
@@ -236,7 +244,7 @@ class MediaListServiceTest {
         service.onAction(MediaListAction.SetActiveId(mediaId))
 
         // Assert
-        assertEquals(listOf(face.id), service.state.value.faces.map { it.id })
+        assertEquals(listOf(face.id), service.state.value.facesToHighlight.map { it.id })
     }
 
     @Test
@@ -254,7 +262,7 @@ class MediaListServiceTest {
 
         // Assert
         verify(exactly = 0) { mediaFaceRepository.getFaces(any()) }
-        assertTrue(service.state.value.faces.isEmpty())
+        assertTrue(service.state.value.facesToHighlight.isEmpty())
     }
 
     // a box fixed to a frame would be wrong the moment the video moved, so a video is skipped
@@ -274,7 +282,7 @@ class MediaListServiceTest {
 
         // Assert
         verify(exactly = 0) { mediaFaceRepository.getFaces(any()) }
-        assertTrue(service.state.value.faces.isEmpty())
+        assertTrue(service.state.value.facesToHighlight.isEmpty())
     }
 
     @Test
@@ -289,13 +297,97 @@ class MediaListServiceTest {
 
         service.initialize(MutableStateFlow(listOf(media)), MutableStateFlow(5000L))
         service.onAction(MediaListAction.SetActiveId(mediaId))
-        assertTrue(service.state.value.faces.isNotEmpty())
+        assertTrue(service.state.value.facesToHighlight.isNotEmpty())
 
         // Act
         mediaPreference.value = MediaPreference(showFaceHighlights = false)
 
         // Assert
-        assertTrue(service.state.value.faces.isEmpty())
+        assertTrue(service.state.value.facesToHighlight.isEmpty())
+    }
+
+    // the Who card reads the same faces the overlay draws, so hiding the boxes must not throw
+    // away the answer the card is showing
+    @Test
+    fun `switching highlighting off keeps who is in the photo`() = runTest {
+        // Arrange
+        val mediaId = Uuid.random()
+        val faces = listOf(DetectedFace(Uuid.random(), null, 0.1f, 0.1f, 0.2f, 0.2f))
+        val media = Media(id = mediaId, categoryId = Uuid.random(), type = MediaType.Photo, isFavorite = false)
+
+        mediaPreference.value = MediaPreference(showFaceHighlights = true)
+        every { mediaFaceRepository.getFaces(mediaId) } returns flowOf(ExternalCallStatus.Success(faces))
+
+        service.initialize(MutableStateFlow(listOf(media)), MutableStateFlow(5000L))
+        service.onAction(MediaListAction.SetActiveId(mediaId))
+
+        // Act
+        mediaPreference.value = MediaPreference(showFaceHighlights = false)
+
+        // Assert
+        assertEquals(1, service.state.value.mediaFaces?.unnamedCount)
+    }
+
+    // the card is worth reading whether or not somebody wants boxes drawn over their photographs
+    @Test
+    fun `FetchFaces asks for the faces even while highlighting is off`() = runTest {
+        // Arrange
+        val mediaId = Uuid.random()
+        val faces = listOf(DetectedFace(Uuid.random(), null, 0.1f, 0.1f, 0.2f, 0.2f))
+        val media = Media(id = mediaId, categoryId = Uuid.random(), type = MediaType.Photo, isFavorite = false)
+
+        mediaPreference.value = MediaPreference(showFaceHighlights = false)
+        every { mediaFaceRepository.getFaces(mediaId) } returns flowOf(ExternalCallStatus.Success(faces))
+
+        service.initialize(MutableStateFlow(listOf(media)), MutableStateFlow(5000L))
+        service.onAction(MediaListAction.SetActiveId(mediaId))
+
+        // Act
+        service.onAction(MediaListAction.FetchFaces)
+
+        // Assert - known, but still nothing drawn over the photograph
+        assertEquals(1, service.state.value.mediaFaces?.unnamedCount)
+        assertTrue(service.state.value.facesToHighlight.isEmpty())
+    }
+
+    // faces are detected on stills, so a video has nobody to list rather than nobody in it
+    @Test
+    fun `FetchFaces does nothing for a video`() = runTest {
+        // Arrange
+        val mediaId = Uuid.random()
+        val media = Media(id = mediaId, categoryId = Uuid.random(), type = MediaType.Video, isFavorite = false)
+
+        service.initialize(MutableStateFlow(listOf(media)), MutableStateFlow(5000L))
+        service.onAction(MediaListAction.SetActiveId(mediaId))
+
+        // Act
+        service.onAction(MediaListAction.FetchFaces)
+
+        // Assert
+        verify(exactly = 0) { mediaFaceRepository.getFaces(any()) }
+    }
+
+    @Test
+    fun `FetchPlaces asks where the active media was taken`() = runTest {
+        // Arrange
+        val mediaId = Uuid.random()
+        val media = Media(id = mediaId, categoryId = Uuid.random(), type = MediaType.Photo, isFavorite = false)
+        val place = Place(Uuid.random(), null, PlaceKind.Country, "United States", 3, null, 1)
+
+        every { placeRepository.getMediaPlaces(mediaId) } returns
+            flowOf(ExternalCallStatus.Success(listOf(place)))
+
+        service.initialize(MutableStateFlow(listOf(media)), MutableStateFlow(5000L))
+        service.onAction(MediaListAction.SetActiveId(mediaId))
+
+        // nothing is read for a tab nobody opened
+        assertNull(service.state.value.places)
+
+        // Act
+        service.onAction(MediaListAction.FetchPlaces)
+
+        // Assert
+        assertEquals(listOf(place), service.state.value.places)
     }
 
     @Test

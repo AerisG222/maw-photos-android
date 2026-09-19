@@ -21,6 +21,8 @@ import us.mikeandwan.photos.ui.components.mediapager.rememberRotation
 import us.mikeandwan.photos.ui.components.metadata.DetailBottomSheet
 import us.mikeandwan.photos.ui.components.metadata.rememberCommentState
 import us.mikeandwan.photos.ui.components.metadata.rememberExifState
+import us.mikeandwan.photos.ui.components.metadata.rememberWhereState
+import us.mikeandwan.photos.ui.components.metadata.rememberWhoState
 import us.mikeandwan.photos.ui.components.scaffolds.ItemPagerScaffold
 import us.mikeandwan.photos.ui.shared.shareMedia
 
@@ -39,6 +41,10 @@ fun RandomItemScreen(
     onFetchExif: () -> Unit,
     onFetchComments: () -> Unit,
     onAddComment: (String) -> Unit,
+    onFetchFaces: () -> Unit,
+    onFetchPlaces: () -> Unit,
+    onSelectPerson: (Uuid) -> Unit,
+    onSelectPlace: (Uuid) -> Unit,
     onSaveMediaToShare: (Drawable, String, (File) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -61,6 +67,18 @@ fun RandomItemScreen(
         comments = uiState.comments,
         fetchComments = onFetchComments,
         addComment = onAddComment,
+    )
+
+    val whoState = rememberWhoState(
+        faces = uiState.mediaFaces,
+        fetchFaces = onFetchFaces,
+        onSelectPerson = onSelectPerson,
+    )
+
+    val whereState = rememberWhereState(
+        places = uiState.places,
+        fetchPlaces = onFetchPlaces,
+        onSelectPlace = onSelectPlace,
     )
 
     ItemPagerScaffold(
@@ -113,6 +131,9 @@ fun RandomItemScreen(
                     sheetState = sheetState,
                     exifState = exifState,
                     commentState = commentState,
+                    whoState = whoState,
+                    whereState = whereState,
+                    canShowWho = uiState.canHighlightFaces,
                     onDismissRequest = onToggleDetails,
                 )
             }

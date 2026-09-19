@@ -29,12 +29,11 @@ import androidx.compose.ui.unit.dp
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Clan
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.PersonSort
+import us.mikeandwan.photos.ui.components.mediagrid.MEDIA_GRID_ITEM_SIZE
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
-import us.mikeandwan.photos.ui.components.mediagrid.getSize
 import us.mikeandwan.photos.ui.components.people.ClanSection
 import us.mikeandwan.photos.ui.components.people.ClanSectionHeader
 import us.mikeandwan.photos.ui.components.people.PersonCard
@@ -65,10 +64,7 @@ fun PeopleScreen(
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
-        MediaGridSkeleton(
-            thumbnailSize = uiState.preferences.gridThumbnailSize,
-            modifier = modifier,
-        )
+        MediaGridSkeleton(modifier = modifier)
 
         return
     }
@@ -130,10 +126,8 @@ fun PeopleScreen(
             }
 
             else -> {
-                val size = getSize(uiState.preferences.gridThumbnailSize)
-
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = size),
+                    columns = GridCells.Adaptive(minSize = MEDIA_GRID_ITEM_SIZE),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier
@@ -146,7 +140,7 @@ fun PeopleScreen(
                     ) { person ->
                         PersonCard(
                             person = person,
-                            size = size,
+                            size = MEDIA_GRID_ITEM_SIZE,
                             showName = uiState.preferences.showNames,
                             showMediaCount = uiState.preferences.showMediaCounts,
                             onToggleFavorite = onToggleFavorite,
@@ -245,7 +239,7 @@ private fun PeopleScreenPreview() {
                 Person(Uuid.random(), "Bob Brown", null, 17, false),
                 Person(Uuid.random(), "Carol Clark", null, 3, false),
             ),
-            preferences = PeoplePreference(gridThumbnailSize = GridThumbnailSize.Medium),
+            preferences = PeoplePreference(),
             isLoading = false,
             hasAnyPeople = true,
         ),

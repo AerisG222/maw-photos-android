@@ -15,11 +15,12 @@ import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.models.DetectedFace
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.FaceHighlight
+import us.mikeandwan.photos.domain.models.MediaFaces
 
 /**
- * The faces to draw over whatever is currently on screen.
+ * What the recognition pipeline found in whatever is currently on screen.
  *
- * A failure leaves nothing to draw rather than saying so: the boxes are an embellishment over the
+ * A failure leaves nothing to show rather than saying so: the boxes are an embellishment over the
  * media, and an error banner over a photo the user is looking at would cost more than the overlay
  * is worth.  The call has already been reported the way every other failed call is.
  */
@@ -30,36 +31,57 @@ class MediaFaceService
         private val mediaFaceRepository: MediaFaceRepository,
         private val peopleRepository: PeopleRepository,
     ) {
-        private val detected = MutableStateFlow<List<DetectedFace>>(emptyList())
+        // null until somebody has asked, and again the moment the item changes - which is what
+        // lets the Who card wait quietly rather than saying nobody is here while it is still asking
+        private val detected = MutableStateFlow<List<DetectedFace>?>(null)
 
         /**
-         * The boxes to draw, labelled from the people list rather than fetched with a name attached.
+         * The boxes to draw and the people they belong to, resolved against the people list rather
+         * than fetched with a name attached.
          *
          * The two are joined here because they arrive separately: the boxes come from the media,
          * the names from a list the app holds whole.  Reading that list later fills the labels in
          * without asking for the faces again, and a face whose person is not in it - unassigned, or
-         * somebody this caller may not know about - simply goes unlabelled.
+         * somebody this caller may not know about - simply goes unlabelled and is counted instead.
+         *
+         * The overlay and the details sheet's Who card both read this one value, so the two cannot
+         * end up disagreeing about who is in the photograph.
          *
          * A plain flow rather than a state flow, so this owns no scope of its own to leak.
          */
-        val faces = combine(detected, peopleRepository.people) { faces, people ->
-            val namesByPersonId = people.associate { it.id to it.name }
+        val faces = combine(detected, peopleRepository.people) { detectedFaces, people ->
+            val faces = detectedFaces ?: return@combine null
+            val peopleById = people.associateBy { it.id }
 
-            faces.map { face ->
+            val highlights = faces.map { face ->
                 FaceHighlight(
                     id = face.id,
                     personId = face.personId,
-                    name = face.personId?.let { namesByPersonId[it] },
+                    name = face.personId?.let { peopleById[it]?.name },
                     boxX = face.boxX,
                     boxY = face.boxY,
                     boxWidth = face.boxWidth,
                     boxHeight = face.boxHeight,
                 )
             }
+
+            // a person appears once however many of their faces were detected, which is why this
+            // counts faces rather than people for the leftovers
+            val named = faces.mapNotNull { face -> face.personId?.let { peopleById[it] } }
+
+            MediaFaces(
+                highlights = highlights,
+                people = named.distinctBy { it.id }.sortedBy { it.name },
+                unnamedCount = faces.size - named.size,
+            )
         }
 
         suspend fun fetchFaces(mediaId: Uuid) =
             coroutineScope {
+                // cleared first so the card over a second photograph is blank while it loads rather
+                // than naming whoever was in the one before it
+                detected.value = null
+
                 // the labels need the people list, which the pager may well have been opened without
                 // - browsing a category never touches it.  held for fifteen minutes, so this is
                 // usually free, and it runs alongside rather than delaying the boxes behind it.
@@ -74,6 +96,6 @@ class MediaFaceService
             }
 
         fun clear() {
-            detected.value = emptyList()
+            detected.value = null
         }
     }

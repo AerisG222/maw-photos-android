@@ -4,20 +4,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.uuid.Uuid
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
-import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
@@ -26,8 +20,6 @@ import us.mikeandwan.photos.ui.shared.toMediaGridItem
 data class CategoryUiState(
     val category: Category? = null,
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
-    val gridItemThumbnailSize: GridThumbnailSize = GridThumbnailSize.Large,
-    val showFavoriteIndicator: Boolean = true,
     val isLoading: Boolean = true,
     val isError: Boolean = false,
 )
@@ -37,35 +29,19 @@ class CategoryViewModel
     @Inject
     constructor(
         categoryRepository: CategoryRepository,
-        mediaPreferenceRepository: MediaPreferenceRepository,
         private val mediaFavoriteService: MediaFavoriteService,
     ) : BaseCategoryViewModel(categoryRepository) {
         val uiState: StateFlow<CategoryUiState>
 
         init {
-            val gridItemThumbnailSizeFlow = mediaPreferenceRepository
-                .getPhotoGridItemSize()
-                .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
-
-            val gridItemsFlow = combine(
-                media,
-                gridItemThumbnailSizeFlow,
-                mediaPreferenceRepository.getMediaPreference(),
-            ) { mediaList, thumbnailSize, mediaPref ->
-                mediaList.map {
-                    it.toMediaGridItem(
-                        useLargeTeaser = thumbnailSize == GridThumbnailSize.Large,
-                        showMediaTypeIndicator = mediaPref.showMediaTypeIndicator,
-                    )
-                }
-            }.stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
+            val gridItemsFlow = media
+                .map { mediaList -> mediaList.map { it.toMediaGridItem() } }
+                .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
             uiState = combine(
                 category,
                 gridItemsFlow,
-                gridItemThumbnailSizeFlow,
-                mediaPreferenceRepository.getMediaPreference(),
-            ) { category, gridItems, gridItemThumbnailSize, mediaPref ->
+            ) { category, gridItems ->
                 var isError = false
                 var isLoading = true
 
@@ -76,8 +52,6 @@ class CategoryViewModel
                 CategoryUiState(
                     category = category,
                     gridItems = gridItems,
-                    gridItemThumbnailSize = gridItemThumbnailSize,
-                    showFavoriteIndicator = mediaPref.showFavoriteIndicator,
                     isLoading = isLoading,
                     isError = isError,
                 )

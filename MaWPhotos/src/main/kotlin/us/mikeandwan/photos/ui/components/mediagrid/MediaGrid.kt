@@ -9,15 +9,18 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 
 // Stable selectors for UI automation (baseline profile generation). Surfaced to UiAutomator via
 // `testTagsAsResourceId` enabled at the app root. Keep in sync with the matching literals in the
 // :baselineprofile module's BaselineProfileGenerator.
 const val MEDIA_GRID_TAG = "mediaGrid"
 const val MEDIA_GRID_ITEM_TAG = "mediaGridItem"
+
+// One size everywhere, rather than a density setting per area.  The grid is adaptive, so this is
+// the narrowest a column may be before another one is dropped - on a phone that lands at three or
+// four across, which is what the old medium default gave and what the web app settled on.
+val MEDIA_GRID_ITEM_SIZE = 120.dp
 
 @Composable
 fun <T> MediaGrid(
@@ -29,7 +32,7 @@ fun <T> MediaGrid(
 ) {
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Adaptive(minSize = state.size),
+        columns = GridCells.Adaptive(minSize = MEDIA_GRID_ITEM_SIZE),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = modifier.testTag(MEDIA_GRID_TAG),
@@ -40,7 +43,7 @@ fun <T> MediaGrid(
         ) {
             MediaGridImage(
                 item = it,
-                size = state.size,
+                size = MEDIA_GRID_ITEM_SIZE,
                 onSelectImage = { item -> state.onSelectGridItem(item) },
                 onToggleFavorite = state.onToggleFavorite,
                 modifier = Modifier
@@ -50,10 +53,3 @@ fun <T> MediaGrid(
         }
     }
 }
-
-internal fun getSize(size: GridThumbnailSize): Dp =
-    when (size) {
-        GridThumbnailSize.Small -> 90.dp
-        GridThumbnailSize.Medium -> 120.dp
-        GridThumbnailSize.Large -> 180.dp
-    }

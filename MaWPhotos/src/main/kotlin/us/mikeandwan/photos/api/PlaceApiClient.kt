@@ -48,6 +48,14 @@ class PlaceApiClient
                 },
             )
 
+        suspend fun getMediaPlaces(mediaId: Uuid): ApiResult<List<Place>> =
+            makeApiCall(
+                ::getMediaPlaces.name,
+                suspend {
+                    _placeApi.getMediaPlaces(mediaId)
+                },
+        )
+
         suspend fun getPlaceCategories(
             placeId: Uuid,
             offset: Int,

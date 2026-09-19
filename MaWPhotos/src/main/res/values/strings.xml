@@ -56,6 +56,13 @@
     <string name="share_photo_icon_description">Share Photo</string>
     <string name="toggle_face_highlights_icon_description">Toggle Face Highlights</string>
     <string name="view_media_details_icon_description">View Media Details</string>
+    <!-- detail sheet tabs -->
+    <string name="media_detail_comment_tab_description">Comments</string>
+    <string name="media_detail_exif_tab_description">EXIF</string>
+    <string name="media_detail_who_tab_description">Who</string>
+    <string name="media_detail_where_tab_description">Where</string>
+    <string name="media_detail_who_empty">No faces have been detected here</string>
+    <string name="media_detail_where_empty">We do not know where this was taken</string>
 
     <!-- navigation rail -->
     <string name="categories_icon_description">Categories</string>
@@ -150,7 +157,6 @@
     <string name="pref_notifications_header">Notifications</string>
     <string name="pref_notifications_new_message_title">New Category Notifications</string>
     <string name="pref_notifications_vibrate">Vibrate</string>
-    <string name="grid_thumbnail_size">Grid Thumbnail Size</string>
     <string name="display_type">Display Type</string>
     <string name="pref_category_display_header">Category List Display</string>
     <string name="pref_media_display_header">Media Display</string>
@@ -168,8 +174,6 @@
     <string name="pref_show_category_title">Show Category Title</string>
     <string name="pref_face_recognition_header">Browse by People</string>
     <string name="pref_advanced_display_header">Advanced</string>
-    <string name="pref_show_media_type_indicator">Show Media Type Badge</string>
-    <string name="pref_show_favorite_indicator">Show Favorite Badge</string>
     <string name="pref_show_widget_info">Show Metadata on Widget</string>
 
     <string name="cancel">Cancel</string>
@@ -177,6 +181,21 @@
     <plurals name="clan_member_count">
         <item quantity="one">%1$d person</item>
         <item quantity="other">%1$d people</item>
+    </plurals>
+
+    <plurals name="media_detail_unnamed_faces">
+        <item quantity="one">%1$d face not yet named</item>
+        <item quantity="other">%1$d faces not yet named</item>
+    </plurals>
+
+    <plurals name="media_detail_person_media_count">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
+
+    <plurals name="media_detail_place_media_count">
+        <item quantity="one">%1$d photo taken here</item>
+        <item quantity="other">%1$d photos taken here</item>
     </plurals>
 
     <plurals name="clan_selected_count">

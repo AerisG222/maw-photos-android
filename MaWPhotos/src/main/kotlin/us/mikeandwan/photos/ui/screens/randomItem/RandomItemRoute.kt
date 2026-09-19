@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
+import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
@@ -64,6 +65,10 @@ private fun RandomItemRoute(
         onFetchExif = { vm.fetchExif() },
         onFetchComments = { vm.fetchCommentDetails() },
         onAddComment = { vm.addComment(it) },
+        onFetchFaces = { vm.fetchFaces() },
+        onFetchPlaces = { vm.fetchPlaces() },
+        onSelectPerson = { appActions.navigateToMediaFeed(MediaFeedSubject.Person(it)) },
+        onSelectPlace = { appActions.navigateToPlace(it) },
         onSaveMediaToShare = { drawable, filename, onComplete ->
             vm.saveFileToShare(drawable, filename, onComplete)
         },

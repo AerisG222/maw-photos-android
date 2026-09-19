@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
@@ -28,7 +27,6 @@ fun UploadScreen(
         gridItems = uiState.filesToUpload.mapIndexed { _, file ->
             MediaGridItem(Uuid.random(), file.path, emptyList(), file)
         },
-        thumbnailSize = GridThumbnailSize.Medium,
         onSelectGridItem = { },
     )
 

@@ -1,6 +1,7 @@
 package us.mikeandwan.photos.domain
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.toList
@@ -79,6 +80,49 @@ class PlaceRepositoryTest {
         val statuses = repository.getPlaces(countryId).toList()
 
         assertEquals(ExternalCallStatus.Success(emptyList<Nothing>()), statuses.last())
+    }
+
+    // the card reads top down - the country, then the state, then the city - and the API promises
+    // no order of its own
+    @Test
+    fun `where a media item was taken comes back broadest first`() = runTest {
+        val mediaId = Uuid.random()
+
+        coEvery { api.getMediaPlaces(mediaId) } returns ApiResult.Success(
+            listOf(
+                place(name = "Boston", kind = "city"),
+                place(name = "United States", kind = "country"),
+                place(name = "Massachusetts", kind = "state"),
+            ),
+        )
+
+        val statuses = repository.getMediaPlaces(mediaId).toList()
+
+        assertEquals(
+            listOf("United States", "Massachusetts", "Boston"),
+            (statuses.last() as ExternalCallStatus.Success).result.map { it.name },
+        )
+    }
+
+    // a media item nobody geocoded is an ordinary answer, and asking twice for it is wasted
+    @Test
+    fun `a media item with nowhere to show is answered once and remembered`() = runTest {
+        val mediaId = Uuid.random()
+
+        coEvery { api.getMediaPlaces(mediaId) } returns ApiResult.Success(emptyList())
+
+        assertEquals(
+            ExternalCallStatus.Success(emptyList<Nothing>()),
+            repository.getMediaPlaces(mediaId).toList().last(),
+        )
+
+        // the second read is served from the cache, so it never reaches Loading
+        assertEquals(
+            listOf(ExternalCallStatus.Success(emptyList<Nothing>())),
+            repository.getMediaPlaces(mediaId).toList(),
+        )
+
+        coVerify(exactly = 1) { api.getMediaPlaces(mediaId) }
     }
 
     private fun place(

@@ -5,7 +5,6 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import us.mikeandwan.photos.database.MediaPreferenceDao
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.MediaPreference
 
 @Singleton
@@ -23,11 +22,6 @@ class MediaPreferenceRepository
                 .getPhotoPreference(PREFERENCE_ID)
                 .map { it.slideshowIntervalSeconds }
 
-        fun getPhotoGridItemSize() =
-            dao
-                .getPhotoPreference(PREFERENCE_ID)
-                .map { it.gridThumbnailSize }
-
         fun getMediaPreference() =
             dao
                 .getPhotoPreference(PREFERENCE_ID)
@@ -35,18 +29,6 @@ class MediaPreferenceRepository
 
         suspend fun setSlideshowIntervalSeconds(seconds: Int) {
             setPreference { it.copy(slideshowIntervalSeconds = seconds) }
-        }
-
-        suspend fun setPhotoGridItemSize(size: GridThumbnailSize) {
-            setPreference { it.copy(gridThumbnailSize = size) }
-        }
-
-        suspend fun setShowMediaTypeIndicator(show: Boolean) {
-            setPreference { it.copy(showMediaTypeIndicator = show) }
-        }
-
-        suspend fun setShowFavoriteIndicator(show: Boolean) {
-            setPreference { it.copy(showFavoriteIndicator = show) }
         }
 
         suspend fun setShowFaceHighlights(show: Boolean) {
@@ -62,9 +44,6 @@ class MediaPreferenceRepository
             val dbPref = us.mikeandwan.photos.database.MediaPreference(
                 PREFERENCE_ID,
                 pref.slideshowIntervalSeconds,
-                pref.gridThumbnailSize,
-                pref.showMediaTypeIndicator,
-                pref.showFavoriteIndicator,
                 pref.showFaceHighlights,
             )
 

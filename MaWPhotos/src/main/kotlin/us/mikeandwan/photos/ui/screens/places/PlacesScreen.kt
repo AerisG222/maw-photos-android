@@ -26,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.models.PlaceKind
@@ -85,7 +84,7 @@ fun PlacesScreen(
             }
 
             uiState.isLoading -> {
-                MediaGridSkeleton(thumbnailSize = GridThumbnailSize.Medium)
+                MediaGridSkeleton()
             }
 
             !uiState.showsChildren -> {

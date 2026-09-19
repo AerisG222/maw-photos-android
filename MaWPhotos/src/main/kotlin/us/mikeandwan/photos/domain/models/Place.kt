@@ -65,6 +65,18 @@ data class Place(
 }
 
 /**
+ * Places ordered broadest first: country, then state or region, then city.
+ *
+ * Ordered by the kind rather than by how deep a place sits, because those are not the same thing -
+ * Macao's cities hang straight off the country, and a city is still a city wherever it hangs. The
+ * order of [PlaceKind]'s entries is the order of the tree, which is what this leans on.
+ *
+ * Ties break on the name so a listing reads the same way twice; the API promises no order of its
+ * own.
+ */
+val broadestFirst: Comparator<Place> = compareBy<Place> { it.kind.ordinal }.thenBy { it.name }
+
+/**
  * One rung of the breadcrumb above a place.
  *
  * Not a [Place]: it labels a path rather than offering a tile, so it carries no counts and no

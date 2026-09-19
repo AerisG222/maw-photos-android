@@ -24,9 +24,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.api.ApiResult
-import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.FaceApiClient
-import us.mikeandwan.photos.api.Media as ApiMedia
 import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.ApiErrorHandler
@@ -41,7 +39,6 @@ import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.PeoplePreference
@@ -51,6 +48,8 @@ import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.models.PlaceKind
 import us.mikeandwan.photos.domain.models.PlacePreference
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
+import us.mikeandwan.photos.api.Category as ApiCategory
+import us.mikeandwan.photos.api.Media as ApiMedia
 
 /*
    Driven against a real MediaFeedRepository over a mocked api client: the parts worth pinning here -
@@ -131,8 +130,6 @@ class MediaFeedViewModelTest {
             flowOf(ExternalCallStatus.Success(listOf(person)))
         every { categoryPreferenceRepository.getCategoryPreference() } returns
             flowOf(CategoryPreference())
-        every { mediaPreferenceRepository.getPhotoGridItemSize() } returns
-            flowOf(GridThumbnailSize.Medium)
         every { mediaPreferenceRepository.getMediaPreference() } returns flowOf(MediaPreference())
         // the real repository caches what it reads, which is where a place feed takes its name
         // from - see the note on the title flow

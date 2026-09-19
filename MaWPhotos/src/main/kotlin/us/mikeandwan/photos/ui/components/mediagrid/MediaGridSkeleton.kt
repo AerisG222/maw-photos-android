@@ -12,11 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.loading.rememberShimmerBrush
 
-// enough to cover the tallest screen at the largest thumbnail size - the grid only composes what
-// is actually visible
+// enough to cover the tallest screen - the grid only composes what is actually visible
 private const val PLACEHOLDER_COUNT = 30
 
 /**
@@ -24,15 +22,11 @@ private const val PLACEHOLDER_COUNT = 30
  * use so the content does not jump when it arrives.
  */
 @Composable
-fun MediaGridSkeleton(
-    thumbnailSize: GridThumbnailSize,
-    modifier: Modifier = Modifier,
-) {
-    val size = getSize(thumbnailSize)
+fun MediaGridSkeleton(modifier: Modifier = Modifier) {
     val brush = rememberShimmerBrush()
 
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = size),
+        columns = GridCells.Adaptive(minSize = MEDIA_GRID_ITEM_SIZE),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         userScrollEnabled = false,
@@ -41,7 +35,7 @@ fun MediaGridSkeleton(
         items(PLACEHOLDER_COUNT) {
             Box(
                 modifier = Modifier
-                    .height(size)
+                    .height(MEDIA_GRID_ITEM_SIZE)
                     .fillMaxWidth()
                     .background(brush),
             )
@@ -52,5 +46,5 @@ fun MediaGridSkeleton(
 @Preview(showBackground = true)
 @Composable
 private fun MediaGridSkeletonPreview() {
-    MediaGridSkeleton(thumbnailSize = GridThumbnailSize.Medium)
+    MediaGridSkeleton()
 }

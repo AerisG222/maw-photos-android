@@ -44,7 +44,6 @@ import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.ui.components.logo.Logo
 
 @Composable
@@ -54,24 +53,11 @@ fun SettingsScreen(
     onNotificationDoNotifyChange: (Boolean) -> Unit,
     onNotificationDoVibrateChange: (Boolean) -> Unit,
     onCategoryDisplayTypeChange: (CategoryDisplayType) -> Unit,
-    onCategoryThumbnailSizeChange: (GridThumbnailSize) -> Unit,
-    onCategoryShowMediaTypeIndicatorChange: (Boolean) -> Unit,
-    onCategoryShowFavoriteIndicatorChange: (Boolean) -> Unit,
     onPhotoSlideshowIntervalChange: (Int) -> Unit,
-    onPhotoThumbnailSizeChange: (GridThumbnailSize) -> Unit,
-    onPhotoShowMediaTypeIndicatorChange: (Boolean) -> Unit,
-    onPhotoShowFavoriteIndicatorChange: (Boolean) -> Unit,
     onRandomSlideshowIntervalChange: (Int) -> Unit,
-    onRandomThumbnailSizeChange: (GridThumbnailSize) -> Unit,
-    onRandomShowMediaTypeIndicatorChange: (Boolean) -> Unit,
-    onRandomShowFavoriteIndicatorChange: (Boolean) -> Unit,
     onRandomShowWidgetInfoChange: (Boolean) -> Unit,
     onSearchQueryCountChange: (Int) -> Unit,
     onSearchDisplayTypeChange: (CategoryDisplayType) -> Unit,
-    onSearchThumbnailSizeChange: (GridThumbnailSize) -> Unit,
-    onSearchShowMediaTypeIndicatorChange: (Boolean) -> Unit,
-    onSearchShowFavoriteIndicatorChange: (Boolean) -> Unit,
-    onPeopleThumbnailSizeChange: (GridThumbnailSize) -> Unit,
     onPeopleShowNamesChange: (Boolean) -> Unit,
     onPeopleShowMediaCountsChange: (Boolean) -> Unit,
     onPeopleShowClansChange: (Boolean) -> Unit,
@@ -88,7 +74,6 @@ fun SettingsScreen(
 ) {
     val scrollState = rememberScrollState()
     val displayTypeList = CategoryDisplayType.entries.map { it.name }
-    val thumbnailSizeList = GridThumbnailSize.entries.map { it.name }
     val slideshowIntervals = listOf("1", "2", "3", "4", "5", "10", "15", "20", "25", "30", "45", "60")
     val searchCountList = listOf("5", "10", "20", "30", "50")
     val dividerModifier = Modifier.padding(vertical = 8.dp)
@@ -183,24 +168,6 @@ fun SettingsScreen(
                 onCategoryDisplayTypeChange(enumValueOf(it))
             },
         )
-        SegmentedPreference(
-            labelStringId = R.string.grid_thumbnail_size,
-            options = thumbnailSizeList,
-            selectedValue = uiState.categoryThumbnailSize.name,
-            onSelect = {
-                onCategoryThumbnailSizeChange(enumValueOf(it))
-            },
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_media_type_indicator,
-            isChecked = uiState.categoryShowMediaTypeIndicator,
-            onChange = onCategoryShowMediaTypeIndicatorChange,
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_favorite_indicator,
-            isChecked = uiState.categoryShowFavoriteIndicator,
-            onChange = onCategoryShowFavoriteIndicatorChange,
-        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -216,24 +183,6 @@ fun SettingsScreen(
                 onPhotoSlideshowIntervalChange(it.toInt())
             },
         )
-        SegmentedPreference(
-            labelStringId = R.string.grid_thumbnail_size,
-            options = thumbnailSizeList,
-            selectedValue = uiState.photoThumbnailSize.name,
-            onSelect = {
-                onPhotoThumbnailSizeChange(enumValueOf(it))
-            },
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_media_type_indicator,
-            isChecked = uiState.photoShowMediaTypeIndicator,
-            onChange = onPhotoShowMediaTypeIndicatorChange,
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_favorite_indicator,
-            isChecked = uiState.photoShowFavoriteIndicator,
-            onChange = onPhotoShowFavoriteIndicatorChange,
-        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -248,24 +197,6 @@ fun SettingsScreen(
             onSelect = {
                 onRandomSlideshowIntervalChange(it.toInt())
             },
-        )
-        SegmentedPreference(
-            labelStringId = R.string.grid_thumbnail_size,
-            options = thumbnailSizeList,
-            selectedValue = uiState.randomThumbnailSize.name,
-            onSelect = {
-                onRandomThumbnailSizeChange(enumValueOf(it))
-            },
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_media_type_indicator,
-            isChecked = uiState.randomShowMediaTypeIndicator,
-            onChange = onRandomShowMediaTypeIndicatorChange,
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_favorite_indicator,
-            isChecked = uiState.randomShowFavoriteIndicator,
-            onChange = onRandomShowFavoriteIndicatorChange,
         )
         SwitchPreference(
             labelStringId = R.string.pref_show_widget_info,
@@ -295,24 +226,6 @@ fun SettingsScreen(
                 onSearchDisplayTypeChange(enumValueOf(it))
             },
         )
-        SegmentedPreference(
-            labelStringId = R.string.grid_thumbnail_size,
-            options = thumbnailSizeList,
-            selectedValue = uiState.searchThumbnailSize.name,
-            onSelect = {
-                onSearchThumbnailSizeChange(enumValueOf(it))
-            },
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_media_type_indicator,
-            isChecked = uiState.searchShowMediaTypeIndicator,
-            onChange = onSearchShowMediaTypeIndicatorChange,
-        )
-        SwitchPreference(
-            labelStringId = R.string.pref_show_favorite_indicator,
-            isChecked = uiState.searchShowFavoriteIndicator,
-            onChange = onSearchShowFavoriteIndicatorChange,
-        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -323,14 +236,6 @@ fun SettingsScreen(
         // does not offer preferences for something that cannot be reached
         if (uiState.faceRecognitionAccess != ScopeAccess.Denied) {
             Heading(stringId = R.string.pref_people_display_header)
-            SegmentedPreference(
-                labelStringId = R.string.grid_thumbnail_size,
-                options = thumbnailSizeList,
-                selectedValue = uiState.peopleThumbnailSize.name,
-                onSelect = {
-                    onPeopleThumbnailSizeChange(enumValueOf(it))
-                },
-            )
             SwitchPreference(
                 labelStringId = R.string.pref_people_show_names,
                 isChecked = uiState.peopleShowNames,
@@ -573,24 +478,11 @@ private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
         onNotificationDoNotifyChange = {},
         onNotificationDoVibrateChange = {},
         onCategoryDisplayTypeChange = {},
-        onCategoryThumbnailSizeChange = {},
-        onCategoryShowMediaTypeIndicatorChange = {},
-        onCategoryShowFavoriteIndicatorChange = {},
         onPhotoSlideshowIntervalChange = {},
-        onPhotoThumbnailSizeChange = {},
-        onPhotoShowMediaTypeIndicatorChange = {},
-        onPhotoShowFavoriteIndicatorChange = {},
         onRandomSlideshowIntervalChange = {},
-        onRandomThumbnailSizeChange = {},
-        onRandomShowMediaTypeIndicatorChange = {},
-        onRandomShowFavoriteIndicatorChange = {},
         onRandomShowWidgetInfoChange = {},
         onSearchQueryCountChange = {},
         onSearchDisplayTypeChange = {},
-        onSearchThumbnailSizeChange = {},
-        onSearchShowMediaTypeIndicatorChange = {},
-        onSearchShowFavoriteIndicatorChange = {},
-        onPeopleThumbnailSizeChange = {},
         onPeopleShowNamesChange = {},
         onPeopleShowMediaCountsChange = {},
         onPeopleShowClansChange = {},

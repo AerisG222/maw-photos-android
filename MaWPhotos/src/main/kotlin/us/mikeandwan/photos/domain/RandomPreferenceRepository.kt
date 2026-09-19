@@ -5,7 +5,6 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import us.mikeandwan.photos.database.RandomPreferenceDao
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.RandomPreference
 
 @Singleton
@@ -28,25 +27,8 @@ class RandomPreferenceRepository
                 .getRandomPreference(PREFERENCE_ID)
                 .map { it.slideshowIntervalSeconds }
 
-        fun getPhotoGridItemSize() =
-            dao
-                .getRandomPreference(PREFERENCE_ID)
-                .map { it.gridThumbnailSize }
-
         suspend fun setSlideshowIntervalSeconds(seconds: Int) {
             setPreference { it.copy(slideshowIntervalSeconds = seconds) }
-        }
-
-        suspend fun setPhotoGridItemSize(size: GridThumbnailSize) {
-            setPreference { it.copy(gridThumbnailSize = size) }
-        }
-
-        suspend fun setShowMediaTypeIndicator(show: Boolean) {
-            setPreference { it.copy(showMediaTypeIndicator = show) }
-        }
-
-        suspend fun setShowFavoriteIndicator(show: Boolean) {
-            setPreference { it.copy(showFavoriteIndicator = show) }
         }
 
         suspend fun setShowWidgetInfo(show: Boolean) {
@@ -57,9 +39,6 @@ class RandomPreferenceRepository
             val dbPref = us.mikeandwan.photos.database.RandomPreference(
                 id = PREFERENCE_ID,
                 slideshowIntervalSeconds = pref.slideshowIntervalSeconds,
-                gridThumbnailSize = pref.gridThumbnailSize,
-                showMediaTypeIndicator = pref.showMediaTypeIndicator,
-                showFavoriteIndicator = pref.showFavoriteIndicator,
                 showWidgetInfo = pref.showWidgetInfo,
             )
 

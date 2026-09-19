@@ -3,7 +3,6 @@ package us.mikeandwan.photos.ui.screens.random
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
@@ -18,19 +17,9 @@ fun RandomScreen(
     modifier: Modifier = Modifier,
 ) {
     val gridState = rememberMediaGridState(
-        uiState.media.map {
-            it.toMediaGridItem(
-                useLargeTeaser = uiState.thumbnailSize == GridThumbnailSize.Large,
-                showMediaTypeIndicator = uiState.showMediaTypeIndicator,
-            )
-        },
-        uiState.thumbnailSize,
+        uiState.media.map { it.toMediaGridItem() },
         onMediaClicked,
-        onToggleFavorite = if (uiState.showFavoriteIndicator) {
-            { onToggleFavorite(it.data) }
-        } else {
-            null
-        },
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     MediaGrid(gridState, modifier = modifier)

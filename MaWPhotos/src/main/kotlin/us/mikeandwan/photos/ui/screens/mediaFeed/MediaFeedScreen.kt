@@ -31,7 +31,6 @@ import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.CategoryLabels
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.PlaceAncestor
@@ -144,13 +143,8 @@ private fun MediaListing(
 
     val mediaGridState = rememberMediaGridState(
         gridItems = uiState.gridItems,
-        thumbnailSize = uiState.thumbnailSize,
         onSelectGridItem = { onMediaClicked(it.data) },
-        onToggleFavorite = if (uiState.showFavoriteIndicator) {
-            { onToggleFavorite(it.data) }
-        } else {
-            null
-        },
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     MediaGrid(mediaGridState, gridState = gridState)
@@ -168,11 +162,6 @@ private fun CategoryListing(
     onLoadMore: () -> Unit,
 ) {
     val preferences = uiState.categoryPreference
-
-    val toggleFavorite: ((Category) -> Unit)? = when {
-        preferences.showFavoriteIndicator -> onToggleFavorite
-        else -> null
-    }
 
     when (preferences.displayType) {
         CategoryDisplayType.Grid -> {
@@ -192,15 +181,10 @@ private fun CategoryListing(
 
             val categoryGridState = rememberMediaGridState(
                 gridItems = uiState.categories.map {
-                    it.toMediaGridItem(
-                        useLargeTeaser = preferences.gridThumbnailSize == GridThumbnailSize.Large,
-                        showMediaTypeIndicator = preferences.showMediaTypeIndicator,
-                        label = it.gridLabel(uiState.categoryLabels),
-                    )
+                    it.toMediaGridItem(label = it.gridLabel(uiState.categoryLabels))
                 },
-                thumbnailSize = preferences.gridThumbnailSize,
                 onSelectGridItem = { onCategoryClicked(it.data) },
-                onToggleFavorite = toggleFavorite?.let { toggle -> { toggle(it.data) } },
+                onToggleFavorite = { onToggleFavorite(it.data) },
             )
 
             MediaGrid(categoryGridState, gridState = gridState)
@@ -228,7 +212,7 @@ private fun CategoryListing(
                 showYear = uiState.categoryLabels.showYear,
                 showName = uiState.categoryLabels.showTitle,
                 onSelectCategory = onCategoryClicked,
-                onToggleFavorite = toggleFavorite,
+                onToggleFavorite = onToggleFavorite,
                 listState = listState,
             )
         }
@@ -274,12 +258,8 @@ private fun Skeleton(uiState: MediaFeedUiState) {
             CategoryListSkeleton()
         }
 
-        uiState.showCategories -> {
-            MediaGridSkeleton(thumbnailSize = uiState.categoryPreference.gridThumbnailSize)
-        }
-
         else -> {
-            MediaGridSkeleton(thumbnailSize = uiState.thumbnailSize)
+            MediaGridSkeleton()
         }
     }
 }

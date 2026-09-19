@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.domain
 
+import androidx.collection.LruCache
 import java.net.HttpURLConnection
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,6 +13,7 @@ import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Place
+import us.mikeandwan.photos.domain.models.broadestFirst
 
 /**
  * The tree of countries, states and cities the caller has media in.
@@ -37,6 +39,12 @@ class PlaceRepository
         companion object {
             private const val ERR_MSG_LOAD_PLACES = "Unable to load places at this time.  Please try again later."
             private const val ERR_MSG_LOAD_PLACE = "Unable to load this place at this time.  Please try again later."
+            private const val ERR_MSG_LOAD_MEDIA_PLACES =
+                "Unable to load where this was taken at this time.  Please try again later."
+
+            // a few screens' worth of paging in either direction, the same as the face cache - and
+            // for the same reason, since both answer the item a pager happens to be sitting on
+            private const val MEDIA_PLACES_CACHE_SIZE = 32
         }
 
         // every place that has come back, by id.  the breadcrumb above a place is drawn from here,
@@ -50,6 +58,10 @@ class PlaceRepository
         // lists them on the way in.
         private val _countries = MutableStateFlow<List<Place>>(emptyList())
         val countries = _countries.asStateFlow()
+
+        // where each media item was taken, by media id.  a pager walks back and forth over the same
+        // handful of items, and where a photograph was taken does not move.
+        private val cachedMediaPlaces = LruCache<Uuid, List<Place>>(MEDIA_PLACES_CACHE_SIZE)
 
         /** One level of the tree - the countries when [parentId] is null. */
         fun getPlaces(parentId: Uuid? = null) =
@@ -112,6 +124,53 @@ class PlaceRepository
                         cache(listOf(place))
 
                         emit(ExternalCallStatus.Success(place))
+                    }
+                }
+            }
+
+        /**
+         * Where one media item was taken - the city, its state and its country, broadest first.
+         *
+         * Not the same thing as [getAncestors]: that walks up from a place the caller is already
+         * looking at, while this answers which places a media item was geocoded into at all. A
+         * media item that was never placed answers with nothing, which is an ordinary answer.
+         *
+         * Sorted here rather than left to the caller, so the card and anything else that comes to
+         * read this agree on an order the API does not promise.
+         */
+        fun getMediaPlaces(mediaId: Uuid) =
+            flow {
+                cachedMediaPlaces[mediaId]?.let {
+                    emit(ExternalCallStatus.Success(it))
+
+                    return@flow
+                }
+
+                emit(ExternalCallStatus.Loading)
+
+                when (val result = api.getMediaPlaces(mediaId)) {
+                    is ApiResult.Error -> {
+                        emit(apiErrorHandler.handleError(result, ERR_MSG_LOAD_MEDIA_PLACES))
+                    }
+
+                    // a media item nobody geocoded answers with an empty array, which lands below.
+                    // a body-less success says the same thing differently, and caching it stops the
+                    // pager asking again every time it comes back to the item.
+                    is ApiResult.Empty -> {
+                        cachedMediaPlaces.put(mediaId, emptyList())
+
+                        emit(ExternalCallStatus.Success(emptyList()))
+                    }
+
+                    is ApiResult.Success -> {
+                        val places = result.result
+                            .map { it.toDomainPlace() }
+                            .sortedWith(broadestFirst)
+
+                        cache(places)
+                        cachedMediaPlaces.put(mediaId, places)
+
+                        emit(ExternalCallStatus.Success(places))
                     }
                 }
             }

@@ -8,15 +8,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import javax.inject.Inject
 import kotlin.uuid.Uuid
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.MediaFeedRepository
@@ -25,8 +21,10 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.FaceHighlight
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFaces
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.MediaPreference
+import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.services.MediaListAction
 import us.mikeandwan.photos.domain.services.MediaListService
 
@@ -45,6 +43,10 @@ data class MediaFeedItemUiState(
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
     val faces: List<FaceHighlight> = emptyList(),
+    // everyone the pipeline found here, which is not the same as the boxes above: the
+    // details sheet names them whether or not the overlay is drawing anything
+    val mediaFaces: MediaFaces? = null,
+    val places: List<Place>? = null,
     val showFaceHighlights: Boolean = false,
     val canHighlightFaces: Boolean = false,
     val isLoading: Boolean = true,
@@ -91,7 +93,9 @@ class MediaFeedItemViewModel
                         showDetailSheet = state.showDetailSheet,
                         exif = state.exif,
                         comments = state.comments,
-                        faces = state.faces,
+                        faces = state.facesToHighlight,
+                        mediaFaces = state.mediaFaces,
+                        places = state.places,
                         showFaceHighlights = state.showFaceHighlights,
                         canHighlightFaces = state.canHighlightFaces,
                         isLoading = state.isLoading,
@@ -154,6 +158,14 @@ class MediaFeedItemViewModel
 
         fun fetchCommentDetails() {
             mediaListService.onAction(MediaListAction.FetchComments)
+        }
+
+        fun fetchFaces() {
+            mediaListService.onAction(MediaListAction.FetchFaces)
+        }
+
+        fun fetchPlaces() {
+            mediaListService.onAction(MediaListAction.FetchPlaces)
         }
 
         fun addComment(comment: String) {

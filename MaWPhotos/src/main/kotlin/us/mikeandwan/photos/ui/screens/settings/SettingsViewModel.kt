@@ -5,14 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthService
 import us.mikeandwan.photos.authorization.ScopeAccess
@@ -27,7 +22,6 @@ import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.PlacePreference
 
@@ -35,24 +29,11 @@ data class SettingsUiState(
     val notificationDoNotify: Boolean = false,
     val notificationDoVibrate: Boolean = true,
     val categoryDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
-    val categoryThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val categoryShowMediaTypeIndicator: Boolean = true,
-    val categoryShowFavoriteIndicator: Boolean = true,
     val photoSlideshowInterval: Int = 3,
-    val photoThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val photoShowMediaTypeIndicator: Boolean = true,
-    val photoShowFavoriteIndicator: Boolean = true,
     val randomSlideshowInterval: Int = 3,
-    val randomThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val randomShowMediaTypeIndicator: Boolean = true,
-    val randomShowFavoriteIndicator: Boolean = true,
     val randomShowWidgetInfo: Boolean = true,
     val searchQueryCount: Int = 20,
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
-    val searchThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val searchShowMediaTypeIndicator: Boolean = true,
-    val searchShowFavoriteIndicator: Boolean = true,
-    val peopleThumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
     val peopleShowNames: Boolean = true,
     val peopleShowMediaCounts: Boolean = true,
     val peopleShowClans: Boolean = true,
@@ -91,18 +72,12 @@ class SettingsViewModel
                 notificationPreferenceRepository.getDoNotify(),
                 notificationPreferenceRepository.getDoVibrate(),
                 categoryPreferenceRepository.getCategoryDisplayType(),
-                categoryPreferenceRepository.getCategoryGridItemSize(),
-                categoryPreferenceRepository.getCategoryPreference(),
                 mediaPreferenceRepository.getSlideshowIntervalSeconds(),
-                mediaPreferenceRepository.getPhotoGridItemSize(),
                 mediaPreferenceRepository.getMediaPreference(),
                 randomPreferenceRepository.getSlideshowIntervalSeconds(),
-                randomPreferenceRepository.getPhotoGridItemSize(),
                 randomPreferenceRepository.getRandomPreferences(),
                 searchPreferenceRepository.getSearchesToSaveCount(),
                 searchPreferenceRepository.getSearchDisplayType(),
-                searchPreferenceRepository.getSearchGridItemSize(),
-                searchPreferenceRepository.getSearchPreference(),
                 errorRepository.isDeveloperMode,
                 errorRepository.developerLogs,
                 authService.faceRecognitionAccess,
@@ -110,41 +85,21 @@ class SettingsViewModel
                 placePreferenceRepository.getPlacePreference(),
             ) { args: Array<Any?> ->
                 @Suppress("UNCHECKED_CAST")
-                val developerLogs = args[16] as List<DeveloperLog>
-                val peoplePreference = args[18] as PeoplePreference
-                val placePreference = args[19] as PlacePreference
+                val developerLogs = args[10] as List<DeveloperLog>
+                val mediaPreference = args[4] as us.mikeandwan.photos.domain.models.MediaPreference
+                val randomPreference = args[6] as us.mikeandwan.photos.domain.models.RandomPreference
+                val peoplePreference = args[12] as PeoplePreference
+                val placePreference = args[13] as PlacePreference
 
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
                     notificationDoVibrate = args[1] as Boolean,
                     categoryDisplayType = args[2] as CategoryDisplayType,
-                    categoryThumbnailSize = args[3] as GridThumbnailSize,
-                    categoryShowMediaTypeIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference)
-                        .showMediaTypeIndicator,
-                    categoryShowFavoriteIndicator = (args[4] as us.mikeandwan.photos.domain.models.CategoryPreference)
-                        .showFavoriteIndicator,
-                    photoSlideshowInterval = args[5] as Int,
-                    photoThumbnailSize = args[6] as GridThumbnailSize,
-                    photoShowMediaTypeIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
-                        .showMediaTypeIndicator,
-                    photoShowFavoriteIndicator = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
-                        .showFavoriteIndicator,
-                    randomSlideshowInterval = args[8] as Int,
-                    randomThumbnailSize = args[9] as GridThumbnailSize,
-                    randomShowMediaTypeIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
-                        .showMediaTypeIndicator,
-                    randomShowFavoriteIndicator = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
-                        .showFavoriteIndicator,
-                    randomShowWidgetInfo = (args[10] as us.mikeandwan.photos.domain.models.RandomPreference)
-                        .showWidgetInfo,
-                    searchQueryCount = args[11] as Int,
-                    searchDisplayType = args[12] as CategoryDisplayType,
-                    searchThumbnailSize = args[13] as GridThumbnailSize,
-                    searchShowMediaTypeIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
-                        .showMediaTypeIndicator,
-                    searchShowFavoriteIndicator = (args[14] as us.mikeandwan.photos.domain.models.SearchPreference)
-                        .showFavoriteIndicator,
-                    peopleThumbnailSize = peoplePreference.gridThumbnailSize,
+                    photoSlideshowInterval = args[3] as Int,
+                    randomSlideshowInterval = args[5] as Int,
+                    randomShowWidgetInfo = randomPreference.showWidgetInfo,
+                    searchQueryCount = args[7] as Int,
+                    searchDisplayType = args[8] as CategoryDisplayType,
                     peopleShowNames = peoplePreference.showNames,
                     peopleShowMediaCounts = peoplePreference.showMediaCounts,
                     peopleShowClans = peoplePreference.showClans,
@@ -152,11 +107,10 @@ class SettingsViewModel
                     peopleShowCategoryTitle = peoplePreference.showCategoryTitle,
                     placeShowCategoryYear = placePreference.showCategoryYear,
                     placeShowCategoryTitle = placePreference.showCategoryTitle,
-                    mediaShowFaceHighlights = (args[7] as us.mikeandwan.photos.domain.models.MediaPreference)
-                        .showFaceHighlights,
-                    isDeveloperMode = args[15] as Boolean,
+                    mediaShowFaceHighlights = mediaPreference.showFaceHighlights,
+                    isDeveloperMode = args[9] as Boolean,
                     developerLogs = developerLogs,
-                    faceRecognitionAccess = args[17] as ScopeAccess,
+                    faceRecognitionAccess = args[11] as ScopeAccess,
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), SettingsUiState())
 
@@ -178,69 +132,15 @@ class SettingsViewModel
             }
         }
 
-        fun setCategoryThumbnailSize(categoryThumbnailSize: GridThumbnailSize) {
-            viewModelScope.launch {
-                categoryPreferenceRepository.setCategoryGridItemSize(categoryThumbnailSize)
-            }
-        }
-
-        fun setCategoryShowMediaTypeIndicator(show: Boolean) {
-            viewModelScope.launch {
-                categoryPreferenceRepository.setShowMediaTypeIndicator(show)
-            }
-        }
-
-        fun setCategoryShowFavoriteIndicator(show: Boolean) {
-            viewModelScope.launch {
-                categoryPreferenceRepository.setShowFavoriteIndicator(show)
-            }
-        }
-
         fun setPhotoSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
                 mediaPreferenceRepository.setSlideshowIntervalSeconds(slideshowInterval)
             }
         }
 
-        fun setPhotoThumbnailSize(photoThumbnailSize: GridThumbnailSize) {
-            viewModelScope.launch {
-                mediaPreferenceRepository.setPhotoGridItemSize(photoThumbnailSize)
-            }
-        }
-
-        fun setPhotoShowMediaTypeIndicator(show: Boolean) {
-            viewModelScope.launch {
-                mediaPreferenceRepository.setShowMediaTypeIndicator(show)
-            }
-        }
-
-        fun setPhotoShowFavoriteIndicator(show: Boolean) {
-            viewModelScope.launch {
-                mediaPreferenceRepository.setShowFavoriteIndicator(show)
-            }
-        }
-
         fun setRandomSlideshowInterval(slideshowInterval: Int) {
             viewModelScope.launch {
                 randomPreferenceRepository.setSlideshowIntervalSeconds(slideshowInterval)
-            }
-        }
-
-        fun setRandomThumbnailSize(randomThumbnailSize: GridThumbnailSize) {
-            viewModelScope.launch {
-                randomPreferenceRepository.setPhotoGridItemSize(randomThumbnailSize)
-            }
-        }
-
-        fun setRandomShowMediaTypeIndicator(show: Boolean) {
-            viewModelScope.launch {
-                randomPreferenceRepository.setShowMediaTypeIndicator(show)
-            }
-        }
-
-        fun setRandomShowFavoriteIndicator(show: Boolean) {
-            viewModelScope.launch {
-                randomPreferenceRepository.setShowFavoriteIndicator(show)
             }
         }
 
@@ -263,24 +163,6 @@ class SettingsViewModel
         fun setSearchDisplayType(searchDisplayType: CategoryDisplayType) {
             viewModelScope.launch {
                 searchPreferenceRepository.setSearchDisplayType(searchDisplayType)
-            }
-        }
-
-        fun setSearchThumbnailSize(searchThumbnailSize: GridThumbnailSize) {
-            viewModelScope.launch {
-                searchPreferenceRepository.setSearchGridItemSize(searchThumbnailSize)
-            }
-        }
-
-        fun setSearchShowMediaTypeIndicator(show: Boolean) {
-            viewModelScope.launch {
-                searchPreferenceRepository.setShowMediaTypeIndicator(show)
-            }
-        }
-
-        fun setSearchShowFavoriteIndicator(show: Boolean) {
-            viewModelScope.launch {
-                searchPreferenceRepository.setShowFavoriteIndicator(show)
             }
         }
 
@@ -313,12 +195,6 @@ class SettingsViewModel
 
         fun showError(message: String) {
             errorRepository.showError(message)
-        }
-
-        fun setPeopleThumbnailSize(size: GridThumbnailSize) {
-            viewModelScope.launch {
-                peoplePreferenceRepository.setPeopleGridItemSize(size)
-            }
         }
 
         fun setPeopleShowNames(show: Boolean) {

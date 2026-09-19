@@ -5,7 +5,6 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import us.mikeandwan.photos.database.PeoplePreferenceDao
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.PersonSort
 
@@ -26,10 +25,6 @@ class PeoplePreferenceRepository
 
         suspend fun setSortBy(sortBy: PersonSort) {
             setPreference { it.copy(sortBy = sortBy) }
-        }
-
-        suspend fun setPeopleGridItemSize(size: GridThumbnailSize) {
-            setPreference { it.copy(gridThumbnailSize = size) }
         }
 
         suspend fun setShowNames(show: Boolean) {
@@ -56,7 +51,6 @@ class PeoplePreferenceRepository
             val dbPref = us.mikeandwan.photos.database.PeoplePreference(
                 PREFERENCE_ID,
                 pref.sortBy,
-                pref.gridThumbnailSize,
                 pref.showNames,
                 pref.showMediaCounts,
                 pref.showClans,

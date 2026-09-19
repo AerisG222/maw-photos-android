@@ -10,15 +10,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,7 +33,6 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryLabels
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
@@ -54,8 +50,6 @@ data class MediaFeedUiState(
     // person or a clan, who are not anywhere in it.
     val placeChain: List<PlaceAncestor> = emptyList(),
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
-    val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val showFavoriteIndicator: Boolean = true,
     val favoritesOnly: Boolean = false,
     val isShuffled: Boolean = false,
     // whether the categories the subject turns up in are being listed rather than the media itself
@@ -192,10 +186,6 @@ class MediaFeedViewModel
         }
 
         init {
-            val thumbnailSizeFlow = mediaPreferenceRepository
-                .getPhotoGridItemSize()
-                .stateIn(viewModelScope, WhileSubscribed(5000), GridThumbnailSize.Medium)
-
             // kotlinx's combine here - flowext's overloads start at six flows
             val categoryListing = combine(
                 mediaFeedRepository.categories,
@@ -215,10 +205,8 @@ class MediaFeedViewModel
                 mediaFeedRepository.showCategories,
                 categoryListing,
                 subjectHeading,
-                thumbnailSizeFlow,
-                mediaPreferenceRepository.getMediaPreference(),
                 _isLoading,
-            ) { media, hasMore, filter, showCategories, categoryListing, heading, thumbnailSize, mediaPref, isLoading ->
+            ) { media, hasMore, filter, showCategories, categoryListing, heading, isLoading ->
                 // whichever listing is on screen is the one the loading, empty and paging flags
                 // are about
                 val isListingEmpty = when {
@@ -229,14 +217,7 @@ class MediaFeedViewModel
                 MediaFeedUiState(
                     title = heading.title,
                     placeChain = heading.placeChain,
-                    gridItems = media.map {
-                        it.toMediaGridItem(
-                            useLargeTeaser = thumbnailSize == GridThumbnailSize.Large,
-                            showMediaTypeIndicator = mediaPref.showMediaTypeIndicator,
-                        )
-                    },
-                    thumbnailSize = thumbnailSize,
-                    showFavoriteIndicator = mediaPref.showFavoriteIndicator,
+                    gridItems = media.map { it.toMediaGridItem() },
                     favoritesOnly = filter.favoritesOnly,
                     isShuffled = filter.seed != null,
                     showCategories = showCategories,

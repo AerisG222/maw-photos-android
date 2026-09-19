@@ -36,12 +36,23 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.FaceHighlight
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFaces
 import us.mikeandwan.photos.domain.models.MediaType
+import us.mikeandwan.photos.domain.models.Place
 
 // paired so the pager can tell "off" from "not on offer" without two flows threaded through
 private data class FaceHighlighting(
     val isOn: Boolean,
     val isAvailable: Boolean,
+)
+
+// the item whose faces are wanted, and whether the overlay is one of the things that wants them.
+// the two travel together so that moving to another item always drops the previous item's faces,
+// while merely switching the overlay off does not - the details sheet's Who card reads the same
+// faces, and has no reason to forget them because the boxes were hidden.
+private data class FaceTarget(
+    val mediaId: Uuid?,
+    val wantedByOverlay: Boolean,
 )
 
 sealed class MediaListAction {
@@ -65,6 +76,17 @@ sealed class MediaListAction {
 
     data object FetchComments : MediaListAction()
 
+    /**
+     * Asks for the faces in the active item on behalf of the details sheet's Who card.
+     *
+     * Separate from the overlay's own fetching, which only ever runs while face highlighting is
+     * switched on: the card is worth reading whether or not somebody wants boxes drawn over their
+     * photographs.
+     */
+    data object FetchFaces : MediaListAction()
+
+    data object FetchPlaces : MediaListAction()
+
     data class AddComment(
         val comment: String,
     ) : MediaListAction()
@@ -84,14 +106,32 @@ data class MediaListState(
     val showDetailSheet: Boolean = false,
     val exif: JsonElement? = null,
     val comments: List<Comment> = emptyList(),
-    // empty whenever face highlighting is switched off, so nothing downstream needs to know the
-    // preference exists - there is simply nothing to draw
-    val faces: List<FaceHighlight> = emptyList(),
+    // what the recognition pipeline found in the active item, whether or not anybody asked for
+    // boxes over it - the overlay and the details sheet's Who card are both drawn from this.  null
+    // until something has asked, which is not the same as having found nobody.
+    val mediaFaces: MediaFaces? = null,
+    // where the active item was taken.  null until the details sheet's Where card asks, so nothing
+    // is fetched for a tab nobody opened.
+    val places: List<Place>? = null,
     val showFaceHighlights: Boolean = false,
     // false when the API would refuse the calls behind the overlay, which is what keeps the pager
     // from offering a switch that could only ever turn on an empty overlay
     val canHighlightFaces: Boolean = false,
 ) {
+    /**
+     * The boxes to draw over the media, which is not the same as the faces that were found in it.
+     *
+     * Empty whenever face highlighting is switched off, so nothing downstream needs to know the
+     * preference exists - there is simply nothing to draw. The Who card reads [mediaFaces]
+     * instead, which is why opening it cannot put boxes over a photograph nobody asked to mark up.
+     */
+    val facesToHighlight: List<FaceHighlight>
+        get() = if (showFaceHighlights && canHighlightFaces) {
+            mediaFaces?.highlights.orEmpty()
+        } else {
+            emptyList()
+        }
+
     val activeIndex: Int
         get() = media.indexOfFirst { it.id == activeId }
 
@@ -123,6 +163,7 @@ class MediaListService
         private val mediaCommentService: MediaCommentService,
         private val mediaExifService: MediaExifService,
         private val mediaFaceService: MediaFaceService,
+        private val mediaPlaceService: MediaPlaceService,
         private val mediaPreferenceRepository: MediaPreferenceRepository,
         authService: AuthService,
     ) {
@@ -166,6 +207,7 @@ class MediaListService
                 mediaExifService.exif,
                 mediaCommentService.comments,
                 mediaFaceService.faces,
+                mediaPlaceService.places,
                 faceHighlighting,
             ) {
                 category,
@@ -175,7 +217,8 @@ class MediaListService
                 showDetailSheet,
                 exif,
                 comments,
-                faces,
+                mediaFaces,
+                places,
                 faceHighlighting,
                 ->
                 MediaListState(
@@ -186,7 +229,8 @@ class MediaListService
                     showDetailSheet = showDetailSheet,
                     exif = exif,
                     comments = comments,
-                    faces = faces,
+                    mediaFaces = mediaFaces,
+                    places = places,
                     showFaceHighlights = faceHighlighting.isOn,
                     canHighlightFaces = faceHighlighting.isAvailable,
                 )
@@ -226,6 +270,14 @@ class MediaListService
                     fetchComments()
                 }
 
+                is MediaListAction.FetchFaces -> {
+                    fetchFaces()
+                }
+
+                is MediaListAction.FetchPlaces -> {
+                    fetchPlaces()
+                }
+
                 is MediaListAction.AddComment -> {
                     addComment(action.comment)
                 }
@@ -247,6 +299,7 @@ class MediaListService
             showDetailSheet.update { false }
             resumeSlideshowAfterShowingDetails.update { false }
             mediaFaceService.clear()
+            mediaPlaceService.clear()
         }
 
         /**
@@ -369,6 +422,24 @@ class MediaListService
             }
         }
 
+        // FACES, ON BEHALF OF THE DETAILS SHEET
+        // photos only, the same as the overlay's own fetching: faces are detected on stills, and a
+        // card over a video would be asking a question the pipeline never answered
+        private fun fetchFaces() {
+            scope.launch {
+                state.value.activeMedia
+                    ?.takeIf { it.type == MediaType.Photo }
+                    ?.let { mediaFaceService.fetchFaces(it.id) }
+            }
+        }
+
+        // PLACES
+        private fun fetchPlaces() {
+            scope.launch {
+                state.value.activeMedia?.let { mediaPlaceService.fetchPlaces(it.id) }
+        }
+    }
+
         /**
          * Points this at the feed a pager is being opened over.
          *
@@ -418,26 +489,32 @@ class MediaListService
          * a box fixed to the frame would be wrong the moment the video moved.
          */
         private suspend fun watchFacesForActiveMedia() {
+            var lastMediaId: Uuid? = null
+
             combine(
                 media,
                 activeId,
                 faceHighlighting,
             ) { mediaList, id, highlighting ->
-                // availability is read here and not only where the switch is drawn: credentials
-                // that lost the scope would otherwise keep asking for faces the API refuses, once
-                // per photo, on behalf of a preference the user can no longer see
-                if (highlighting.isOn && highlighting.isAvailable) {
-                    mediaList.firstOrNull { it.id == id && it.type == MediaType.Photo }?.id
-                } else {
-                    null
-                }
+                FaceTarget(
+                    mediaId = mediaList.firstOrNull { it.id == id && it.type == MediaType.Photo }?.id,
+                    // availability is read here and not only where the switch is drawn: credentials
+                    // that lost the scope would otherwise keep asking for faces the API refuses,
+                    // once per photo, on behalf of a preference the user can no longer see
+                    wantedByOverlay = highlighting.isOn && highlighting.isAvailable,
+                )
             }.distinctUntilChanged()
-                // boxes belong to the item they were fetched for, so they go the instant the
-                // item does rather than lingering over the next one while it loads
-                .onEach { mediaFaceService.clear() }
-                .collectLatest { mediaId ->
-                    if (mediaId != null) {
-                        mediaFaceService.fetchFaces(mediaId)
+                // faces belong to the item they were fetched for, so they go the instant the item
+                // does rather than lingering over the next one while it loads.  hiding the boxes is
+                // not the same event, and does not throw away what the Who card is reading.
+                .onEach { target ->
+                    if (target.mediaId != lastMediaId) {
+                        lastMediaId = target.mediaId
+                        mediaFaceService.clear()
+                    }
+                }.collectLatest { target ->
+                    if (target.wantedByOverlay && target.mediaId != null) {
+                        mediaFaceService.fetchFaces(target.mediaId)
                     }
                 }
         }

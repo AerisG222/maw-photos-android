@@ -105,6 +105,10 @@ private fun MediaFeedItemRoute(
         onFetchExif = { vm.fetchExif() },
         onFetchComments = { vm.fetchCommentDetails() },
         onAddComment = { vm.addComment(it) },
+        onFetchFaces = { vm.fetchFaces() },
+        onFetchPlaces = { vm.fetchPlaces() },
+        onSelectPerson = { appActions.navigateToMediaFeed(MediaFeedSubject.Person(it)) },
+        onSelectPlace = { appActions.navigateToPlace(it) },
         onSaveMediaToShare = { drawable, filename, onComplete ->
             vm.saveFileToShare(drawable, filename, onComplete)
         },

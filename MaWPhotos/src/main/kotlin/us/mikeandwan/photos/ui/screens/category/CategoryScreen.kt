@@ -16,23 +16,15 @@ fun CategoryScreen(
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
-        MediaGridSkeleton(
-            thumbnailSize = uiState.gridItemThumbnailSize,
-            modifier = modifier,
-        )
+        MediaGridSkeleton(modifier = modifier)
 
         return
     }
 
     val gridState = rememberMediaGridState(
         gridItems = uiState.gridItems,
-        thumbnailSize = uiState.gridItemThumbnailSize,
         onSelectGridItem = { onMediaClicked(it.data) },
-        onToggleFavorite = if (uiState.showFavoriteIndicator) {
-            { onToggleFavorite(it.data) }
-        } else {
-            null
-        },
+        onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
     MediaGrid(gridState, modifier = modifier)

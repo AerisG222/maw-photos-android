@@ -13,14 +13,13 @@ import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFileType
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 
-fun Media.toMediaGridItem(
-    useLargeTeaser: Boolean,
-    showMediaTypeIndicator: Boolean = true,
-): MediaGridItem<Media> =
+// the smaller of the two published teasers: the grid draws one size everywhere now, and it is the
+// size the small teaser was cut for
+fun Media.toMediaGridItem(): MediaGridItem<Media> =
     MediaGridItem(
         this.id,
-        this.findTeaserImage(useLargeTeaser).path,
-        if (showMediaTypeIndicator) listOf(this.type) else emptyList(),
+        this.findTeaserImage(largerSize = false).path,
+        listOf(this.type),
         this,
         this.isFavorite,
     )
@@ -38,8 +37,6 @@ fun Media.getMediaUrl(): String {
 }
 
 fun Category.toMediaGridItem(
-    useLargeTeaser: Boolean,
-    showMediaTypeIndicator: Boolean = true,
     // what the tile says it is, when the screen listing it asks for anything.  built by the caller
     // rather than here: only the feeds offer the choice, and everywhere else a category is listed
     // among its own year's, where the year would be on every tile and say nothing
@@ -47,8 +44,8 @@ fun Category.toMediaGridItem(
 ): MediaGridItem<Category> =
     MediaGridItem(
         this.id,
-        this.findTeaserImage(useLargeTeaser).path,
-        if (showMediaTypeIndicator) this.mediaTypes else emptyList(),
+        this.findTeaserImage(largerSize = false).path,
+        this.mediaTypes,
         this,
         this.isFavorite,
         label,

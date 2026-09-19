@@ -4,20 +4,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.RandomMediaRepository
-import us.mikeandwan.photos.domain.RandomPreferenceRepository
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 
 data class RandomUiState(
     val media: List<Media> = emptyList(),
-    val thumbnailSize: GridThumbnailSize = GridThumbnailSize.Medium,
-    val showMediaTypeIndicator: Boolean = true,
-    val showFavoriteIndicator: Boolean = true,
 )
 
 @HiltViewModel
@@ -25,23 +20,13 @@ class RandomViewModel
     @Inject
     constructor(
         randomMediaRepository: RandomMediaRepository,
-        randomPreferenceRepository: RandomPreferenceRepository,
         private val mediaFavoriteService: MediaFavoriteService,
     ) : BaseRandomViewModel(
             randomMediaRepository,
         ) {
-        val uiState = combine(
-            media,
-            randomPreferenceRepository.getPhotoGridItemSize(),
-            randomPreferenceRepository.getRandomPreferences(),
-        ) { media, thumbSize, randomPref ->
-            RandomUiState(
-                media = media,
-                thumbnailSize = thumbSize,
-                showMediaTypeIndicator = randomPref.showMediaTypeIndicator,
-                showFavoriteIndicator = randomPref.showFavoriteIndicator,
-            )
-        }.stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState())
+        val uiState = media
+            .map { RandomUiState(media = it) }
+            .stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState())
 
         fun toggleFavorite(media: Media) {
             viewModelScope.launch {

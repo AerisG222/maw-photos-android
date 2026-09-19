@@ -82,9 +82,6 @@ fun DbScale.toDomainScale(): Scale =
 fun DbCategoryPreference.toDomainCategoryPreference(): CategoryPreference =
     CategoryPreference(
         displayType = displayType,
-        gridThumbnailSize = gridThumbnailSize,
-        showMediaTypeIndicator = showMediaTypeIndicator,
-        showFavoriteIndicator = showFavoriteIndicator,
     )
 
 fun DbNotificationPreference.toDomainNotificationPreference(): NotificationPreference =
@@ -96,16 +93,12 @@ fun DbNotificationPreference.toDomainNotificationPreference(): NotificationPrefe
 fun DbMediaPreference.toDomainPhotoPreference(): MediaPreference =
     MediaPreference(
         slideshowIntervalSeconds = slideshowIntervalSeconds,
-        gridThumbnailSize = gridThumbnailSize,
-        showMediaTypeIndicator = showMediaTypeIndicator,
-        showFavoriteIndicator = showFavoriteIndicator,
         showFaceHighlights = showFaceHighlights,
     )
 
 fun DbPeoplePreference.toDomainPeoplePreference(): PeoplePreference =
     PeoplePreference(
         sortBy = sortBy,
-        gridThumbnailSize = gridThumbnailSize,
         showNames = showNames,
         showMediaCounts = showMediaCounts,
         showClans = showClans,
@@ -122,9 +115,6 @@ fun DbPlacePreference.toDomainPlacePreference(): PlacePreference =
 fun DbRandomPreference.toDomainRandomPreference(): RandomPreference =
     RandomPreference(
         slideshowIntervalSeconds = slideshowIntervalSeconds,
-        gridThumbnailSize = gridThumbnailSize,
-        showMediaTypeIndicator = showMediaTypeIndicator,
-        showFavoriteIndicator = showFavoriteIndicator,
         showWidgetInfo = showWidgetInfo,
     )
 
@@ -232,9 +222,6 @@ fun DbSearchPreference.toDomainSearchPreference(): SearchPreference =
         id = id,
         recentQueryCountToSave = recentQueryCount,
         displayType = displayType,
-        gridThumbnailSize = gridThumbnailSize,
-        showMediaTypeIndicator = showMediaTypeIndicator,
-        showFavoriteIndicator = showFavoriteIndicator,
     )
 
 fun ApiResult.Error.isUnauthorized(): Boolean = errorCode == HttpURLConnection.HTTP_UNAUTHORIZED

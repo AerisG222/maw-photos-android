@@ -2,7 +2,6 @@ package us.mikeandwan.photos.database.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import us.mikeandwan.photos.domain.models.GridThumbnailSize
 import us.mikeandwan.photos.domain.models.PersonSort
 
 // browsing by person: its own preferences, plus the one setting that governs whether faces are
@@ -22,12 +21,14 @@ val MIGRATION_18_19 = object : Migration(18, 19) {
             """.trimIndent(),
         )
 
-        // the row every read of this table expects.  a fresh install gets it from
+        // the row every read of this table expects.  the thumbnail size is written out rather
+        // than read from a model: it names a column that MIGRATION_21_22 later drops, and a
+        // migration describes the schema as it was rather than as it is now.  a fresh install gets it from
         // MawDatabaseCreateCallback instead, which is why this one is only for upgrades.
         db.execSQL(
             """
             INSERT INTO people_preference (id, sort_by, grid_thumbnail_size, show_names, show_media_counts)
-                VALUES (1, '${PersonSort.Name}', '${GridThumbnailSize.Medium}', 1, 1)
+                VALUES (1, '${PersonSort.Name}', 'Medium', 1, 1)
             """.trimIndent(),
         )
 
