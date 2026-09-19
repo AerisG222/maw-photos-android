@@ -30,8 +30,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # the action installs "tools platform-tools" unless told otherwise, and "tools" - the old
+      # sdk tools, long since obsolete - makes current sdkmanager releases fail the whole step.
+      # gradle fetches the platform and build tools it needs by itself.
       - name: Set up the Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       # Also validates the checksum of the wrapper jar that is committed to the repository.
       - name: Set up Gradle
