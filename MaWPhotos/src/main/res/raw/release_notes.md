@@ -1,5 +1,14 @@
 # Release Notes
 
+## v9.12 : 09/19/2026
+
+- simplify by removing a number of settings, like thumbnail size
+- allow navigating to people or places from the current photo
+- offer improved image quality when zooming and pause slideshow when zoomed
+- fixed issue so videos can be toggled as a favorite
+- move settings to DataStore rather than Room
+- other minor improvements and dependency updates
+
 ## v9.11 : 09/05/2026
 
 - allow browsing categories or media by the place where they were taken
