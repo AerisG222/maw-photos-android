@@ -36,7 +36,6 @@ auth0 = "4.1.0"
 coil = "3.6.2"
 flowext = "1.0.0"
 markdown = "0.45.0"
-ratingbar = "2.1.1"
 retrofit = "3.0.0"
 timber = "5.0.1"
 okhttp = "5.5.0"
@@ -97,7 +96,6 @@ ktlint = { group = "com.pinterest.ktlint", name = "ktlint-cli", version.ref = "k
 auth0 = { group = "com.auth0.android", name = "auth0", version.ref = "auth0" }
 coil = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
-compose-ratingbar = { group = "com.github.SmartToolFactory", name = "Compose-RatingBar", version.ref = "ratingbar" }
 flowext = { group = "io.github.hoc081098", name = "FlowExt", version.ref = "flowext" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 markdown = { group = "com.mikepenz", name="multiplatform-markdown-renderer-android", version.ref = "markdown" }

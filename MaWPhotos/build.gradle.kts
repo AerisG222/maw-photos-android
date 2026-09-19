@@ -184,7 +184,6 @@ dependencies {
     implementation(libs.auth0)
     implementation(libs.coil)
     implementation(libs.coil.okhttp)
-    implementation(libs.compose.ratingbar)
     implementation(libs.flowext)
     implementation(libs.markdown)
     implementation(libs.markdown.material)
