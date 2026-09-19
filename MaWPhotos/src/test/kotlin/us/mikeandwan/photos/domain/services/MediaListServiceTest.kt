@@ -691,6 +691,9 @@ class MediaListServiceTest {
 
     @After
     fun tearDown() {
+        // the service runs on a scope of its own, and its slideshow on another - left open, a tick
+        // from one test lands on whichever test is running by then, or on the gap between two
+        service.close()
         Dispatchers.resetMain()
         unmockkAll()
     }
