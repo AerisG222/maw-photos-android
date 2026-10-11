@@ -36,7 +36,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.authorization.AuthStatus
@@ -292,7 +291,6 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             .fillMaxSize(),
                         entries = navigationState.toEntries(entryProvider),
                         onBack = { appActions.back() },
-                        sceneStrategies = listOf(remember { DialogSceneStrategy() }),
                     )
                 }
 

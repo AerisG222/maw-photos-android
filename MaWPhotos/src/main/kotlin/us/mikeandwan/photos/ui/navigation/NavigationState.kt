@@ -3,6 +3,7 @@ package us.mikeandwan.photos.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +36,12 @@ fun rememberNavigationState(
         mutableStateOf(startRoute)
     }
 
-    val backStacks = topLevelRoutes.associateWith { key -> rememberNavBackStack(key) }
+    // keyed by the route rather than left to fall where it lands in the loop: remember is
+    // positional, so without this every stack is identified by its position among the others and
+    // inserting a top level route would hand an area the stack belonging to its neighbour
+    val backStacks = topLevelRoutes.associateWith { route ->
+        key(route) { rememberNavBackStack(route) }
+    }
 
     return remember(startRoute, topLevelRoutes) {
         NavigationState(
@@ -76,22 +82,24 @@ fun NavigationState.toEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): Snap
     // has navigated away from keep what it had: its entries stay listed by its own
     // rememberDecoratedNavEntries, so leaving composition is not mistaken for being popped, and
     // only a real pop clears the state belonging to an entry.
-    val decoratedEntries = backStacks.mapValues { (_, stack) ->
-        val decorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
-            // Scopes each entry's view models to that entry rather than to the activity, so a
-            // level of the tree keeps its own state while it is on the stack and gives it up when
-            // it is popped - which is what the routes already assume, every one of them reading
-            // what it is showing out of its key.  It has to sit inside the saveable decorator
-            // above, which is what a SavedStateHandle reaches through, so the order is load
-            // bearing.
-            rememberViewModelStoreNavEntryDecorator<NavKey>(),
-        )
-        rememberDecoratedNavEntries(
-            backStack = stack,
-            entryDecorators = decorators,
-            entryProvider = entryProvider,
-        )
+    val decoratedEntries = backStacks.mapValues { (route, stack) ->
+        key(route) {
+            val decorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+                // Scopes each entry's view models to that entry rather than to the activity, so a
+                // level of the tree keeps its own state while it is on the stack and gives it up
+                // when it is popped - which is what the routes already assume, every one of them
+                // reading what it is showing out of its key.  It has to sit inside the saveable
+                // decorator above, which is what a SavedStateHandle reaches through, so the order
+                // is load bearing.
+                rememberViewModelStoreNavEntryDecorator<NavKey>(),
+            )
+            rememberDecoratedNavEntries(
+                backStack = stack,
+                entryDecorators = decorators,
+                entryProvider = entryProvider,
+            )
+        }
     }
 
     // Use a stable remembered list so NavDisplay doesn't see a new object on every recomposition.
