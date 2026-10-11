@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -71,9 +72,20 @@ class NavigationState(
  */
 @Composable
 fun NavigationState.toEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): SnapshotStateList<NavEntry<NavKey>> {
+    // Every stack is decorated, not just the ones on screen.  That is what lets an area the user
+    // has navigated away from keep what it had: its entries stay listed by its own
+    // rememberDecoratedNavEntries, so leaving composition is not mistaken for being popped, and
+    // only a real pop clears the state belonging to an entry.
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
         val decorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
+            // Scopes each entry's view models to that entry rather than to the activity, so a
+            // level of the tree keeps its own state while it is on the stack and gives it up when
+            // it is popped - which is what the routes already assume, every one of them reading
+            // what it is showing out of its key.  It has to sit inside the saveable decorator
+            // above, which is what a SavedStateHandle reaches through, so the order is load
+            // bearing.
+            rememberViewModelStoreNavEntryDecorator<NavKey>(),
         )
         rememberDecoratedNavEntries(
             backStack = stack,
