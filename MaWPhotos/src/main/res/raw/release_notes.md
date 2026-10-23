@@ -1,5 +1,12 @@
 # Release Notes
 
+## v9.13 : 10/23/2026
+
+- improve how navigation history is kept across screens
+- security fixes in networking and sign in improvements
+- more reliable settings storage
+- dependency updates
+
 ## v9.12 : 09/19/2026
 
 - simplify by removing a number of settings, like thumbnail size
