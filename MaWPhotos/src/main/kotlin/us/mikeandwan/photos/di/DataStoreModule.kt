@@ -2,7 +2,7 @@ package us.mikeandwan.photos.di
 
 import android.app.Application
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.core.FileStorage
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
 import dagger.Module
@@ -10,6 +10,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import us.mikeandwan.photos.database.MawDatabase
 import us.mikeandwan.photos.datastore.RoomPreferencesImport
 import us.mikeandwan.photos.datastore.UserPreferences
@@ -27,11 +29,18 @@ object DataStoreModule {
         application: Application,
         mawDatabase: MawDatabase,
     ): DataStore<UserPreferences> =
-        DataStoreFactory.create(
-            serializer = UserPreferencesSerializer,
+        DataStore
+            .Builder(
+                storage =
+                    FileStorage(
+                        serializer = UserPreferencesSerializer,
+                        produceFile = { application.dataStoreFile(USER_PREFERENCES_FILE) },
+                    ),
+                // must outlive every collector, so it lives as long as the process (never a viewModelScope)
+                context = Dispatchers.IO + SupervisorJob(),
+            )
             // settings that cannot be read are not worth refusing to start over
-            corruptionHandler = ReplaceFileCorruptionHandler { UserPreferencesSerializer.defaultValue },
-            migrations = listOf(RoomPreferencesImport(mawDatabase)),
-            produceFile = { application.dataStoreFile(USER_PREFERENCES_FILE) },
-        )
+            .setCorruptionHandler(ReplaceFileCorruptionHandler { UserPreferencesSerializer.defaultValue })
+            .addMigrations(listOf(RoomPreferencesImport(mawDatabase)))
+            .build()
 }
