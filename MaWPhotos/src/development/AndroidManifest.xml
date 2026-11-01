@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Only development builds connect to local network addresses (the dev backend / emulator
+         host 10.0.2.2). This is a runtime permission on Android 17+ that the app does not request;
+         grant it with adb (see README). Production reaches its backend at a public address, so it
+         must not declare this restricted permission. -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+
     <!-- Only development builds talk to the dev backend served with a custom CA, so only they
          reference the network security config (see src/development/res/xml). -->
     <application android:networkSecurityConfig="@xml/network_security_config" />

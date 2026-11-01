@@ -71,6 +71,10 @@ emulator.  Additionally, you also need to uncomment the bind-interfaces line.
     - Network Prefix Length: 16
     - DNS1: 10.0.2.2
 
+- grant local network access (development builds connect to local addresses, and the app does not
+  request this permission at runtime; the grant is lost if the app is uninstalled)
+  - `adb shell pm grant us.mikeandwan.pictures android.permission.ACCESS_LOCAL_NETWORK`
+
 With the above steps, this seems to work pretty reliably, though I don't understand at this point
 why
 simply setting the dns server on the emulator command line is not sufficient to get this to work anymore.
