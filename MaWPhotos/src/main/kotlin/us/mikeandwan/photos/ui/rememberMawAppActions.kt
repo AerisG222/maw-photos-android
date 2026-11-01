@@ -9,6 +9,7 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 import us.mikeandwan.photos.ui.navigation.NavigationState
@@ -91,8 +92,9 @@ private class MawAppActionsImpl(
     override fun navigateToCategoryItem(
         categoryId: Uuid,
         mediaId: Uuid,
+        filters: MediaFilters,
     ) {
-        navigate(CategoryItemNavKey(categoryId, mediaId))
+        navigate(CategoryItemNavKey(categoryId, mediaId, filters))
     }
 
     override fun navigateToInactiveUser() {

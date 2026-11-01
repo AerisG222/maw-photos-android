@@ -61,11 +61,13 @@ class CategoryApiClient
         suspend fun search(
             query: String,
             start: Int = 0,
+            favoritesOnly: Boolean = false,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Category>> =
             makeApiCall(
                 ::search.name,
                 suspend {
-                    _categoryApi.search(query, start)
+                    _categoryApi.search(query, start, favoritesOnly.takeIf { it }, mediaType)
                 },
             )
 

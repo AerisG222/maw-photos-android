@@ -24,6 +24,7 @@ import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.SearchPreference
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -56,6 +57,9 @@ class SearchViewModelTest {
         every { searchRepository.searchResults } returns MutableStateFlow(listOf(category))
         every { searchRepository.hasMoreResults } returns MutableStateFlow(false)
         every { searchRepository.activeSearchTerm } returns MutableStateFlow("test")
+        every { searchRepository.loadFailed } returns MutableStateFlow(false)
+        every { searchRepository.isLoading } returns MutableStateFlow(false)
+        every { searchRepository.filters } returns MutableStateFlow(MediaFilters())
         every { searchPreferenceRepository.getSearchDisplayType() } returns
             flowOf(CategoryDisplayType.Grid)
         every { searchPreferenceRepository.getSearchPreference() } returns

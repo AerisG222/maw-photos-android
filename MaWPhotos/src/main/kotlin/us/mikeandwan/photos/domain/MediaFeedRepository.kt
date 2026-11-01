@@ -6,12 +6,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.update
+import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.FaceApiClient
 import us.mikeandwan.photos.api.PlaceApiClient
+import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.toApiFilter
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
@@ -58,9 +61,11 @@ class MediaFeedRepository
         val media = mediaPager.items
         val hasMore = mediaPager.hasMore
         val isLoadingMedia = mediaPager.isLoading
+        val mediaLoadFailed = mediaPager.loadFailed
 
         val categories = categoryPager.items
         val hasMoreCategories = categoryPager.hasMore
+        val categoriesLoadFailed = categoryPager.loadFailed
 
         private val _subject = MutableStateFlow<MediaFeedSubject?>(null)
         val subject = _subject.asStateFlow()
@@ -112,7 +117,7 @@ class MediaFeedRepository
             // the seed only orders media - there is no shuffling a list of categories, and the API
             // takes no seed for one - so the categories are only started over when the narrowing
             // itself changed
-            if (current.favoritesOnly != filter.favoritesOnly) {
+            if (current.mediaFilters != filter.mediaFilters) {
                 categoryPager.reset()
             }
         }
@@ -124,48 +129,70 @@ class MediaFeedRepository
         fun loadNextPage() =
             when (val subject = _subject.value) {
                 null -> emptyFlow()
+                else -> mediaPager.loadNextPage { offset -> fetchMedia(subject, offset) }
+            }
 
-                else -> mediaPager.loadNextPage { offset ->
-                    val filter = _filter.value
-
-                    when (subject) {
-                        is MediaFeedSubject.Person -> {
-                            faceApi.getPersonMedia(subject.personId, offset, filter.favoritesOnly, filter.seed)
-                        }
-
-                        is MediaFeedSubject.Clan -> {
-                            faceApi.getClanMedia(subject.clanId, offset, filter.favoritesOnly, filter.seed)
-                        }
-
-                        is MediaFeedSubject.Place -> {
-                            placeApi.getPlaceMedia(subject.placeId, offset, filter.favoritesOnly, filter.seed)
-                        }
-                    }
-                }
+        fun retryLoadNextPage() =
+            when (val subject = _subject.value) {
+                null -> emptyFlow()
+                else -> mediaPager.retry { offset -> fetchMedia(subject, offset) }
             }
 
         fun loadNextPageOfCategories() =
             when (val subject = _subject.value) {
                 null -> emptyFlow()
+                else -> categoryPager.loadNextPage { offset -> fetchCategories(subject, offset) }
+            }
 
-                else -> categoryPager.loadNextPage { offset ->
-                    val favoritesOnly = _filter.value.favoritesOnly
+        fun retryLoadNextPageOfCategories() =
+            when (val subject = _subject.value) {
+                null -> emptyFlow()
+                else -> categoryPager.retry { offset -> fetchCategories(subject, offset) }
+            }
 
-                    when (subject) {
-                        is MediaFeedSubject.Person -> {
-                            faceApi.getPersonCategories(subject.personId, offset, favoritesOnly)
-                        }
+        private suspend fun fetchMedia(
+            subject: MediaFeedSubject,
+            offset: Int,
+        ): ApiResult<SearchResults<ApiMedia>> {
+            val filter = _filter.value
+            val mediaType = filter.mediaType?.toApiFilter()
 
-                        is MediaFeedSubject.Clan -> {
-                            faceApi.getClanCategories(subject.clanId, offset, favoritesOnly)
-                        }
+            return when (subject) {
+                is MediaFeedSubject.Person -> {
+                    faceApi.getPersonMedia(subject.personId, offset, filter.favoritesOnly, filter.seed, mediaType)
+                }
 
-                        is MediaFeedSubject.Place -> {
-                            placeApi.getPlaceCategories(subject.placeId, offset, favoritesOnly)
-                        }
-                    }
+                is MediaFeedSubject.Clan -> {
+                    faceApi.getClanMedia(subject.clanId, offset, filter.favoritesOnly, filter.seed, mediaType)
+                }
+
+                is MediaFeedSubject.Place -> {
+                    placeApi.getPlaceMedia(subject.placeId, offset, filter.favoritesOnly, filter.seed, mediaType)
                 }
             }
+        }
+
+        private suspend fun fetchCategories(
+            subject: MediaFeedSubject,
+            offset: Int,
+        ): ApiResult<SearchResults<ApiCategory>> {
+            val favoritesOnly = _filter.value.favoritesOnly
+            val mediaType = _filter.value.mediaType?.toApiFilter()
+
+            return when (subject) {
+                is MediaFeedSubject.Person -> {
+                    faceApi.getPersonCategories(subject.personId, offset, favoritesOnly, mediaType)
+                }
+
+                is MediaFeedSubject.Clan -> {
+                    faceApi.getClanCategories(subject.clanId, offset, favoritesOnly, mediaType)
+                }
+
+                is MediaFeedSubject.Place -> {
+                    placeApi.getPlaceCategories(subject.placeId, offset, favoritesOnly, mediaType)
+                }
+            }
+        }
 
         fun updateMedia(updated: Media) {
             mediaPager.update(updated)

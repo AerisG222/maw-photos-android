@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
@@ -22,6 +23,7 @@ data class CategoryUiState(
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
     val isLoading: Boolean = true,
     val isError: Boolean = false,
+    val filters: MediaFilters = MediaFilters(),
 )
 
 @HiltViewModel
@@ -34,14 +36,15 @@ class CategoryViewModel
         val uiState: StateFlow<CategoryUiState>
 
         init {
-            val gridItemsFlow = media
+            val gridItemsFlow = filteredMedia
                 .map { mediaList -> mediaList.map { it.toMediaGridItem() } }
                 .stateIn(viewModelScope, WhileSubscribed(5000), emptyList())
 
             uiState = combine(
                 category,
                 gridItemsFlow,
-            ) { category, gridItems ->
+                filters,
+            ) { category, gridItems, filters ->
                 var isError = false
                 var isLoading = true
 
@@ -54,6 +57,7 @@ class CategoryViewModel
                     gridItems = gridItems,
                     isLoading = isLoading,
                     isError = isError,
+                    filters = filters,
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), CategoryUiState())
         }

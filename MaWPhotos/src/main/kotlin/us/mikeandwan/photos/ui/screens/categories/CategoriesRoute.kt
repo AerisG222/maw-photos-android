@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
+import us.mikeandwan.photos.ui.components.topbar.TopBarFilterMenu
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
@@ -47,12 +48,15 @@ private fun CategoriesRoute(
         }
     }
 
-    LaunchedEffect(uiState.year) {
+    LaunchedEffect(uiState.year, uiState.filters) {
         uiState.year?.let {
             appActions.setActiveYear(it)
             appActions.updateTopBar(
                 NavigationArea.Category,
-                TopBarState(title = it.toString()),
+                TopBarState(
+                    title = it.toString(),
+                    filterMenu = TopBarFilterMenu(uiState.filters, vm::setFilters),
+                ),
             )
         }
     }
@@ -62,5 +66,6 @@ private fun CategoriesRoute(
         onRefresh = { vm.refreshCategories() },
         onNavigateToCategory = { appActions.navigateToCategory(it.id) },
         onToggleFavorite = { vm.toggleFavorite(it) },
+        onSetFilters = { vm.setFilters(it) },
     )
 }

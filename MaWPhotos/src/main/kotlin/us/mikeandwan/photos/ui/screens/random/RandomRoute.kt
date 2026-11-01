@@ -39,5 +39,6 @@ private fun RandomRoute(vm: RandomViewModel = hiltViewModel()) {
         onMediaClicked = { appActions.navigateToRandomItem(it.id) },
         onToggleFavorite = { media -> vm.toggleFavorite(media) },
         onLoadMore = { vm.loadNextPage() },
+        onRetryLoad = { vm.retryLoad() },
     )
 }

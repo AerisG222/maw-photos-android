@@ -15,6 +15,7 @@ import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.people.ClanDeleteDialog
 import us.mikeandwan.photos.ui.components.people.ClanNameDialog
+import us.mikeandwan.photos.ui.components.topbar.TopBarFilterMenu
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
@@ -36,15 +37,23 @@ private fun PeopleRoute(vm: PeopleViewModel = hiltViewModel()) {
         appActions.setNavArea(NavigationArea.People)
         // the grid is nobody in particular, so nothing in the rail's list is current
         appActions.setActiveFeedSubject(null)
+    }
+
+    LaunchedEffect(title, uiState.filters) {
         appActions.updateTopBar(
             NavigationArea.People,
-            TopBarState(title = title),
+            TopBarState(
+                title = title,
+                // a person is not a photo or a video, so favorites is all there is to narrow by
+                filterMenu = TopBarFilterMenu(uiState.filters, vm::setFilters, showMediaType = false),
+            ),
         )
     }
 
     PeopleScreen(
         uiState = uiState,
         onFilterChange = { vm.setFilter(it) },
+        onSetFilters = { vm.setFilters(it) },
         onToggleSort = { vm.toggleSort() },
         onToggleFavorite = { vm.toggleFavorite(it) },
         onSelectPerson = { person ->

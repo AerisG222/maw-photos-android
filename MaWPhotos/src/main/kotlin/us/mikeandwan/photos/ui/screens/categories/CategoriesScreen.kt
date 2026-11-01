@@ -1,5 +1,7 @@
 package us.mikeandwan.photos.ui.screens.categories
 
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -8,8 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.categorylist.CategoryListSkeleton
+import us.mikeandwan.photos.ui.components.filters.NoFilterMatches
+import us.mikeandwan.photos.ui.components.filters.ScrollToTopOnChange
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
@@ -22,6 +27,7 @@ fun CategoriesScreen(
     onRefresh: () -> Unit,
     onNavigateToCategory: (Category) -> Unit,
     onToggleFavorite: (Category) -> Unit,
+    onSetFilters: (MediaFilters) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
@@ -39,6 +45,15 @@ fun CategoriesScreen(
     }
 
     val pullToRefreshState = rememberPullToRefreshState()
+    val lazyGridState = rememberLazyGridState()
+    val listState = rememberLazyListState()
+
+    ScrollToTopOnChange(uiState.filters) {
+        when (uiState.preferences.displayType) {
+            CategoryDisplayType.Grid -> lazyGridState.scrollToItem(0)
+            CategoryDisplayType.List -> listState.scrollToItem(0)
+        }
+    }
 
     val gridState = rememberMediaGridState(
         gridItems = uiState.categories.map { it.toMediaGridItem() },
@@ -52,17 +67,22 @@ fun CategoriesScreen(
         onRefresh = onRefresh,
         modifier = modifier,
     ) {
-        when (uiState.preferences.displayType) {
-            CategoryDisplayType.Grid -> {
-                MediaGrid(gridState)
+        when {
+            uiState.categories.isEmpty() -> {
+                NoFilterMatches(onClear = { onSetFilters(MediaFilters()) })
             }
 
-            CategoryDisplayType.List -> {
+            uiState.preferences.displayType == CategoryDisplayType.Grid -> {
+                MediaGrid(gridState, gridState = lazyGridState)
+            }
+
+            else -> {
                 CategoryList(
                     categories = uiState.categories,
                     showYear = false,
                     onSelectCategory = onNavigateToCategory,
                     onToggleFavorite = onToggleFavorite,
+                    listState = listState,
                 )
             }
         }
@@ -77,6 +97,7 @@ fun CategoriesScreenPreview() {
         onRefresh = {},
         onNavigateToCategory = {},
         onToggleFavorite = {},
+        onSetFilters = {},
     )
 }
 
@@ -88,5 +109,6 @@ fun CategoriesScreenLoadingPreview() {
         onRefresh = {},
         onNavigateToCategory = {},
         onToggleFavorite = {},
+        onSetFilters = {},
     )
 }

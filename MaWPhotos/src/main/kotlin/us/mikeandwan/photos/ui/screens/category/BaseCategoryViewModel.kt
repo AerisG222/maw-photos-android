@@ -7,9 +7,12 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.BuildConfig
@@ -17,6 +20,8 @@ import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFilters
+import us.mikeandwan.photos.domain.models.filteredBy
 
 abstract class BaseCategoryViewModel(
     private val categoryRepository: CategoryRepository,
@@ -27,8 +32,20 @@ abstract class BaseCategoryViewModel(
     private val _media = MutableStateFlow<List<Media>>(emptyList())
     val media = _media.asStateFlow()
 
+    private val _filters = MutableStateFlow(MediaFilters())
+    val filters = _filters.asStateFlow()
+
+    // what next, previous and the slideshow walk as well as what the grid draws, so stepping through
+    // a filtered category cannot land on something the filter left out
+    val filteredMedia = combine(media, filters) { media, filters -> media.filteredBy(filters) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     private var categoryJob: Job? = null
     private var mediaJob: Job? = null
+
+    fun setFilters(filters: MediaFilters) {
+        _filters.update { filters }
+    }
 
     fun reset() {
         _category.update { null }

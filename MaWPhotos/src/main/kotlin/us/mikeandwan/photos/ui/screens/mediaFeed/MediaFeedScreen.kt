@@ -27,14 +27,17 @@ import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.CategoryLabels
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.models.PlaceKind
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.categorylist.CategoryListSkeleton
+import us.mikeandwan.photos.ui.components.filters.NoFilterMatches
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
+import us.mikeandwan.photos.ui.components.paging.LoadMoreFailed
 import us.mikeandwan.photos.ui.components.paging.LoadMoreWhenNearEnd
 import us.mikeandwan.photos.ui.components.places.PlaceChain
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
@@ -49,12 +52,13 @@ fun MediaFeedScreen(
     onCategoryClicked: (Category) -> Unit,
     onToggleFavorite: (Media) -> Unit,
     onToggleCategoryFavorite: (Category) -> Unit,
-    onSetFavoritesOnly: (Boolean) -> Unit,
+    onSetFilters: (MediaFilters) -> Unit,
     onSetShuffled: (Boolean) -> Unit,
     onSetShowCategories: (Boolean) -> Unit,
     onSetShowCategoryYear: (Boolean) -> Unit,
     onSetShowCategoryTitle: (Boolean) -> Unit,
     onLoadMore: () -> Unit,
+    onRetryLoad: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -70,11 +74,9 @@ fun MediaFeedScreen(
         }
 
         FilterBar(
-            favoritesOnly = uiState.favoritesOnly,
             isShuffled = uiState.isShuffled,
             showCategories = uiState.showCategories,
             categoryLabels = uiState.categoryLabels,
-            onSetFavoritesOnly = onSetFavoritesOnly,
             onSetShuffled = onSetShuffled,
             onSetShowCategories = onSetShowCategories,
             onSetShowCategoryYear = onSetShowCategoryYear,
@@ -86,26 +88,43 @@ fun MediaFeedScreen(
                 Skeleton(uiState)
             }
 
+            // nothing came back because asking failed, which is not the same as there being nothing
+            uiState.isEmpty && uiState.loadFailed -> {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    LoadMoreFailed(onRetry = onRetryLoad, messageId = R.string.load_failed)
+                }
+            }
+
+            uiState.isEmpty && uiState.filters.isActive -> {
+                NoFilterMatches(onClear = { onSetFilters(MediaFilters()) })
+            }
+
             uiState.isEmpty -> {
                 Message(emptyMessage(uiState))
             }
 
-            uiState.showCategories -> {
-                CategoryListing(
-                    uiState = uiState,
-                    onCategoryClicked = onCategoryClicked,
-                    onToggleFavorite = onToggleCategoryFavorite,
-                    onLoadMore = onLoadMore,
-                )
-            }
-
             else -> {
-                MediaListing(
-                    uiState = uiState,
-                    onMediaClicked = onMediaClicked,
-                    onToggleFavorite = onToggleFavorite,
-                    onLoadMore = onLoadMore,
-                )
+                Box(modifier = Modifier.weight(1f)) {
+                    if (uiState.showCategories) {
+                        CategoryListing(
+                            uiState = uiState,
+                            onCategoryClicked = onCategoryClicked,
+                            onToggleFavorite = onToggleCategoryFavorite,
+                            onLoadMore = onLoadMore,
+                        )
+                    } else {
+                        MediaListing(
+                            uiState = uiState,
+                            onMediaClicked = onMediaClicked,
+                            onToggleFavorite = onToggleFavorite,
+                            onLoadMore = onLoadMore,
+                        )
+                    }
+                }
+
+                if (uiState.loadFailed) {
+                    LoadMoreFailed(onRetry = onRetryLoad)
+                }
             }
         }
     }
@@ -220,26 +239,15 @@ private fun Skeleton(uiState: MediaFeedUiState) {
     }
 }
 
-// narrowing to favorites and finding nothing is a real answer about a person the caller can see,
-// rather than an empty feed, and is worth saying differently
 @Composable
 private fun emptyMessage(uiState: MediaFeedUiState): String =
-    stringResource(
-        id = when {
-            uiState.showCategories && uiState.favoritesOnly -> R.string.feed_no_favorite_categories
-            uiState.showCategories -> R.string.feed_no_categories
-            uiState.favoritesOnly -> R.string.feed_no_favorites
-            else -> R.string.feed_empty
-        },
-    )
+    stringResource(id = if (uiState.showCategories) R.string.feed_no_categories else R.string.feed_empty)
 
 @Composable
 private fun FilterBar(
-    favoritesOnly: Boolean,
     isShuffled: Boolean,
     showCategories: Boolean,
     categoryLabels: CategoryLabels,
-    onSetFavoritesOnly: (Boolean) -> Unit,
     onSetShuffled: (Boolean) -> Unit,
     onSetShowCategories: (Boolean) -> Unit,
     onSetShowCategoryYear: (Boolean) -> Unit,
@@ -286,13 +294,6 @@ private fun FilterBar(
                 onClick = { onSetShuffled(!isShuffled) },
             )
         }
-
-        FilterToggle(
-            iconId = if (favoritesOnly) R.drawable.ic_favorite else R.drawable.ic_favorite_border,
-            descriptionId = R.string.feed_favorites_only,
-            isActive = favoritesOnly,
-            onClick = { onSetFavoritesOnly(!favoritesOnly) },
-        )
     }
 }
 
@@ -350,7 +351,13 @@ private fun MediaFeedScreenEmptyPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun MediaFeedScreenNoFavoritesPreview() {
-    MediaFeedScreenPreview(MediaFeedUiState(isLoading = false, isEmpty = true, favoritesOnly = true))
+    MediaFeedScreenPreview(
+        MediaFeedUiState(
+            isLoading = false,
+            isEmpty = true,
+            filters = MediaFilters(favoritesOnly = true),
+        ),
+    )
 }
 
 @Preview(showBackground = true)
@@ -387,11 +394,12 @@ private fun MediaFeedScreenPreview(uiState: MediaFeedUiState) {
         onCategoryClicked = {},
         onToggleFavorite = {},
         onToggleCategoryFavorite = {},
-        onSetFavoritesOnly = {},
+        onSetFilters = {},
         onSetShuffled = {},
         onSetShowCategories = {},
         onSetShowCategoryYear = {},
         onSetShowCategoryTitle = {},
         onLoadMore = {},
+        onRetryLoad = {},
     )
 }

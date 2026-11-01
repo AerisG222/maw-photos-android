@@ -14,12 +14,15 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.database.SearchHistoryDao
+import us.mikeandwan.photos.domain.models.MediaFilters
+import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.domain.models.SearchSource
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
@@ -27,16 +30,18 @@ import us.mikeandwan.photos.api.Media as ApiMedia
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchRepositoryTest {
     private lateinit var api: CategoryApiClient
+    private lateinit var apiErrorHandler: ApiErrorHandler
     private lateinit var repository: SearchRepository
 
     @Before
     fun setUp() {
         api = mockk()
+        apiErrorHandler = mockk(relaxed = true)
         repository = SearchRepository(
             api,
             mockk<SearchHistoryDao>(relaxed = true),
             mockk<SearchPreferenceRepository>(relaxed = true),
-            mockk<ApiErrorHandler>(),
+            apiErrorHandler,
         )
     }
 
@@ -118,6 +123,99 @@ class SearchRepositoryTest {
 
         assertEquals(1, repository.searchResults.value.size)
         assertFalse(repository.hasMoreResults.value)
+    }
+
+    // being near the end is still true after a failure, so asking again from there would go on for
+    // as long as the server kept failing
+    @Test
+    fun `a failed page stops continuing until a retry, and the retry picks up where it left off`() = runTest {
+        coEvery { api.search("beach", 0) } returns
+            ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
+        coEvery { api.search("beach", 2) } returnsMany listOf(
+            ApiResult.Error("nope", 500),
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 0)),
+        )
+
+        repository.performSearch("beach", SearchSource.SearchMenu).toList()
+        repository.continueSearch().toList()
+
+        assertTrue(repository.loadFailed.value)
+        assertEquals(2, repository.searchResults.value.size)
+
+        repository.continueSearch().toList()
+
+        coVerify(exactly = 1) { api.search("beach", 2) }
+
+        repository.retrySearch().toList()
+
+        assertFalse(repository.loadFailed.value)
+        assertEquals(3, repository.searchResults.value.size)
+    }
+
+    @Test
+    fun `a first page that failed can be retried, though nothing says there is more`() = runTest {
+        coEvery { api.search("beach", 0) } returnsMany listOf(
+            ApiResult.Error("nope", 500),
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 0)),
+        )
+
+        repository.performSearch("beach", SearchSource.SearchMenu).toList()
+
+        assertTrue(repository.loadFailed.value)
+
+        repository.retrySearch().toList()
+
+        assertEquals(1, repository.searchResults.value.size)
+    }
+
+    @Test
+    fun `changing filters starts the search over, asking the api to narrow it`() = runTest {
+        coEvery { api.search("beach", 0) } returns
+            ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
+        coEvery { api.search("beach", 0, true, "video") } returns
+            ApiResult.Success(page(count = 1, hasMore = true, nextOffset = 1))
+        coEvery { api.search("beach", 1, true, "video") } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 0))
+
+        repository.performSearch("beach", SearchSource.SearchMenu).toList()
+        repository
+            .setFilters(MediaFilters(favoritesOnly = true, mediaType = MediaType.Video))
+            .toList()
+
+        assertEquals(1, repository.searchResults.value.size)
+
+        // the pages after the first have to stay narrowed too
+        repository.continueSearch().toList()
+
+        assertEquals(2, repository.searchResults.value.size)
+    }
+
+    @Test
+    fun `filters set before searching apply to the search, and clearing it drops them`() = runTest {
+        coEvery { api.search("beach", 0, true, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 0))
+
+        repository.setFilters(MediaFilters(favoritesOnly = true)).toList()
+        coVerify(exactly = 0) { api.search(any(), any(), any(), any()) }
+
+        repository.performSearch("beach", SearchSource.SearchMenu).toList()
+        assertEquals(1, repository.searchResults.value.size)
+
+        repository.clearSearch()
+        assertEquals(MediaFilters(), repository.filters.value)
+    }
+
+    @Test
+    fun `a new search clears a failure from the last one`() = runTest {
+        coEvery { api.search("beach", 0) } returns ApiResult.Error("nope", 500)
+        coEvery { api.search("snow", 0) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 0))
+
+        repository.performSearch("beach", SearchSource.SearchMenu).toList()
+        repository.performSearch("snow", SearchSource.SearchMenu).toList()
+
+        assertFalse(repository.loadFailed.value)
+        assertEquals(1, repository.searchResults.value.size)
     }
 
     private fun page(

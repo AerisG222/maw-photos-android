@@ -1,5 +1,8 @@
 package us.mikeandwan.photos.ui.screens.random
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -8,6 +11,7 @@ import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
+import us.mikeandwan.photos.ui.components.paging.LoadMoreFailed
 import us.mikeandwan.photos.ui.components.paging.LoadMoreWhenNearEnd
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
@@ -17,6 +21,7 @@ fun RandomScreen(
     onMediaClicked: (MediaGridItem<Media>) -> Unit,
     onToggleFavorite: (Media) -> Unit,
     onLoadMore: () -> Unit,
+    onRetryLoad: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val lazyGridState = rememberLazyGridState()
@@ -35,7 +40,15 @@ fun RandomScreen(
         onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
-    MediaGrid(gridState, modifier = modifier, gridState = lazyGridState)
+    Column(modifier = modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f)) {
+            MediaGrid(gridState, gridState = lazyGridState)
+        }
+
+        if (uiState.loadFailed) {
+            LoadMoreFailed(onRetry = onRetryLoad)
+        }
+    }
 }
 
 @Preview(showBackground = true)
@@ -46,5 +59,6 @@ fun RandomScreenPreview() {
         onMediaClicked = {},
         onToggleFavorite = {},
         onLoadMore = {},
+        onRetryLoad = {},
     )
 }

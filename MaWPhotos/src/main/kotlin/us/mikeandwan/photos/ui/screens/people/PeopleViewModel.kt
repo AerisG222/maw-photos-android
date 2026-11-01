@@ -21,6 +21,7 @@ import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.models.Clan
 import us.mikeandwan.photos.domain.models.ClanResult
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.PersonSort
@@ -30,6 +31,7 @@ data class PeopleUiState(
     val people: List<Person> = emptyList(),
     val clans: List<Clan> = emptyList(),
     val filter: String = "",
+    val filters: MediaFilters = MediaFilters(),
     val preferences: PeoplePreference = PeoplePreference(),
     val isLoading: Boolean = true,
     // told apart from an empty result so the screen can say "nobody is identified yet" rather than
@@ -63,6 +65,7 @@ class PeopleViewModel
         private val clanRepository: ClanRepository,
     ) : ViewModel() {
         private val _filter = MutableStateFlow("")
+        private val _filters = MutableStateFlow(MediaFilters())
         private val _isLoading = MutableStateFlow(true)
         private val _picking = MutableStateFlow<ClanPicking>(ClanPicking.Off)
         private val _selectedIds = MutableStateFlow<Set<Uuid>>(emptySet())
@@ -86,6 +89,7 @@ class PeopleViewModel
                 _deleting,
                 _isSaving,
                 _saveError,
+                _filters,
             ) {
                 people,
                 clans,
@@ -98,11 +102,16 @@ class PeopleViewModel
                 deleting,
                 isSaving,
                 saveError,
+                filters,
                 ->
                 PeopleUiState(
-                    people = people.filterBy(filter).sortedBy(preferences.sortBy),
+                    people = people
+                        .filter { !filters.favoritesOnly || it.isFavorite }
+                        .filterBy(filter)
+                        .sortedBy(preferences.sortBy),
                     clans = clans,
                     filter = filter,
+                    filters = filters,
                     preferences = preferences,
                     isLoading = isLoading && people.isEmpty(),
                     hasAnyPeople = people.isNotEmpty(),
@@ -117,6 +126,10 @@ class PeopleViewModel
 
             loadPeople()
             loadClans()
+        }
+
+        fun setFilters(filters: MediaFilters) {
+            _filters.update { filters }
         }
 
         fun setFilter(filter: String) {

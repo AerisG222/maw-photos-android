@@ -25,6 +25,7 @@ import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
 
@@ -363,6 +364,69 @@ class MediaFeedRepositoryTest {
 
         assertEquals(1, repository.categories.value.size)
         coVerify(exactly = 1) { api.getClanCategories(clanId, 0, false) }
+    }
+
+    @Test
+    fun `a failed page stops loading until a retry`() = runTest {
+        coEvery { apiErrorHandler.handleError(any(), any()) } returns ExternalCallStatus.Error("nope")
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
+        coEvery { api.getPersonMedia(personId, 2, false, null) } returnsMany listOf(
+            ApiResult.Error("nope", 500),
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 3)),
+        )
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+        repository.loadNextPage().toList()
+
+        assertTrue(repository.mediaLoadFailed.value)
+
+        repository.loadNextPage().toList()
+        coVerify(exactly = 1) { api.getPersonMedia(personId, 2, false, null) }
+
+        repository.retryLoadNextPage().toList()
+
+        assertFalse(repository.mediaLoadFailed.value)
+        assertEquals(3, repository.media.value.size)
+    }
+
+    @Test
+    fun `a 404 is the end of the listing rather than a failure`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns ApiResult.Error("gone", 404)
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+
+        assertFalse(repository.mediaLoadFailed.value)
+        assertFalse(repository.hasMore.value)
+    }
+
+    @Test
+    fun `the type filter reaches the api and starts both listings over`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonCategories(personId, 0, false) } returns
+            ApiResult.Success(categoryPage(count = 2, hasMore = false, nextOffset = 2))
+        coEvery { api.getPersonMedia(personId, 0, false, null, "video") } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+        coEvery { api.getPersonCategories(personId, 0, false, "video") } returns
+            ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
+
+        repository.initialize(subject)
+        repository.loadNextPage().toList()
+        repository.loadNextPageOfCategories().toList()
+
+        repository.setFilter(MediaFeedFilter(mediaType = MediaType.Video))
+
+        assertEquals(0, repository.media.value.size)
+        assertEquals(0, repository.categories.value.size)
+
+        repository.loadNextPage().toList()
+        repository.loadNextPageOfCategories().toList()
+
+        assertEquals(1, repository.media.value.size)
+        assertEquals(1, repository.categories.value.size)
     }
 
     private fun categoryPage(

@@ -4,6 +4,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
@@ -41,6 +42,7 @@ interface MawAppActions {
     fun navigateToCategoryItem(
         categoryId: Uuid,
         mediaId: Uuid,
+        filters: MediaFilters = MediaFilters(),
     )
 
     fun navigateToInactiveUser()

@@ -21,6 +21,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import us.mikeandwan.photos.R
+import us.mikeandwan.photos.domain.models.MediaFilters
+import us.mikeandwan.photos.ui.components.filters.FilterMenu
+
+/**
+ * The Filters button for a screen whose listing can be narrowed.  It lives up here so that narrowing
+ * a list does not cost any of the height the list could be using.
+ */
+data class TopBarFilterMenu(
+    val filters: MediaFilters,
+    val onChange: (MediaFilters) -> Unit,
+    val showMediaType: Boolean = true,
+)
 
 data class TopBarState(
     var show: Boolean = true,
@@ -29,6 +41,7 @@ data class TopBarState(
     var initialSearchTerm: String = "",
     var showSearch: Boolean = false,
     var tinyVerticalTitlePrefix: String = "",
+    var filterMenu: TopBarFilterMenu? = null,
 )
 
 // Stable selector for UI automation (baseline profile generation). The description below sits on
@@ -108,6 +121,15 @@ fun TopBar(
                 }
             }
         },
+        actions = {
+            state.filterMenu?.let { menu ->
+                FilterMenu(
+                    filters = menu.filters,
+                    onChange = menu.onChange,
+                    showMediaType = menu.showMediaType,
+                )
+            }
+        },
     )
 }
 
@@ -141,6 +163,25 @@ private fun TopBarBackPreview() {
             state = TopBarState(
                 showAppIcon = false,
                 title = "Back Title",
+            ),
+            onExpandNavMenu = {},
+            onBackClicked = {},
+            onSearch = {},
+            onClearSearch = {},
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun TopBarFilterMenuPreview() {
+    MaterialTheme {
+        TopBar(
+            scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
+            state = TopBarState(
+                title = "Filtered Title",
+                filterMenu = TopBarFilterMenu(filters = MediaFilters(favoritesOnly = true), onChange = {}),
             ),
             onExpandNavMenu = {},
             onBackClicked = {},

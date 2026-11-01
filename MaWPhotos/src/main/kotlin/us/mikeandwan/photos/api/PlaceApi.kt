@@ -38,6 +38,7 @@ internal interface PlaceApi {
         @Query("o") offset: Int,
         @Query("f") favoritesOnly: Boolean?,
         @Query("seed") seed: Long?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Media>>
 
     // the places one media item was geocoded into - so a photograph taken in Boston answers with
@@ -55,5 +56,6 @@ internal interface PlaceApi {
         @Path("placeId") placeId: Uuid,
         @Query("o") offset: Int,
         @Query("f") favoritesOnly: Boolean?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Category>>
 }

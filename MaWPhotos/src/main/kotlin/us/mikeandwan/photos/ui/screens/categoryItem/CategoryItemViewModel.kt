@@ -16,6 +16,7 @@ import us.mikeandwan.photos.domain.models.Comment
 import us.mikeandwan.photos.domain.models.FaceHighlight
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFaces
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.Place
 import us.mikeandwan.photos.domain.services.MediaListAction
@@ -87,7 +88,7 @@ class CategoryItemViewModel
                 )
 
             mediaListService.initialize(
-                media,
+                filteredMedia,
                 slideshowDurationInMillisFlow,
             )
         }
@@ -95,7 +96,9 @@ class CategoryItemViewModel
         fun initState(
             categoryId: Uuid,
             mediaId: Uuid,
+            filters: MediaFilters = MediaFilters(),
         ) {
+            setFilters(filters)
             mediaListService.onAction(MediaListAction.Reset)
             // clearing the state is left to [reset], whose empty media list reaches the service
             // through the wiring [initialize] set up and comes back out of its state a hop later

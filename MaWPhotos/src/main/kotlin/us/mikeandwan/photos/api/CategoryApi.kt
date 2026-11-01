@@ -38,6 +38,8 @@ internal interface CategoryApi {
     suspend fun search(
         @Query("s") query: String,
         @Query("o") start: Int,
+        @Query("f") favoritesOnly: Boolean?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Category>>
 
     @GET("categories/updates/{date}")

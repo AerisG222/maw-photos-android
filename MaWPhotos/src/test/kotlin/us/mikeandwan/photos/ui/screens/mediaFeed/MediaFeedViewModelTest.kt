@@ -39,6 +39,7 @@ import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.Place
@@ -233,11 +234,11 @@ class MediaFeedViewModelTest {
 
         assertEquals(3, vm.uiState.value.gridItems.size)
 
-        vm.setFavoritesOnly(true)
+        vm.setFilters(MediaFilters(favoritesOnly = true))
         advanceUntilIdle()
 
         assertEquals(1, vm.uiState.value.gridItems.size)
-        assertTrue(vm.uiState.value.favoritesOnly)
+        assertTrue(vm.uiState.value.filters.favoritesOnly)
     }
 
     // an empty favorites filter is a real answer about a person the caller can see
@@ -253,11 +254,11 @@ class MediaFeedViewModelTest {
         vm.initState(subject)
         advanceUntilIdle()
 
-        vm.setFavoritesOnly(true)
+        vm.setFilters(MediaFilters(favoritesOnly = true))
         advanceUntilIdle()
 
         assertTrue(vm.uiState.value.isEmpty)
-        assertTrue(vm.uiState.value.favoritesOnly)
+        assertTrue(vm.uiState.value.filters.favoritesOnly)
     }
 
     @Test

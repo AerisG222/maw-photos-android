@@ -26,6 +26,7 @@ import us.mikeandwan.photos.domain.PeopleRepository
 import us.mikeandwan.photos.domain.models.Clan
 import us.mikeandwan.photos.domain.models.ClanResult
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.PersonSort
@@ -93,6 +94,29 @@ class PeopleViewModelTest {
         advanceUntilIdle()
 
         vm.setFilter("ol")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Carol"), vm.uiState.value.people.map { it.name })
+    }
+
+    @Test
+    fun `the favorites filter narrows the list, alongside the name`() = runTest {
+        val vm = viewModel()
+
+        advanceUntilIdle()
+
+        vm.setFilters(MediaFilters(favoritesOnly = true))
+        advanceUntilIdle()
+
+        assertEquals(listOf("bob"), vm.uiState.value.people.map { it.name })
+        assertEquals(true, vm.uiState.value.hasAnyPeople)
+
+        vm.setFilter("ol")
+        advanceUntilIdle()
+
+        assertEquals(emptyList<String>(), vm.uiState.value.people.map { it.name })
+
+        vm.setFilters(MediaFilters())
         advanceUntilIdle()
 
         assertEquals(listOf("Carol"), vm.uiState.value.people.map { it.name })

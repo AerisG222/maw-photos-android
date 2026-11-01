@@ -26,6 +26,7 @@ internal interface FaceApi {
         @Query("o") offset: Int,
         @Query("f") favoritesOnly: Boolean?,
         @Query("seed") seed: Long?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Media>>
 
     // the same media, rolled up to the categories holding it - no seed, because a shuffled list of
@@ -35,6 +36,7 @@ internal interface FaceApi {
         @Path("personId") personId: Uuid,
         @Query("o") offset: Int,
         @Query("f") favoritesOnly: Boolean?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Category>>
 
     @PUT("persons/{personId}/favorite")
@@ -74,6 +76,7 @@ internal interface FaceApi {
         @Query("o") offset: Int,
         @Query("f") favoritesOnly: Boolean?,
         @Query("seed") seed: Long?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Media>>
 
     @GET("clans/{clanId}/categories")
@@ -81,5 +84,6 @@ internal interface FaceApi {
         @Path("clanId") clanId: Uuid,
         @Query("o") offset: Int,
         @Query("f") favoritesOnly: Boolean?,
+        @Query("t") mediaType: String?,
     ): Response<SearchResults<Category>>
 }

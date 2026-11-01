@@ -1,9 +1,13 @@
 package us.mikeandwan.photos.ui.screens.category
 
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import us.mikeandwan.photos.domain.models.Media
+import us.mikeandwan.photos.domain.models.MediaFilters
+import us.mikeandwan.photos.ui.components.filters.NoFilterMatches
+import us.mikeandwan.photos.ui.components.filters.ScrollToTopOnChange
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
@@ -13,6 +17,7 @@ fun CategoryScreen(
     uiState: CategoryUiState,
     onMediaClicked: (Media) -> Unit,
     onToggleFavorite: (Media) -> Unit,
+    onSetFilters: (MediaFilters) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (uiState.isLoading) {
@@ -27,7 +32,17 @@ fun CategoryScreen(
         onToggleFavorite = { onToggleFavorite(it.data) },
     )
 
-    MediaGrid(gridState, modifier = modifier)
+    val lazyGridState = rememberLazyGridState()
+
+    ScrollToTopOnChange(uiState.filters) {
+        lazyGridState.scrollToItem(0)
+    }
+
+    if (uiState.gridItems.isEmpty() && uiState.filters.isActive) {
+        NoFilterMatches(onClear = { onSetFilters(MediaFilters()) }, modifier = modifier)
+    } else {
+        MediaGrid(gridState, modifier = modifier, gridState = lazyGridState)
+    }
 }
 
 @Preview(showBackground = true)
@@ -37,6 +52,7 @@ fun CategoryScreenPreview() {
         uiState = CategoryUiState(isLoading = false),
         onMediaClicked = {},
         onToggleFavorite = {},
+        onSetFilters = {},
     )
 }
 
@@ -47,5 +63,6 @@ fun CategoryScreenLoadingPreview() {
         uiState = CategoryUiState(isLoading = true),
         onMediaClicked = {},
         onToggleFavorite = {},
+        onSetFilters = {},
     )
 }

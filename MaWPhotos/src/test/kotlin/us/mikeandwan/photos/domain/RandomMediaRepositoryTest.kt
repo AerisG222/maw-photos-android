@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -22,12 +23,15 @@ import us.mikeandwan.photos.api.Media as ApiMedia
 @OptIn(ExperimentalCoroutinesApi::class)
 class RandomMediaRepositoryTest {
     private lateinit var api: MediaApiClient
+    private lateinit var apiErrorHandler: ApiErrorHandler
     private lateinit var repository: RandomMediaRepository
 
     @Before
     fun setUp() {
         api = mockk()
-        repository = RandomMediaRepository(api, mockk<ApiErrorHandler>())
+        apiErrorHandler = mockk()
+        coEvery { apiErrorHandler.handleError(any(), any()) } returns ExternalCallStatus.Error("nope")
+        repository = RandomMediaRepository(api, apiErrorHandler)
     }
 
     // each request draws from the whole library, so repeats are expected, and a grid keyed by id
@@ -84,6 +88,24 @@ class RandomMediaRepositoryTest {
 
         assertTrue(statuses.last() is ExternalCallStatus.Success)
         assertEquals(0, repository.media.value.size)
+    }
+
+    @Test
+    fun `a failed page stops loading until a retry`() = runTest {
+        coEvery { api.getRandomMedia(any()) } returnsMany listOf(
+            ApiResult.Error("nope", 500),
+            ApiResult.Success(listOf(media())),
+        )
+
+        repository.loadNextPage().toList()
+        assertTrue(repository.loadFailed.value)
+
+        repository.loadNextPage().toList()
+        coVerify(exactly = 1) { api.getRandomMedia(any()) }
+
+        repository.retryNextPage().toList()
+        assertFalse(repository.loadFailed.value)
+        assertEquals(1, repository.media.value.size)
     }
 
     private fun media() =

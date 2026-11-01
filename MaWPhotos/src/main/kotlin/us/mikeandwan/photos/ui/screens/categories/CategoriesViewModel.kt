@@ -2,6 +2,7 @@ package us.mikeandwan.photos.ui.screens.categories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -27,6 +27,8 @@ import us.mikeandwan.photos.domain.ErrorRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.MediaFilters
+import us.mikeandwan.photos.domain.models.filteredCategoriesBy
 
 data class CategoriesUiState(
     val year: Int? = null,
@@ -36,6 +38,7 @@ data class CategoriesUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val invalidYearMostRecent: Int? = null,
+    val filters: MediaFilters = MediaFilters(),
 )
 
 @HiltViewModel
@@ -48,6 +51,7 @@ class CategoriesViewModel
     ) : ViewModel() {
         private val _year = MutableStateFlow<Int?>(null)
         private val _isRefreshing = MutableStateFlow(false)
+        private val _filters = MutableStateFlow(MediaFilters())
 
         @OptIn(ExperimentalCoroutinesApi::class)
         private val categories = _year
@@ -78,7 +82,8 @@ class CategoriesViewModel
                 _year,
                 _isRefreshing,
                 categoryPreferenceRepository.getCategoryPreference(),
-            ) { years, categories, year, isRefreshing, preferences ->
+                _filters,
+            ) { years, categories, year, isRefreshing, preferences, filters ->
                 var isLoading = true
                 var invalidYearMostRecent: Int? = null
 
@@ -93,7 +98,8 @@ class CategoriesViewModel
 
                 CategoriesUiState(
                     year = year,
-                    categories = categories,
+                    categories = categories.filteredCategoriesBy(filters),
+                    filters = filters,
                     isRefreshing = isRefreshing,
                     preferences = preferences,
                     isLoading = isLoading,
@@ -104,6 +110,10 @@ class CategoriesViewModel
 
         fun setYear(year: Int?) {
             _year.update { year }
+        }
+
+        fun setFilters(filters: MediaFilters) {
+            _filters.update { filters }
         }
 
         fun toggleFavorite(category: Category) {

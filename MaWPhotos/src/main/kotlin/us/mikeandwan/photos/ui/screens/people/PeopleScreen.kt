@@ -35,9 +35,12 @@ import androidx.compose.ui.unit.dp
 import kotlin.uuid.Uuid
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Clan
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.Person
 import us.mikeandwan.photos.domain.models.PersonSort
+import us.mikeandwan.photos.ui.components.filters.NoFilterMatches
+import us.mikeandwan.photos.ui.components.filters.ScrollToTopOnChange
 import us.mikeandwan.photos.ui.components.mediagrid.MEDIA_GRID_ITEM_SIZE
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.people.ClanSection
@@ -54,6 +57,7 @@ const val PEOPLE_GRID_TAG = "peopleGrid"
 fun PeopleScreen(
     uiState: PeopleUiState,
     onFilterChange: (String) -> Unit,
+    onSetFilters: (MediaFilters) -> Unit,
     onToggleSort: () -> Unit,
     onToggleFavorite: (Person) -> Unit,
     onSelectPerson: (Person) -> Unit,
@@ -81,6 +85,10 @@ fun PeopleScreen(
         }
 
         previousFilter = uiState.filter
+    }
+
+    ScrollToTopOnChange(uiState.filters) {
+        gridState.scrollToItem(0)
     }
 
     if (uiState.isLoading) {
@@ -139,6 +147,10 @@ fun PeopleScreen(
         when {
             !uiState.hasAnyPeople -> {
                 Message(stringResource(id = R.string.people_none_found))
+            }
+
+            uiState.people.isEmpty() && uiState.filters.isActive -> {
+                NoFilterMatches(onClear = { onSetFilters(MediaFilters()) })
             }
 
             uiState.people.isEmpty() -> {
@@ -278,6 +290,7 @@ private fun PeopleScreenPreview() {
             hasAnyPeople = true,
         ),
         onFilterChange = {},
+        onSetFilters = {},
         onToggleSort = {},
         onToggleFavorite = {},
         onSelectPerson = {},
@@ -305,6 +318,7 @@ private fun PeopleScreenNoMatchesPreview() {
             hasAnyPeople = true,
         ),
         onFilterChange = {},
+        onSetFilters = {},
         onToggleSort = {},
         onToggleFavorite = {},
         onSelectPerson = {},
@@ -327,6 +341,7 @@ private fun PeopleScreenEmptyLibraryPreview() {
     PeopleScreen(
         uiState = PeopleUiState(isLoading = false, hasAnyPeople = false),
         onFilterChange = {},
+        onSetFilters = {},
         onToggleSort = {},
         onToggleFavorite = {},
         onSelectPerson = {},

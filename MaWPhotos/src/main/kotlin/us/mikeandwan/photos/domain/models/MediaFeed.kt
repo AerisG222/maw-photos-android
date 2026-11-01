@@ -51,7 +51,11 @@ sealed class MediaFeedSubject {
 data class MediaFeedFilter(
     val favoritesOnly: Boolean = false,
     val seed: Long? = null,
-)
+    val mediaType: MediaType? = null,
+) {
+    val mediaFilters: MediaFilters
+        get() = MediaFilters(favoritesOnly, mediaType)
+}
 
 /**
  * What a category says about itself in a feed's category listing, beyond its teaser.

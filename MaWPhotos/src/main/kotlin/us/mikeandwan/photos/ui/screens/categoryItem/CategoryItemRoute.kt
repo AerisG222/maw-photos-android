@@ -11,6 +11,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
 import us.mikeandwan.photos.ui.components.loading.Loading
@@ -20,6 +21,8 @@ import us.mikeandwan.photos.ui.components.topbar.TopBarState
 data class CategoryItemNavKey(
     val categoryId: Uuid,
     val mediaId: Uuid,
+    // the grid's filters, carried along so next, previous and the slideshow walk what it showed
+    val filters: MediaFilters = MediaFilters(),
 ) : NavKey
 
 fun EntryProviderScope<NavKey>.categoryItem() {
@@ -27,6 +30,7 @@ fun EntryProviderScope<NavKey>.categoryItem() {
         CategoryItemRoute(
             categoryId = args.categoryId,
             mediaId = args.mediaId,
+            filters = args.filters,
         )
     }
 }
@@ -35,6 +39,7 @@ fun EntryProviderScope<NavKey>.categoryItem() {
 private fun CategoryItemRoute(
     categoryId: Uuid,
     mediaId: Uuid,
+    filters: MediaFilters,
     vm: CategoryItemViewModel = hiltViewModel(),
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
@@ -49,7 +54,7 @@ private fun CategoryItemRoute(
     }
 
     LaunchedEffect(categoryId, mediaId) {
-        vm.initState(categoryId, mediaId)
+        vm.initState(categoryId, mediaId, filters)
     }
 
     LaunchedEffect(uiState.category, categoryId) {

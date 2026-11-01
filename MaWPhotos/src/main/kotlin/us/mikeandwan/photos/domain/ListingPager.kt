@@ -2,8 +2,10 @@ package us.mikeandwan.photos.domain
 
 import java.net.HttpURLConnection
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.api.ApiResult
@@ -46,6 +48,12 @@ internal class ListingPager<TApi, TDomain>(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    // a page failed, which holds the listing where it is until somebody asks again.  being near the
+    // end is still true after a failure, so anything asking from how far it has scrolled or swiped
+    // would otherwise go on asking for as long as the server kept failing.
+    private val _loadFailed = MutableStateFlow(false)
+    val loadFailed = _loadFailed.asStateFlow()
+
     // bumped every time the listing starts over.  a request already in flight when that happens was
     // asked under the old subject or filter, and its rows do not belong in the new list - appending
     // them anyway leaves the grid holding items the filter excludes, and duplicate ids once the new
@@ -60,7 +68,7 @@ internal class ListingPager<TApi, TDomain>(
      */
     fun loadNextPage(fetch: suspend (offset: Int) -> ApiResult<SearchResults<TApi>>) =
         flow {
-            if (_isLoading.value || (hasLoadedAPage && !_hasMore.value)) {
+            if (_isLoading.value || _loadFailed.value || (hasLoadedAPage && !_hasMore.value)) {
                 return@flow
             }
 
@@ -91,11 +99,18 @@ internal class ListingPager<TApi, TDomain>(
 
                             emit(ExternalCallStatus.Success(emptyList()))
                         } else {
+                            // being cancelled says nothing about whether the page can be loaded
+                            if (result.exception !is CancellationException) {
+                                _loadFailed.update { true }
+                            }
+
                             emit(apiErrorHandler.handleError(result, errorMessage))
                         }
                     }
 
                     is ApiResult.Empty -> {
+                        _loadFailed.update { true }
+
                         emit(apiErrorHandler.handleEmpty(result, errorMessage))
                     }
                 }
@@ -105,6 +120,14 @@ internal class ListingPager<TApi, TDomain>(
                     _isLoading.update { false }
                 }
             }
+        }
+
+    /** Asks again for the page that failed - the one thing that lifts what a failure holds back. */
+    fun retry(fetch: suspend (offset: Int) -> ApiResult<SearchResults<TApi>>) =
+        flow {
+            _loadFailed.update { false }
+
+            emitAll(loadNextPage(fetch))
         }
 
     fun update(updated: TDomain) {
@@ -122,6 +145,7 @@ internal class ListingPager<TApi, TDomain>(
     fun reset() {
         generation++
         _isLoading.update { false }
+        _loadFailed.update { false }
         hasLoadedAPage = false
         _items.update { emptyList() }
         _hasMore.update { false }

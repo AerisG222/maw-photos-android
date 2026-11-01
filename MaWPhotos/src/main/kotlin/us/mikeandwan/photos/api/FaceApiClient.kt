@@ -24,11 +24,12 @@ class FaceApiClient
             offset: Int,
             favoritesOnly: Boolean,
             seed: Long?,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Media>> =
             makeApiCall(
                 ::getPersonMedia.name,
                 suspend {
-                    _faceApi.getPersonMedia(personId, offset, favoritesOnly.takeIf { it }, seed)
+                    _faceApi.getPersonMedia(personId, offset, favoritesOnly.takeIf { it }, seed, mediaType)
                 },
             )
 
@@ -36,11 +37,12 @@ class FaceApiClient
             personId: Uuid,
             offset: Int,
             favoritesOnly: Boolean,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Category>> =
             makeApiCall(
                 ::getPersonCategories.name,
                 suspend {
-                    _faceApi.getPersonCategories(personId, offset, favoritesOnly.takeIf { it })
+                    _faceApi.getPersonCategories(personId, offset, favoritesOnly.takeIf { it }, mediaType)
                 },
             )
 
@@ -125,11 +127,12 @@ class FaceApiClient
             offset: Int,
             favoritesOnly: Boolean,
             seed: Long?,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Media>> =
             makeApiCall(
                 ::getClanMedia.name,
                 suspend {
-                    _faceApi.getClanMedia(clanId, offset, favoritesOnly.takeIf { it }, seed)
+                    _faceApi.getClanMedia(clanId, offset, favoritesOnly.takeIf { it }, seed, mediaType)
                 },
             )
 
@@ -137,11 +140,12 @@ class FaceApiClient
             clanId: Uuid,
             offset: Int,
             favoritesOnly: Boolean,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Category>> =
             makeApiCall(
                 ::getClanCategories.name,
                 suspend {
-                    _faceApi.getClanCategories(clanId, offset, favoritesOnly.takeIf { it })
+                    _faceApi.getClanCategories(clanId, offset, favoritesOnly.takeIf { it }, mediaType)
                 },
             )
     }

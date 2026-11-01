@@ -11,6 +11,7 @@ import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.ui.LocalMawAppActions
+import us.mikeandwan.photos.ui.components.topbar.TopBarFilterMenu
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 /*
@@ -74,10 +75,13 @@ private fun MediaFeedRoute(
         vm.initState(subject)
     }
 
-    LaunchedEffect(uiState.title, subject) {
+    LaunchedEffect(uiState.title, subject, uiState.filters) {
         appActions.updateTopBar(
             subject.navigationArea,
-            TopBarState(title = uiState.title),
+            TopBarState(
+                title = uiState.title,
+                filterMenu = TopBarFilterMenu(uiState.filters, vm::setFilters),
+            ),
         )
     }
 
@@ -93,11 +97,12 @@ private fun MediaFeedRoute(
         onCategoryClicked = { category -> appActions.navigateToCategory(category.id) },
         onToggleFavorite = { vm.toggleFavorite(it) },
         onToggleCategoryFavorite = { vm.toggleCategoryFavorite(it) },
-        onSetFavoritesOnly = { vm.setFavoritesOnly(it) },
+        onSetFilters = { vm.setFilters(it) },
         onSetShuffled = { vm.setShuffled(it) },
         onSetShowCategories = { vm.setShowCategories(it) },
         onSetShowCategoryYear = { vm.setShowCategoryYear(it) },
         onSetShowCategoryTitle = { vm.setShowCategoryTitle(it) },
         onLoadMore = { vm.loadNextPage() },
+        onRetryLoad = { vm.retryLoad() },
     )
 }

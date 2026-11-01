@@ -40,11 +40,12 @@ class PlaceApiClient
             offset: Int,
             favoritesOnly: Boolean,
             seed: Long?,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Media>> =
             makeApiCall(
                 ::getPlaceMedia.name,
                 suspend {
-                    _placeApi.getPlaceMedia(placeId, offset, favoritesOnly.takeIf { it }, seed)
+                    _placeApi.getPlaceMedia(placeId, offset, favoritesOnly.takeIf { it }, seed, mediaType)
                 },
             )
 
@@ -60,11 +61,12 @@ class PlaceApiClient
             placeId: Uuid,
             offset: Int,
             favoritesOnly: Boolean,
+            mediaType: String? = null,
         ): ApiResult<SearchResults<Category>> =
             makeApiCall(
                 ::getPlaceCategories.name,
                 suspend {
-                    _placeApi.getPlaceCategories(placeId, offset, favoritesOnly.takeIf { it })
+                    _placeApi.getPlaceCategories(placeId, offset, favoritesOnly.takeIf { it }, mediaType)
                 },
             )
     }

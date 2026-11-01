@@ -35,6 +35,7 @@ import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PlaceAncestor
 import us.mikeandwan.photos.domain.services.MediaFavoriteService
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridItem
@@ -49,7 +50,7 @@ data class MediaFeedUiState(
     // person or a clan, who are not anywhere in it.
     val placeChain: List<PlaceAncestor> = emptyList(),
     val gridItems: List<MediaGridItem<Media>> = emptyList(),
-    val favoritesOnly: Boolean = false,
+    val filters: MediaFilters = MediaFilters(),
     val isShuffled: Boolean = false,
     // whether the categories the subject turns up in are being listed rather than the media itself
     val showCategories: Boolean = false,
@@ -65,6 +66,8 @@ data class MediaFeedUiState(
     val isLoading: Boolean = true,
     // told apart from loading so the screen can say there is nothing here rather than spin forever
     val isEmpty: Boolean = false,
+    // whichever listing is on screen stopped at a page that failed, and waits to be asked again
+    val loadFailed: Boolean = false,
 )
 
 // what the screen says about the subject itself rather than about its media, folded together so the
@@ -81,6 +84,7 @@ private data class CategoryListing(
     val hasMore: Boolean = false,
     val preference: CategoryPreference = CategoryPreference(),
     val labels: CategoryLabels = CategoryLabels(),
+    val loadFailed: Boolean = false,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -190,8 +194,9 @@ class MediaFeedViewModel
                 mediaFeedRepository.hasMoreCategories,
                 categoryPreferenceRepository.getCategoryPreference(),
                 categoryLabels,
-            ) { categories, hasMore, preference, labels ->
-                CategoryListing(categories, hasMore, preference, labels)
+                mediaFeedRepository.categoriesLoadFailed,
+            ) { categories, hasMore, preference, labels, loadFailed ->
+                CategoryListing(categories, hasMore, preference, labels, loadFailed)
             }
 
             // flowext's combine rather than the one in kotlinx: the typed overloads there stop at
@@ -204,7 +209,8 @@ class MediaFeedViewModel
                 categoryListing,
                 subjectHeading,
                 _isLoading,
-            ) { media, hasMore, filter, showCategories, categoryListing, heading, isLoading ->
+                mediaFeedRepository.mediaLoadFailed,
+            ) { media, hasMore, filter, showCategories, categoryListing, heading, isLoading, mediaLoadFailed ->
                 // whichever listing is on screen is the one the loading, empty and paging flags
                 // are about
                 val isListingEmpty = when {
@@ -216,7 +222,7 @@ class MediaFeedViewModel
                     title = heading.title,
                     placeChain = heading.placeChain,
                     gridItems = media.map { it.toMediaGridItem() },
-                    favoritesOnly = filter.favoritesOnly,
+                    filters = filter.mediaFilters,
                     isShuffled = filter.seed != null,
                     showCategories = showCategories,
                     categories = categoryListing.categories,
@@ -225,6 +231,7 @@ class MediaFeedViewModel
                     hasMore = if (showCategories) categoryListing.hasMore else hasMore,
                     isLoading = isLoading && isListingEmpty,
                     isEmpty = !isLoading && isListingEmpty,
+                    loadFailed = if (showCategories) categoryListing.loadFailed else mediaLoadFailed,
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), MediaFeedUiState())
         }
@@ -256,6 +263,21 @@ class MediaFeedViewModel
 
                 // a call the repository declined - already loading, or nothing more to fetch -
                 // emits nothing at all, which must still clear the initial loading state
+                _isLoading.update { false }
+            }
+        }
+
+        fun retryLoad() {
+            viewModelScope.launch {
+                _isLoading.update { true }
+
+                val listing = when {
+                    mediaFeedRepository.showCategories.value -> mediaFeedRepository.retryLoadNextPageOfCategories()
+                    else -> mediaFeedRepository.retryLoadNextPage()
+                }
+
+                listing.collect { }
+
                 _isLoading.update { false }
             }
         }
@@ -303,8 +325,8 @@ class MediaFeedViewModel
             }
         }
 
-        fun setFavoritesOnly(favoritesOnly: Boolean) {
-            applyFilter { it.copy(favoritesOnly = favoritesOnly) }
+        fun setFilters(filters: MediaFilters) {
+            applyFilter { it.copy(favoritesOnly = filters.favoritesOnly, mediaType = filters.mediaType) }
         }
 
         /**

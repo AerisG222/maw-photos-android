@@ -15,8 +15,10 @@ import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.database.SearchHistory
 import us.mikeandwan.photos.database.SearchHistoryDao
 import us.mikeandwan.photos.domain.models.Category
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.SearchRequest
 import us.mikeandwan.photos.domain.models.SearchSource
+import us.mikeandwan.photos.domain.models.toApiFilter
 import us.mikeandwan.photos.api.Category as ApiCategory
 
 @Singleton
@@ -44,6 +46,11 @@ class SearchRepository
 
         val searchResults = pager.items
         val hasMoreResults = pager.hasMore
+        val loadFailed = pager.loadFailed
+        val isLoading = pager.isLoading
+
+        private val _filters = MutableStateFlow(MediaFilters())
+        val filters = _filters.asStateFlow()
 
         private val _activeSearchTerm = MutableStateFlow("")
         val activeSearchTerm = _activeSearchTerm.asStateFlow()
@@ -66,8 +73,25 @@ class SearchRepository
         fun clearSearch() {
             _searchRequest.update { SearchRequest("", SearchSource.None) }
             _activeSearchTerm.update { "" }
+            _filters.update { MediaFilters() }
             pager.reset()
         }
+
+        // the results come a page at a time, so narrowing them is the API's job: what has been
+        // accumulated cannot be kept, and whichever search is running starts over
+        fun setFilters(filters: MediaFilters) =
+            flow {
+                val query = searchRequest.value.query
+
+                if (filters != _filters.value) {
+                    _filters.update { filters }
+                    pager.reset()
+
+                    if (query.isNotBlank()) {
+                        emitAll(loadNextPage(query))
+                    }
+                }
+            }
 
         fun performSearch(
             query: String,
@@ -97,7 +121,23 @@ class SearchRepository
                 }
             }
 
-        private fun loadNextPage(query: String) = pager.loadNextPage { offset -> api.search(query, offset) }
+        // the first page failing leaves nothing that says there is more, so unlike continuing this
+        // only needs there to be a search to go back to
+        fun retrySearch() =
+            flow {
+                val query = searchRequest.value.query
+
+                if (query.isNotBlank()) {
+                    emitAll(pager.retry { offset -> fetchPage(query, offset) })
+                }
+            }
+
+        private fun loadNextPage(query: String) = pager.loadNextPage { offset -> fetchPage(query, offset) }
+
+        private suspend fun fetchPage(
+            query: String,
+            offset: Int,
+        ) = api.search(query, offset, _filters.value.favoritesOnly, _filters.value.mediaType?.toApiFilter())
 
         private suspend fun addSearchHistory(term: String) {
             searchHistoryDao.addSearchTerm(

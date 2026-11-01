@@ -2,6 +2,7 @@ package us.mikeandwan.photos.domain
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emitAll
@@ -32,6 +33,12 @@ class RandomMediaRepository
         private val _isLoadingNextPage = MutableStateFlow(false)
         val isLoadingNextPage = _isLoadingNextPage.asStateFlow()
 
+        // a page failed, which holds the listing where it is until somebody asks again.  being near
+        // the end is still true after a failure, so anything asking from how far it has scrolled or
+        // swiped would otherwise go on asking for as long as the server kept failing.
+        private val _loadFailed = MutableStateFlow(false)
+        val loadFailed = _loadFailed.asStateFlow()
+
         // leaves the listing alone: what the widget shows has nothing to do with the Random screen
         fun fetch(count: Int) =
             flow {
@@ -54,7 +61,7 @@ class RandomMediaRepository
 
         fun loadNextPage() =
             flow {
-                if (_isLoadingNextPage.value) {
+                if (_isLoadingNextPage.value || _loadFailed.value) {
                     return@flow
                 }
 
@@ -63,6 +70,11 @@ class RandomMediaRepository
                 try {
                     emitAll(
                         fetch(PAGE_SIZE).onEach { status ->
+                            // being cancelled says nothing about whether the page can be loaded
+                            if (status is ExternalCallStatus.Error && status.cause !is CancellationException) {
+                                _loadFailed.update { true }
+                            }
+
                             if (status is ExternalCallStatus.Success) {
                                 // every request draws from the whole library, so it can repeat
                                 // something already here - and a listing keyed by id cannot hold
@@ -76,8 +88,16 @@ class RandomMediaRepository
                 }
             }
 
+        fun retryNextPage() =
+            flow {
+                _loadFailed.update { false }
+
+                emitAll(loadNextPage())
+            }
+
         fun clear() {
             _media.update { emptyList() }
+            _loadFailed.update { false }
         }
 
         fun updateMedia(updated: Media) {

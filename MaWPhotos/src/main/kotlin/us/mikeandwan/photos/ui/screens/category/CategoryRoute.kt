@@ -11,6 +11,7 @@ import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 import us.mikeandwan.photos.domain.models.NavigationArea
 import us.mikeandwan.photos.ui.LocalMawAppActions
+import us.mikeandwan.photos.ui.components.topbar.TopBarFilterMenu
 import us.mikeandwan.photos.ui.components.topbar.TopBarState
 
 @Serializable
@@ -51,13 +52,14 @@ private fun CategoryRoute(
         }
     }
 
-    LaunchedEffect(uiState.category) {
+    LaunchedEffect(uiState.category, uiState.filters) {
         uiState.category?.let {
             appActions.updateTopBar(
                 NavigationArea.Category,
                 TopBarState(
                     tinyVerticalTitlePrefix = it.year.toString(),
                     title = it.name,
+                    filterMenu = TopBarFilterMenu(uiState.filters, vm::setFilters),
                 ),
             )
         }
@@ -66,8 +68,9 @@ private fun CategoryRoute(
     CategoryScreen(
         uiState = uiState,
         onMediaClicked = { media ->
-            appActions.navigateToCategoryItem(media.categoryId, media.id)
+            appActions.navigateToCategoryItem(media.categoryId, media.id, uiState.filters)
         },
         onToggleFavorite = { media -> vm.toggleFavorite(media) },
+        onSetFilters = { vm.setFilters(it) },
     )
 }

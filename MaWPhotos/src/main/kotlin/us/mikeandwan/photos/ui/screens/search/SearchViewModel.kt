@@ -2,11 +2,11 @@ package us.mikeandwan.photos.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -17,6 +17,7 @@ import us.mikeandwan.photos.domain.SearchRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.SearchSource
 
 data class SearchUiState(
@@ -24,6 +25,9 @@ data class SearchUiState(
     val hasMore: Boolean = false,
     val displayType: CategoryDisplayType = CategoryDisplayType.Grid,
     val activeTerm: String = "",
+    val loadFailed: Boolean = false,
+    val isLoading: Boolean = false,
+    val filters: MediaFilters = MediaFilters(),
 )
 
 @HiltViewModel
@@ -40,12 +44,18 @@ class SearchViewModel
                 searchRepository.hasMoreResults,
                 searchPreferenceRepository.getSearchDisplayType(),
                 searchRepository.activeSearchTerm,
-            ) { results, hasMore, displayType, activeTerm ->
+                searchRepository.loadFailed,
+                searchRepository.isLoading,
+                searchRepository.filters,
+            ) { results, hasMore, displayType, activeTerm, loadFailed, isLoading, filters ->
                 SearchUiState(
                     results = results,
                     hasMore = hasMore,
                     displayType = displayType,
                     activeTerm = activeTerm,
+                    loadFailed = loadFailed,
+                    isLoading = isLoading,
+                    filters = filters,
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), SearchUiState())
 
@@ -66,6 +76,22 @@ class SearchViewModel
                     .filterIsInstance<ExternalCallStatus.Success<Category>>()
                     .catch { e -> Timber.e(e) }
                     .collect { searchRepository.updateCategory(it.result) }
+            }
+        }
+
+        fun setFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                searchRepository
+                    .setFilters(filters)
+                    .collect { }
+            }
+        }
+
+        fun retrySearch() {
+            viewModelScope.launch {
+                searchRepository
+                    .retrySearch()
+                    .collect { }
             }
         }
 
