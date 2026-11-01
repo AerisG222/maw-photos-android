@@ -26,7 +26,7 @@ do
 done
 
 echo "*** Starting ${DEVICE} Emulator with DNS server: ${DNS_SERVER_IP} ***"
-$EMU -avd "${DEVICE}" -no-snapshot -dns-server "${DNS_SERVER_IP}" -feature -Vulkan &
+$EMU -avd "${DEVICE}" -no-snapshot -dns-server "${DNS_SERVER_IP}" &
 
 echo '*** Wait for Emulator to Start ***'
 sleep 60
