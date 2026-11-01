@@ -1,5 +1,13 @@
 # Release Notes
 
+## v9.14 : 11/01/2026
+
+- filter categories, photos, search results, and people by favorites, and by photo or video where it applies
+- filters on a category's photos also apply to next, previous, and the slideshow
+- automatically load more as you scroll through search and random, including during slideshows
+- retry when more media fails to load
+- dependency updates
+
 ## v9.13 : 10/23/2026
 
 - improve how navigation history is kept across screens
