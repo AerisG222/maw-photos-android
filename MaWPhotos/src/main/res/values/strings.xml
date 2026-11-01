@@ -33,8 +33,6 @@
     <!-- rating screen -->
 
     <!-- random subnav -->
-    <string name="fetch_10_photos">Fetch 10 Photos</string>
-    <string name="fetch_20_photos">Fetch 20 Photos</string>
     <string name="clear_random_photos">Clear Photos</string>
 
     <!-- search subnav -->
@@ -42,7 +40,6 @@
 
     <!-- search -->
     <string name="fragment_search_no_results_found">No results</string>
-    <string name="fragment_search_load_more">Show more</string>
 
     <!-- toolbar -->
     <string name="application_menu_icon_description">Application Menu</string>

@@ -10,9 +10,12 @@ import io.mockk.unmockkAll
 import io.mockk.verify
 import java.io.File
 import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -20,6 +23,8 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonElement
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -254,6 +259,59 @@ class MediaListServiceTest {
 
         // Assert
         assertFalse(service.state.value.isSlideshowPlaying)
+    }
+
+    @Test
+    fun `a slideshow reaching the end waits for a page still on its way`() = runTest {
+        // Arrange
+        val first = Media(id = Uuid.random(), categoryId = Uuid.random(), type = MediaType.Photo, isFavorite = false)
+        val second = Media(id = Uuid.random(), categoryId = Uuid.random(), type = MediaType.Photo, isFavorite = false)
+        val source = MutableStateFlow(listOf(first))
+        val isLoadingMore = MutableStateFlow(true)
+
+        service.initialize(source, MutableStateFlow(10L), isLoadingMore)
+        service.onAction(MediaListAction.SetActiveId(first.id))
+
+        // Act
+        service.onAction(MediaListAction.ToggleSlideshow)
+        withContext(Dispatchers.Default) { delay(100.milliseconds) }
+
+        // Assert - still going, and still on the last photo it has
+        assertTrue(service.state.value.isSlideshowPlaying)
+        assertEquals(first.id, service.state.value.activeId)
+
+        // Act
+        source.value = listOf(first, second)
+        isLoadingMore.value = false
+
+        // Assert
+        awaitState { it.activeId == second.id }
+    }
+
+    @Test
+    fun `a slideshow stops at the end when nothing more is on its way`() = runTest {
+        // Arrange
+        val only = Media(id = Uuid.random(), categoryId = Uuid.random(), type = MediaType.Photo, isFavorite = false)
+
+        service.initialize(MutableStateFlow(listOf(only)), MutableStateFlow(10L))
+        service.onAction(MediaListAction.SetActiveId(only.id))
+
+        // Act
+        service.onAction(MediaListAction.ToggleSlideshow)
+
+        // Assert
+        awaitState { !it.isSlideshowPlaying }
+    }
+
+    // the slideshow runs on its own dispatcher in real time, out of reach of the test scheduler
+    private suspend fun awaitState(predicate: (MediaListState) -> Boolean) {
+        withContext(Dispatchers.Default) {
+            withTimeout(5.seconds) {
+                while (!predicate(service.state.value)) {
+                    delay(10.milliseconds)
+                }
+            }
+        }
     }
 
     @Test

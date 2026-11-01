@@ -75,6 +75,7 @@ class MediaFeedItemViewModel
             mediaListService.initialize(
                 mediaFeedRepository.media,
                 slideshowDurationInMillisFlow,
+                mediaFeedRepository.isLoadingMedia,
             )
 
             uiState = mediaListService.state

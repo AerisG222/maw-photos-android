@@ -11,17 +11,17 @@ import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 
 /**
- * One of a feed's listings, accumulated a page at a time.
+ * A listing the API answers a page at a time, accumulated as the user scrolls.
  *
- * The media a person or clan appears in and the categories they turn up in are two lists over the
- * one subject, and everything about paging them is the same: where the next page starts, the guards
- * against asking for it twice, and throwing away what a superseded request answers. That lives here
- * once so the two listings cannot drift apart.
+ * A feed's media, a feed's categories and search results are different lists, but everything about
+ * paging them is the same: where the next page starts, the guards against asking for it twice, and
+ * throwing away what a superseded request answers. That lives here once so the listings cannot
+ * drift apart.
  *
  * [idOf] is what an item is replaced by when something about it changes - a favorite toggled from
  * the screen showing it.
  */
-internal class MediaFeedPager<TApi, TDomain>(
+internal class ListingPager<TApi, TDomain>(
     private val apiErrorHandler: ApiErrorHandler,
     private val errorMessage: String,
     private val idOf: (TDomain) -> Uuid,
@@ -43,7 +43,8 @@ internal class MediaFeedPager<TApi, TDomain>(
 
     // a grid can ask for the next page more than once before the first ask lands - two rows of a
     // scroll are enough - and a second request at the same offset would append the same page twice
-    private var isLoading = false
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     // bumped every time the listing starts over.  a request already in flight when that happens was
     // asked under the old subject or filter, and its rows do not belong in the new list - appending
@@ -59,11 +60,11 @@ internal class MediaFeedPager<TApi, TDomain>(
      */
     fun loadNextPage(fetch: suspend (offset: Int) -> ApiResult<SearchResults<TApi>>) =
         flow {
-            if (isLoading || (hasLoadedAPage && !_hasMore.value)) {
+            if (_isLoading.value || (hasLoadedAPage && !_hasMore.value)) {
                 return@flow
             }
 
-            isLoading = true
+            _isLoading.update { true }
             val generationAsked = generation
             emit(ExternalCallStatus.Loading)
 
@@ -101,7 +102,7 @@ internal class MediaFeedPager<TApi, TDomain>(
             } finally {
                 // a superseded request leaves the flag to whichever request replaced it
                 if (generationAsked == generation) {
-                    isLoading = false
+                    _isLoading.update { false }
                 }
             }
         }
@@ -120,7 +121,7 @@ internal class MediaFeedPager<TApi, TDomain>(
 
     fun reset() {
         generation++
-        isLoading = false
+        _isLoading.update { false }
         hasLoadedAPage = false
         _items.update { emptyList() }
         _hasMore.update { false }
@@ -130,7 +131,10 @@ internal class MediaFeedPager<TApi, TDomain>(
     private fun handleResults(results: SearchResults<TApi>): ExternalCallStatus<List<TDomain>> {
         val page = results.results.map(toDomain)
 
-        _items.update { it + page }
+        // pages are cut by the server, so whether one repeats a row from the last depends on its
+        // ordering holding from one request to the next - and a listing keyed by id crashes on a
+        // repeat rather than just showing it twice
+        _items.update { current -> (current + page).distinctBy(idOf) }
         _hasMore.update { results.hasMoreResults }
         nextOffset = results.nextOffset
         hasLoadedAPage = true

@@ -212,16 +212,6 @@ class MawPhotosAppViewModel
             }
         }
 
-        fun fetchRandomPhotos(count: Int) {
-            viewModelScope.launch {
-                randomMediaRepository
-                    .fetch(count)
-                    .collect { }
-            }
-
-            closeDrawer()
-        }
-
         fun clearRandomPhotos() {
             randomMediaRepository.clear()
             closeDrawer()

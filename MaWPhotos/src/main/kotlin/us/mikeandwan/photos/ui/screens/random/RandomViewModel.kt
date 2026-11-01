@@ -26,20 +26,15 @@ class RandomViewModel
         ) {
         val uiState = media
             .map { RandomUiState(media = it) }
-            .stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState())
+            // starts from what is already loaded: the screen asks for a page when it sees an empty
+            // list, and coming back to media already fetched should not look like one
+            .stateIn(viewModelScope, WhileSubscribed(5000), RandomUiState(media = media.value))
 
         fun toggleFavorite(media: Media) {
             viewModelScope.launch {
                 val isFavorite = mediaFavoriteService.setIsFavorite(media, !media.isFavorite)
 
                 randomMediaRepository.updateMedia(media.copy(isFavorite = isFavorite))
-            }
-        }
-
-        fun initialFetch(count: Int) {
-            // prevent fetching a new full amount after navigating between item and list views
-            if (media.value.size < count) {
-                fetch(count)
             }
         }
     }

@@ -41,14 +41,14 @@ class MediaFeedRepository
                 "Unable to load categories at this time.  Please try again later."
         }
 
-        private val mediaPager = MediaFeedPager<ApiMedia, Media>(
+        private val mediaPager = ListingPager<ApiMedia, Media>(
             apiErrorHandler = apiErrorHandler,
             errorMessage = ERR_MSG_LOAD_MEDIA,
             idOf = { it.id },
             toDomain = { it.toDomainMedia() },
         )
 
-        private val categoryPager = MediaFeedPager<ApiCategory, Category>(
+        private val categoryPager = ListingPager<ApiCategory, Category>(
             apiErrorHandler = apiErrorHandler,
             errorMessage = ERR_MSG_LOAD_CATEGORIES,
             idOf = { it.id },
@@ -57,6 +57,7 @@ class MediaFeedRepository
 
         val media = mediaPager.items
         val hasMore = mediaPager.hasMore
+        val isLoadingMedia = mediaPager.isLoading
 
         val categories = categoryPager.items
         val hasMoreCategories = categoryPager.hasMore

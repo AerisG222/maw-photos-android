@@ -1,6 +1,5 @@
 package us.mikeandwan.photos.ui.screens.mediaFeed
 
-import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -25,8 +22,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.uuid.Uuid
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
@@ -40,13 +35,9 @@ import us.mikeandwan.photos.ui.components.categorylist.CategoryListSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGridSkeleton
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
+import us.mikeandwan.photos.ui.components.paging.LoadMoreWhenNearEnd
 import us.mikeandwan.photos.ui.components.places.PlaceChain
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
-
-// how close to the end of what has been loaded the listing gets before the next page is asked for.
-// roughly a screenful at the largest thumbnail size, so the fetch is usually done by the time the
-// user scrolls that far.
-private const val PAGING_THRESHOLD = 8
 
 @Composable
 fun MediaFeedScreen(
@@ -129,13 +120,8 @@ private fun MediaListing(
 ) {
     val gridState = rememberLazyGridState()
 
-    LoadMoreWhenScrolledNearEnd(
-        scrollState = gridState,
-        lastVisibleIndex = {
-            gridState.layoutInfo.visibleItemsInfo
-                .lastOrNull()
-                ?.index ?: 0
-        },
+    LoadMoreWhenNearEnd(
+        state = gridState,
         itemCount = uiState.gridItems.size,
         hasMore = uiState.hasMore,
         onLoadMore = onLoadMore,
@@ -167,13 +153,8 @@ private fun CategoryListing(
         CategoryDisplayType.Grid -> {
             val gridState = rememberLazyGridState()
 
-            LoadMoreWhenScrolledNearEnd(
-                scrollState = gridState,
-                lastVisibleIndex = {
-                    gridState.layoutInfo.visibleItemsInfo
-                        .lastOrNull()
-                        ?.index ?: 0
-                },
+            LoadMoreWhenNearEnd(
+                state = gridState,
                 itemCount = uiState.categories.size,
                 hasMore = uiState.hasMore,
                 onLoadMore = onLoadMore,
@@ -193,13 +174,8 @@ private fun CategoryListing(
         CategoryDisplayType.List -> {
             val listState = rememberLazyListState()
 
-            LoadMoreWhenScrolledNearEnd(
-                scrollState = listState,
-                lastVisibleIndex = {
-                    listState.layoutInfo.visibleItemsInfo
-                        .lastOrNull()
-                        ?.index ?: 0
-                },
+            LoadMoreWhenNearEnd(
+                state = listState,
                 itemCount = uiState.categories.size,
                 hasMore = uiState.hasMore,
                 onLoadMore = onLoadMore,
@@ -230,26 +206,6 @@ private fun Category.gridLabel(labels: CategoryLabels): String? =
         name.takeIf { labels.showTitle },
     ).joinToString(" - ")
         .ifEmpty { null }
-
-/**
- * Asks for the next page from how far the listing has been scrolled rather than from its last item
- * composing, so the fetch is already in flight before the user arrives at the end of what is there.
- */
-@Composable
-private fun LoadMoreWhenScrolledNearEnd(
-    scrollState: ScrollableState,
-    lastVisibleIndex: () -> Int,
-    itemCount: Int,
-    hasMore: Boolean,
-    onLoadMore: () -> Unit,
-) {
-    LaunchedEffect(scrollState, itemCount, hasMore) {
-        snapshotFlow(lastVisibleIndex)
-            .distinctUntilChanged()
-            .filter { lastVisible -> hasMore && lastVisible >= itemCount - PAGING_THRESHOLD }
-            .collect { onLoadMore() }
-    }
-}
 
 @Composable
 private fun Skeleton(uiState: MediaFeedUiState) {

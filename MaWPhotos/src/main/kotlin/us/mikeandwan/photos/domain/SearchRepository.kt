@@ -5,19 +5,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
-import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.CategoryApiClient
 import us.mikeandwan.photos.database.SearchHistory
 import us.mikeandwan.photos.database.SearchHistoryDao
 import us.mikeandwan.photos.domain.models.Category
-import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.SearchRequest
 import us.mikeandwan.photos.domain.models.SearchSource
+import us.mikeandwan.photos.api.Category as ApiCategory
 
 @Singleton
 class SearchRepository
@@ -35,25 +35,21 @@ class SearchRepository
         private val _searchRequest = MutableStateFlow(SearchRequest("", SearchSource.None))
         private val searchRequest = _searchRequest.asStateFlow()
 
-        private val _searchResults = MutableStateFlow<List<Category>>(emptyList())
-        val searchResults = _searchResults.asStateFlow()
+        private val pager = ListingPager<ApiCategory, Category>(
+            apiErrorHandler = apiErrorHandler,
+            errorMessage = ERR_MSG_SEARCH,
+            idOf = { it.id },
+            toDomain = { it.toDomainCategory() },
+        )
 
-        private val _hasMoreResults = MutableStateFlow(false)
-        val hasMoreResults = _hasMoreResults.asStateFlow()
+        val searchResults = pager.items
+        val hasMoreResults = pager.hasMore
 
         private val _activeSearchTerm = MutableStateFlow("")
         val activeSearchTerm = _activeSearchTerm.asStateFlow()
 
         fun updateCategory(updated: Category) {
-            _searchResults.update { currentList ->
-                val index = currentList.indexOfFirst { it.id == updated.id }
-
-                if (index < 0) {
-                    currentList
-                } else {
-                    currentList.toMutableList().also { it[index] = updated }
-                }
-            }
+            pager.update(updated)
         }
 
         fun getSearchHistory() =
@@ -70,8 +66,7 @@ class SearchRepository
         fun clearSearch() {
             _searchRequest.update { SearchRequest("", SearchSource.None) }
             _activeSearchTerm.update { "" }
-            _searchResults.update { emptyList() }
-            _hasMoreResults.update { false }
+            pager.reset()
         }
 
         fun performSearch(
@@ -82,11 +77,10 @@ class SearchRepository
 
             if (query.isNotBlank() && !currentQuery.equals(query, true)) {
                 _activeSearchTerm.update { query }
-                _searchResults.update { emptyList() }
+                pager.reset()
                 _searchRequest.update { SearchRequest(query, searchSource) }
 
-                executeSearch(query, 0)
-                    .collect { emit(it) }
+                emitAll(loadNextPage(query))
 
                 if (searchResults.value.isNotEmpty()) {
                     addSearchHistory(query)
@@ -97,40 +91,13 @@ class SearchRepository
         fun continueSearch() =
             flow {
                 val query = searchRequest.value.query
-                val position = searchResults.value.size
 
                 if (query.isNotBlank() && hasMoreResults.value) {
-                    executeSearch(query, position)
-                        .collect { emit(it) }
+                    emitAll(loadNextPage(query))
                 }
             }
 
-        private fun executeSearch(
-            query: String,
-            startPosition: Int,
-        ) = flow {
-            emit(ExternalCallStatus.Loading)
-
-            when (val result = api.search(query, startPosition)) {
-                is ApiResult.Error -> {
-                    emit(apiErrorHandler.handleError(result, ERR_MSG_SEARCH))
-                }
-
-                is ApiResult.Empty -> {
-                    emit(apiErrorHandler.handleEmpty(result, ERR_MSG_SEARCH))
-                }
-
-                is ApiResult.Success -> {
-                    val searchResults = result.result.results
-                    val domainResults = searchResults.map { it.toDomainCategory() }
-
-                    _searchResults.update { it + domainResults }
-                    _hasMoreResults.update { result.result.hasMoreResults }
-
-                    emit(domainResults)
-                }
-            }
-        }
+        private fun loadNextPage(query: String) = pager.loadNextPage { offset -> api.search(query, offset) }
 
         private suspend fun addSearchHistory(term: String) {
             searchHistoryDao.addSearchTerm(

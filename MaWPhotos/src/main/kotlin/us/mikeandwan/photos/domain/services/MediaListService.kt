@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -191,6 +192,11 @@ class MediaListService
         }
         private val category = MutableStateFlow<Category?>(null)
         private val media = MutableStateFlow<List<Media>>(emptyList())
+
+        // what the slideshow reads when it runs out of [media]: the mirror lags the feed slightly,
+        // so a page that has just landed may be here before it is there
+        private var sourceMedia: StateFlow<List<Media>> = media
+        private var isLoadingMore: StateFlow<Boolean> = MutableStateFlow(false)
         private val activeId = MutableStateFlow(Uuid.NIL)
         private val slideshowJob = PeriodicJob { moveNext() }
         private val isZoomed = MutableStateFlow(false)
@@ -507,9 +513,13 @@ class MediaListService
         fun initialize(
             sourceMedia: StateFlow<List<Media>>,
             slideshowDurationInMillis: StateFlow<Long>,
+            isLoadingMore: StateFlow<Boolean> = MutableStateFlow(false),
         ) {
             wiring?.cancel()
             cancelCategoryLoad()
+
+            this.sourceMedia = sourceMedia
+            this.isLoadingMore = isLoadingMore
 
             wiring = scope.launch {
                 // the list is a mirror of the feed, seeded from what it already holds - a state flow
@@ -603,11 +613,18 @@ class MediaListService
 
         private fun moveNext() =
             flow<Unit> {
-                val activeIndex = media.value.indexOfFirst { it.id == activeId.value }
+                // a slideshow outrunning the next page should wait for it rather than stop short.
+                // this holds the job's loop, so the wait only lasts as long as the request does.
+                if (media.value.lastOrNull()?.id == activeId.value) {
+                    isLoadingMore.first { !it }
+                }
+
+                val currentMedia = sourceMedia.value
+                val activeIndex = currentMedia.indexOfFirst { it.id == activeId.value }
                 val nextIndex = activeIndex + 1
 
-                if (nextIndex < media.value.size) {
-                    setActiveId(media.value[nextIndex].id)
+                if (nextIndex < currentMedia.size) {
+                    setActiveId(currentMedia[nextIndex].id)
                 } else {
                     stopSlideshow()
                 }

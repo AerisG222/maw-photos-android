@@ -1,17 +1,15 @@
 package us.mikeandwan.photos.ui.screens.search
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
@@ -30,6 +28,7 @@ import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.ui.components.categorylist.CategoryList
 import us.mikeandwan.photos.ui.components.mediagrid.MediaGrid
 import us.mikeandwan.photos.ui.components.mediagrid.rememberMediaGridState
+import us.mikeandwan.photos.ui.components.paging.LoadMoreWhenNearEnd
 import us.mikeandwan.photos.ui.shared.toMediaGridItem
 
 @Composable
@@ -64,53 +63,44 @@ fun SearchScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            when (uiState.displayType) {
-                CategoryDisplayType.Grid -> {
-                    val gridState = rememberMediaGridState(
-                        gridItems = uiState.results.map { it.toMediaGridItem() },
-                        onSelectGridItem = { onNavigateToCategory(it.data) },
-                        onToggleFavorite = { onToggleFavorite(it.data) },
-                    )
+    when (uiState.displayType) {
+        CategoryDisplayType.Grid -> {
+            val lazyGridState = rememberLazyGridState()
 
-                    MediaGrid(gridState, modifier = modifier)
-                }
+            LoadMoreWhenNearEnd(
+                state = lazyGridState,
+                itemCount = uiState.results.size,
+                hasMore = uiState.hasMore,
+                onLoadMore = onContinueSearch,
+            )
 
-                CategoryDisplayType.List -> {
-                    CategoryList(
-                        categories = uiState.results,
-                        showYear = true,
-                        onSelectCategory = onNavigateToCategory,
-                        modifier = modifier,
-                        onToggleFavorite = onToggleFavorite,
-                    )
-                }
-            }
+            val gridState = rememberMediaGridState(
+                gridItems = uiState.results.map { it.toMediaGridItem() },
+                onSelectGridItem = { onNavigateToCategory(it.data) },
+                onToggleFavorite = { onToggleFavorite(it.data) },
+            )
+
+            MediaGrid(gridState, modifier = modifier, gridState = lazyGridState)
         }
 
-        if (uiState.results.isNotEmpty()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier
-                    .padding(8.dp)
-                    .fillMaxWidth(),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = modifier.fillMaxWidth(),
-                ) {
-                    if (uiState.hasMore) {
-                        Button(onClick = { onContinueSearch() }) {
-                            Text(text = stringResource(id = R.string.fragment_search_load_more))
-                        }
-                    }
-                }
-            }
+        CategoryDisplayType.List -> {
+            val listState = rememberLazyListState()
+
+            LoadMoreWhenNearEnd(
+                state = listState,
+                itemCount = uiState.results.size,
+                hasMore = uiState.hasMore,
+                onLoadMore = onContinueSearch,
+            )
+
+            CategoryList(
+                categories = uiState.results,
+                showYear = true,
+                onSelectCategory = onNavigateToCategory,
+                modifier = modifier,
+                onToggleFavorite = onToggleFavorite,
+                listState = listState,
+            )
         }
     }
 }

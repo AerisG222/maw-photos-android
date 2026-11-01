@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -34,21 +32,12 @@ private fun RandomRoute(vm: RandomViewModel = hiltViewModel()) {
             NavigationArea.Random,
             TopBarState(title = "Random"),
         )
-
-        vm.initialFetch(24)
-    }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        vm.onResume()
-    }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        vm.onPause()
     }
 
     RandomScreen(
         uiState = uiState,
         onMediaClicked = { appActions.navigateToRandomItem(it.id) },
         onToggleFavorite = { media -> vm.toggleFavorite(media) },
+        onLoadMore = { vm.loadNextPage() },
     )
 }

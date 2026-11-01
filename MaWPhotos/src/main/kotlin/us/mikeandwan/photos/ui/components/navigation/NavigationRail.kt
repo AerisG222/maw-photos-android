@@ -31,7 +31,6 @@ fun NavigationRail(
     recentSearchTerms: List<SearchHistory>,
     navigateToSearchWithTerm: (String) -> Unit,
     clearSearchHistory: () -> Unit,
-    fetchRandomPhotos: (Int) -> Unit,
     clearRandomPhotos: () -> Unit,
     activeYear: Int,
     navigateToCategories: () -> Unit,
@@ -154,7 +153,6 @@ fun NavigationRail(
 
                 NavigationArea.Random -> {
                     RandomMenu(
-                        fetchRandomPhotos = fetchRandomPhotos,
                         clearRandomPhotos = clearRandomPhotos,
                     )
                 }

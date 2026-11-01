@@ -9,6 +9,7 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.JsonElement
 import us.mikeandwan.photos.domain.RandomMediaRepository
@@ -23,6 +24,9 @@ import us.mikeandwan.photos.domain.models.RandomPreference
 import us.mikeandwan.photos.domain.services.MediaListAction
 import us.mikeandwan.photos.domain.services.MediaListService
 import us.mikeandwan.photos.ui.screens.random.BaseRandomViewModel
+
+// how close to the end of what has been loaded the pager gets before the next page is asked for
+private const val PAGING_THRESHOLD = 4
 
 data class RandomItemUiState(
     val category: Category? = null,
@@ -74,10 +78,17 @@ class RandomItemViewModel
             mediaListService.initialize(
                 media,
                 slideshowDurationInMillisFlow,
+                randomMediaRepository.isLoadingNextPage,
             )
 
             uiState = mediaListService.state
-                .map { mediaListState ->
+                .onEach { state ->
+                    // swiping or a slideshow reaching the end of what has been loaded has to fetch
+                    // more or the pager simply stops there
+                    if (state.activeIndex >= 0 && state.activeIndex >= state.media.size - PAGING_THRESHOLD) {
+                        loadNextPage()
+                    }
+                }.map { mediaListState ->
                     RandomItemUiState(
                         category = mediaListState.category,
                         media = mediaListState.media,

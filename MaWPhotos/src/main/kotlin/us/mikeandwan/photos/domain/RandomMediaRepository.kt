@@ -2,14 +2,12 @@ package us.mikeandwan.photos.domain
 
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.MediaApiClient
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
@@ -20,27 +18,21 @@ class RandomMediaRepository
     @Inject
     constructor(
         private val api: MediaApiClient,
-        randomPreferenceRepository: RandomPreferenceRepository,
         private val apiErrorHandler: ApiErrorHandler,
     ) {
         companion object {
             const val ERR_MSG_FETCH = "Unable to fetch random photos at this time.  Please try again later."
+            private const val PAGE_SIZE = 24
         }
-
-        private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-        private var periodicJob: PeriodicJob<ExternalCallStatus<List<Media>>>
 
         private val _media = MutableStateFlow(emptyList<Media>())
         val media = _media.asStateFlow()
 
-        fun setDoFetch(doFetch: Boolean) {
-            if (doFetch) {
-                periodicJob.start()
-            } else {
-                periodicJob.stop()
-            }
-        }
+        // a grid can ask for the next page more than once before the first ask lands
+        private val _isLoadingNextPage = MutableStateFlow(false)
+        val isLoadingNextPage = _isLoadingNextPage.asStateFlow()
 
+        // leaves the listing alone: what the widget shows has nothing to do with the Random screen
         fun fetch(count: Int) =
             flow {
                 emit(ExternalCallStatus.Loading)
@@ -55,12 +47,32 @@ class RandomMediaRepository
                     }
 
                     is ApiResult.Success -> {
-                        val newPhotos = result.result.map { it.toDomainMedia() }
-
-                        _media.update { it + newPhotos }
-
-                        emit(ExternalCallStatus.Success(newPhotos))
+                        emit(ExternalCallStatus.Success(result.result.map { it.toDomainMedia() }))
                     }
+                }
+            }
+
+        fun loadNextPage() =
+            flow {
+                if (_isLoadingNextPage.value) {
+                    return@flow
+                }
+
+                _isLoadingNextPage.update { true }
+
+                try {
+                    emitAll(
+                        fetch(PAGE_SIZE).onEach { status ->
+                            if (status is ExternalCallStatus.Success) {
+                                // every request draws from the whole library, so it can repeat
+                                // something already here - and a listing keyed by id cannot hold
+                                // the same id twice
+                                _media.update { current -> (current + status.result).distinctBy { it.id } }
+                            }
+                        },
+                    )
+                } finally {
+                    _isLoadingNextPage.update { false }
                 }
             }
 
@@ -76,19 +88,6 @@ class RandomMediaRepository
                     currentList
                 } else {
                     currentList.toMutableList().also { it[index] = updated }
-                }
-            }
-        }
-
-        init {
-            periodicJob = PeriodicJob(
-                false,
-                3000L, // Initial default
-            ) { fetch(1) }
-
-            scope.launch {
-                randomPreferenceRepository.getSlideshowIntervalSeconds().collect {
-                    periodicJob.setIntervalMillis(it * 1000L)
                 }
             }
         }

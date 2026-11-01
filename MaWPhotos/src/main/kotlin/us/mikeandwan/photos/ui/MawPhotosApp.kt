@@ -205,7 +205,6 @@ fun MawPhotosApp(vm: MawPhotosAppViewModel = hiltViewModel()) {
                             countries = countries,
                             activeFeedSubject = activeFeedSubject,
                             recentSearchTerms = recentSearchTerms,
-                            fetchRandomPhotos = vm::fetchRandomPhotos,
                             clearRandomPhotos = vm::clearRandomPhotos,
                             clearSearchHistory = vm::clearSearchHistory,
                             navigateToCategories = { appActions.navigateToCategories(null) },
