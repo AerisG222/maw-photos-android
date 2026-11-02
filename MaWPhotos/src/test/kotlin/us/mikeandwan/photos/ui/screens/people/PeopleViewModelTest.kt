@@ -56,6 +56,9 @@ class PeopleViewModelTest {
         every { peopleRepository.getPeople(any()) } returns
             flowOf(ExternalCallStatus.Success(listOf(carol, alice, bob)))
         every { peoplePreferenceRepository.getPeoplePreference() } returns preference
+        coEvery { peoplePreferenceRepository.setFilters(any()) } answers {
+            preference.value = preference.value.copy(filters = firstArg())
+        }
         every { clanRepository.clans } returns clans
         every { clanRepository.getClans(any()) } returns
             flowOf(ExternalCallStatus.Success(emptyList()))

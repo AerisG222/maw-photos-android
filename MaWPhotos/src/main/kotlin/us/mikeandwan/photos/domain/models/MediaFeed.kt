@@ -1,5 +1,6 @@
 package us.mikeandwan.photos.domain.models
 
+import kotlin.random.Random
 import kotlin.uuid.Uuid
 
 /**
@@ -55,7 +56,26 @@ data class MediaFeedFilter(
 ) {
     val mediaFilters: MediaFilters
         get() = MediaFilters(favoritesOnly, mediaType)
+
+    // a seed already drawn stays: narrowing a shuffled feed, or coming back to one, keeps its order
+    fun withOptions(options: MediaFeedOptions) =
+        copy(
+            favoritesOnly = options.filters.favoritesOnly,
+            mediaType = options.filters.mediaType,
+            seed = if (options.isShuffled) seed ?: Random.nextLong() else null,
+        )
 }
+
+/**
+ * What is saved about how an area's feeds are narrowed and ordered.
+ *
+ * Whether to shuffle is what is saved rather than the seed: each feed draws its own, so the setting
+ * survives but the order is new each time a feed is opened.
+ */
+data class MediaFeedOptions(
+    val filters: MediaFilters = MediaFilters(),
+    val isShuffled: Boolean = false,
+)
 
 /**
  * What a category says about itself in a feed's category listing, beyond its teaser.

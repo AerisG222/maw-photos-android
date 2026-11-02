@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFilters
@@ -31,6 +32,7 @@ class CategoryViewModel
     @Inject
     constructor(
         categoryRepository: CategoryRepository,
+        private val mediaPreferenceRepository: MediaPreferenceRepository,
         private val mediaFavoriteService: MediaFavoriteService,
     ) : BaseCategoryViewModel(categoryRepository) {
         val uiState: StateFlow<CategoryUiState>
@@ -60,6 +62,20 @@ class CategoryViewModel
                     filters = filters,
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), CategoryUiState())
+
+            viewModelScope.launch {
+                mediaPreferenceRepository
+                    .getMediaPreference()
+                    .collect { applyFilters(it.filters) }
+            }
+        }
+
+        // saved rather than applied: what is saved comes back through the collection above, so the
+        // menu here and the settings screen are the one setting
+        fun setFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                mediaPreferenceRepository.setFilters(filters)
+            }
         }
 
         fun initState(categoryId: Uuid) {

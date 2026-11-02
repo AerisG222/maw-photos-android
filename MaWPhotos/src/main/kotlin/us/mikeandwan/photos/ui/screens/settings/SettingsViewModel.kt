@@ -22,27 +22,38 @@ import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.RandomPreferenceRepository
 import us.mikeandwan.photos.domain.SearchPreferenceRepository
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
+import us.mikeandwan.photos.domain.models.CategoryPreference
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.PlacePreference
+import us.mikeandwan.photos.domain.models.SearchPreference
 
 data class SettingsUiState(
     val notificationDoNotify: Boolean = false,
     val notificationDoVibrate: Boolean = true,
     val categoryDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
+    val categoryFilters: MediaFilters = MediaFilters(),
+    val mediaFilters: MediaFilters = MediaFilters(),
     val photoSlideshowInterval: Int = 3,
     val randomSlideshowInterval: Int = 3,
     val randomShowWidgetInfo: Boolean = true,
     val searchQueryCount: Int = 20,
     val searchDisplayType: CategoryDisplayType = CategoryDisplayType.Grid,
+    val searchFilters: MediaFilters = MediaFilters(),
     val peopleShowNames: Boolean = true,
     val peopleShowMediaCounts: Boolean = true,
     val peopleShowClans: Boolean = true,
+    val peopleFilters: MediaFilters = MediaFilters(),
+    val peopleFeedFilters: MediaFilters = MediaFilters(),
+    val peopleFeedShuffled: Boolean = false,
     // what a category says about itself when a person's, a clan's or a place's categories are being
     // listed.  kept per area, because the two are read differently - see CategoryLabels
     val peopleShowCategoryYear: Boolean = true,
     val peopleShowCategoryTitle: Boolean = true,
     val placeShowCategoryYear: Boolean = true,
     val placeShowCategoryTitle: Boolean = true,
+    val placeFeedFilters: MediaFilters = MediaFilters(),
+    val placeFeedShuffled: Boolean = false,
     // stored with the media preferences rather than the people ones - it applies wherever media is
     // shown - but offered beside the rest of the face settings, since it is face data it draws
     val mediaShowFaceHighlights: Boolean = false,
@@ -71,13 +82,13 @@ class SettingsViewModel
             combine(
                 notificationPreferenceRepository.getDoNotify(),
                 notificationPreferenceRepository.getDoVibrate(),
-                categoryPreferenceRepository.getCategoryDisplayType(),
+                categoryPreferenceRepository.getCategoryPreference(),
                 mediaPreferenceRepository.getSlideshowIntervalSeconds(),
                 mediaPreferenceRepository.getMediaPreference(),
                 randomPreferenceRepository.getSlideshowIntervalSeconds(),
                 randomPreferenceRepository.getRandomPreferences(),
                 searchPreferenceRepository.getSearchesToSaveCount(),
-                searchPreferenceRepository.getSearchDisplayType(),
+                searchPreferenceRepository.getSearchPreference(),
                 errorRepository.isDeveloperMode,
                 errorRepository.developerLogs,
                 authService.faceRecognitionAccess,
@@ -86,6 +97,8 @@ class SettingsViewModel
             ) { args: Array<Any?> ->
                 @Suppress("UNCHECKED_CAST")
                 val developerLogs = args[10] as List<DeveloperLog>
+                val categoryPreference = args[2] as CategoryPreference
+                val searchPreference = args[8] as SearchPreference
                 val mediaPreference = args[4] as us.mikeandwan.photos.domain.models.MediaPreference
                 val randomPreference = args[6] as us.mikeandwan.photos.domain.models.RandomPreference
                 val peoplePreference = args[12] as PeoplePreference
@@ -94,19 +107,27 @@ class SettingsViewModel
                 SettingsUiState(
                     notificationDoNotify = args[0] as Boolean,
                     notificationDoVibrate = args[1] as Boolean,
-                    categoryDisplayType = args[2] as CategoryDisplayType,
+                    categoryDisplayType = categoryPreference.displayType,
+                    categoryFilters = categoryPreference.filters,
+                    mediaFilters = mediaPreference.filters,
                     photoSlideshowInterval = args[3] as Int,
                     randomSlideshowInterval = args[5] as Int,
                     randomShowWidgetInfo = randomPreference.showWidgetInfo,
                     searchQueryCount = args[7] as Int,
-                    searchDisplayType = args[8] as CategoryDisplayType,
+                    searchDisplayType = searchPreference.displayType,
+                    searchFilters = searchPreference.filters,
                     peopleShowNames = peoplePreference.showNames,
                     peopleShowMediaCounts = peoplePreference.showMediaCounts,
                     peopleShowClans = peoplePreference.showClans,
+                    peopleFilters = peoplePreference.filters,
+                    peopleFeedFilters = peoplePreference.feedFilters,
+                    peopleFeedShuffled = peoplePreference.feedShuffled,
                     peopleShowCategoryYear = peoplePreference.showCategoryYear,
                     peopleShowCategoryTitle = peoplePreference.showCategoryTitle,
                     placeShowCategoryYear = placePreference.showCategoryYear,
                     placeShowCategoryTitle = placePreference.showCategoryTitle,
+                    placeFeedFilters = placePreference.feedFilters,
+                    placeFeedShuffled = placePreference.feedShuffled,
                     mediaShowFaceHighlights = mediaPreference.showFaceHighlights,
                     isDeveloperMode = args[9] as Boolean,
                     developerLogs = developerLogs,
@@ -232,6 +253,54 @@ class SettingsViewModel
         fun setPeopleShowClans(show: Boolean) {
             viewModelScope.launch {
                 peoplePreferenceRepository.setShowClans(show)
+            }
+        }
+
+        fun setCategoryFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                categoryPreferenceRepository.setFilters(filters)
+            }
+        }
+
+        fun setMediaFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                mediaPreferenceRepository.setFilters(filters)
+            }
+        }
+
+        fun setSearchFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                searchPreferenceRepository.setFilters(filters)
+            }
+        }
+
+        fun setPeopleFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setFilters(filters)
+            }
+        }
+
+        fun setPeopleFeedShuffled(shuffled: Boolean) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setFeedShuffled(shuffled)
+            }
+        }
+
+        fun setPlaceFeedShuffled(shuffled: Boolean) {
+            viewModelScope.launch {
+                placePreferenceRepository.setFeedShuffled(shuffled)
+            }
+        }
+
+        fun setPeopleFeedFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                peoplePreferenceRepository.setFeedFilters(filters)
+            }
+        }
+
+        fun setPlaceFeedFilters(filters: MediaFilters) {
+            viewModelScope.launch {
+                placePreferenceRepository.setFeedFilters(filters)
             }
         }
 

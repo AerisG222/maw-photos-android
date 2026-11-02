@@ -112,10 +112,12 @@ class MediaFeedItemViewModel
             subject: MediaFeedSubject,
             mediaId: Uuid,
         ) {
-            mediaFeedRepository.initialize(subject)
+            viewModelScope.launch {
+                mediaFeedRepository.initialize(subject)
 
-            if (mediaFeedRepository.media.value.isEmpty()) {
-                loadNextPage()
+                if (mediaFeedRepository.media.value.isEmpty()) {
+                    loadNextPage()
+                }
             }
 
             mediaListService.onAction(MediaListAction.SetActiveId(mediaId))

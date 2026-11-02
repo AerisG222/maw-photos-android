@@ -2,7 +2,6 @@ package us.mikeandwan.photos.ui.screens.categories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -46,12 +46,11 @@ class CategoriesViewModel
     @Inject
     constructor(
         private val categoryRepository: CategoryRepository,
-        categoryPreferenceRepository: CategoryPreferenceRepository,
+        private val categoryPreferenceRepository: CategoryPreferenceRepository,
         private val errorRepository: ErrorRepository,
     ) : ViewModel() {
         private val _year = MutableStateFlow<Int?>(null)
         private val _isRefreshing = MutableStateFlow(false)
-        private val _filters = MutableStateFlow(MediaFilters())
 
         @OptIn(ExperimentalCoroutinesApi::class)
         private val categories = _year
@@ -82,8 +81,7 @@ class CategoriesViewModel
                 _year,
                 _isRefreshing,
                 categoryPreferenceRepository.getCategoryPreference(),
-                _filters,
-            ) { years, categories, year, isRefreshing, preferences, filters ->
+            ) { years, categories, year, isRefreshing, preferences ->
                 var isLoading = true
                 var invalidYearMostRecent: Int? = null
 
@@ -98,8 +96,8 @@ class CategoriesViewModel
 
                 CategoriesUiState(
                     year = year,
-                    categories = categories.filteredCategoriesBy(filters),
-                    filters = filters,
+                    categories = categories.filteredCategoriesBy(preferences.filters),
+                    filters = preferences.filters,
                     isRefreshing = isRefreshing,
                     preferences = preferences,
                     isLoading = isLoading,
@@ -113,7 +111,9 @@ class CategoriesViewModel
         }
 
         fun setFilters(filters: MediaFilters) {
-            _filters.update { filters }
+            viewModelScope.launch {
+                categoryPreferenceRepository.setFilters(filters)
+            }
         }
 
         fun toggleFavorite(category: Category) {

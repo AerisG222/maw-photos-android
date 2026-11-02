@@ -7,6 +7,7 @@ import us.mikeandwan.photos.datastore.UserPreferences
 import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
 import us.mikeandwan.photos.domain.models.CategoryPreference
+import us.mikeandwan.photos.domain.models.MediaFilters
 
 @Singleton
 class CategoryPreferenceRepository
@@ -20,6 +21,10 @@ class CategoryPreferenceRepository
 
         suspend fun setCategoryDisplayType(displayType: CategoryDisplayType) {
             setPreference { it.copy(displayType = displayType) }
+        }
+
+        suspend fun setFilters(filters: MediaFilters) {
+            setPreference { it.copy(filters = filters) }
         }
 
         private suspend fun setPreference(update: (pref: CategoryPreference) -> CategoryPreference) {

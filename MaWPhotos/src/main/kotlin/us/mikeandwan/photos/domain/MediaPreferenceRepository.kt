@@ -5,6 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import us.mikeandwan.photos.datastore.UserPreferences
 import us.mikeandwan.photos.datastore.select
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.MediaPreference
 
 @Singleton
@@ -23,6 +24,10 @@ class MediaPreferenceRepository
 
         suspend fun setShowFaceHighlights(show: Boolean) {
             setPreference { it.copy(showFaceHighlights = show) }
+        }
+
+        suspend fun setFilters(filters: MediaFilters) {
+            setPreference { it.copy(filters = filters) }
         }
 
         private suspend fun setPreference(update: (pref: MediaPreference) -> MediaPreference) {

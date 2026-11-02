@@ -5,4 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CategoryPreference(
     val displayType: CategoryDisplayType = CategoryDisplayType.Grid,
+    val filters: MediaFilters = MediaFilters(),
 )

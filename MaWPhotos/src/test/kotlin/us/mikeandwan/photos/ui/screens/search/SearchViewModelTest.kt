@@ -1,5 +1,7 @@
 package us.mikeandwan.photos.ui.screens.search
 
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -74,6 +76,27 @@ class SearchViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `the menu saves filters, and what is saved is what gets applied`() = runTest {
+        val saved = MutableStateFlow(MediaFilters())
+
+        every { searchPreferenceRepository.getFilters() } returns saved
+        coEvery { searchPreferenceRepository.setFilters(any()) } answers { saved.value = firstArg() }
+
+        val vm = SearchViewModel(
+            searchRepository,
+            categoryRepository,
+            searchPreferenceRepository,
+        )
+        val narrowed = MediaFilters(favoritesOnly = true)
+
+        vm.setFilters(narrowed)
+        advanceUntilIdle()
+
+        coVerify { searchPreferenceRepository.setFilters(narrowed) }
+        verify { searchRepository.applyFilters(narrowed) }
     }
 
     @Test

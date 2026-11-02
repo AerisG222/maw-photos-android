@@ -38,6 +38,7 @@ import us.mikeandwan.photos.domain.PlacePreferenceRepository
 import us.mikeandwan.photos.domain.PlaceRepository
 import us.mikeandwan.photos.domain.models.CategoryPreference
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
+import us.mikeandwan.photos.domain.models.MediaFeedOptions
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
 import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
@@ -102,6 +103,9 @@ class MediaFeedViewModelTest {
         PlaceAncestor(placeId, PlaceKind.City, "Boston"),
     )
 
+    private val peopleFeedOptions = MutableStateFlow(MediaFeedOptions())
+    private val placeFeedOptions = MutableStateFlow(MediaFeedOptions())
+
     @Before
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
@@ -109,8 +113,6 @@ class MediaFeedViewModelTest {
         api = mockk()
         placeApi = mockk()
         apiErrorHandler = mockk(relaxed = true)
-        mediaFeedRepository = MediaFeedRepository(api, placeApi, apiErrorHandler)
-
         peopleRepository = mockk(relaxed = true)
         clanRepository = mockk(relaxed = true)
         placeRepository = mockk(relaxed = true)
@@ -121,6 +123,28 @@ class MediaFeedViewModelTest {
         categoryRepository = mockk(relaxed = true)
         categoryPreferenceRepository = mockk(relaxed = true)
         mediaFavoriteService = mockk(relaxed = true)
+        mediaFeedRepository = MediaFeedRepository(
+            api,
+            placeApi,
+            peoplePreferenceRepository,
+            placePreferenceRepository,
+            apiErrorHandler,
+        )
+
+        every { peoplePreferenceRepository.getFeedOptions() } returns peopleFeedOptions
+        every { placePreferenceRepository.getFeedOptions() } returns placeFeedOptions
+        coEvery { peoplePreferenceRepository.setFeedFilters(any()) } answers {
+            peopleFeedOptions.value = peopleFeedOptions.value.copy(filters = firstArg())
+        }
+        coEvery { placePreferenceRepository.setFeedFilters(any()) } answers {
+            placeFeedOptions.value = placeFeedOptions.value.copy(filters = firstArg())
+        }
+        coEvery { peoplePreferenceRepository.setFeedShuffled(any()) } answers {
+            peopleFeedOptions.value = peopleFeedOptions.value.copy(isShuffled = firstArg())
+        }
+        coEvery { placePreferenceRepository.setFeedShuffled(any()) } answers {
+            placeFeedOptions.value = placeFeedOptions.value.copy(isShuffled = firstArg())
+        }
 
         every { peopleRepository.people } returns MutableStateFlow(listOf(person))
         every { peopleRepository.getPeople(any()) } returns
@@ -202,6 +226,84 @@ class MediaFeedViewModelTest {
     }
 
     @Test
+    fun `a feed opens shuffled when that was saved, never asking in the default order`() = runTest {
+        peopleFeedOptions.value = MediaFeedOptions(isShuffled = true)
+
+        coEvery { api.getPersonMedia(personId, 0, false, any()) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.isShuffled)
+        coVerify(exactly = 0) { api.getPersonMedia(personId, 0, false, null) }
+    }
+
+    @Test
+    fun `shuffling saves it against the area the subject belongs to`() = runTest {
+        coEvery { placeApi.getPlaceMedia(placeId, any(), false, any(), null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(MediaFeedSubject.Place(placeId))
+        advanceUntilIdle()
+
+        vm.setShuffled(true)
+        advanceUntilIdle()
+
+        coVerify { placePreferenceRepository.setFeedShuffled(true) }
+        coVerify(exactly = 0) { peoplePreferenceRepository.setFeedShuffled(any()) }
+        assertTrue(vm.uiState.value.isShuffled)
+    }
+
+    // the grid keeps its place by keeping the list, which only holds if the order does
+    @Test
+    fun `coming back to a shuffled feed keeps its seed`() = runTest {
+        peopleFeedOptions.value = MediaFeedOptions(isShuffled = true)
+
+        coEvery { api.getPersonMedia(personId, 0, false, any()) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val first = viewModel()
+
+        first.initState(subject)
+        advanceUntilIdle()
+
+        val seed = mediaFeedRepository.filter.value.seed
+
+        val second = viewModel()
+
+        second.initState(subject)
+        advanceUntilIdle()
+
+        assertEquals(seed, mediaFeedRepository.filter.value.seed)
+    }
+
+    @Test
+    fun `changing a filter leaves a saved shuffle on with the same seed`() = runTest {
+        peopleFeedOptions.value = MediaFeedOptions(isShuffled = true)
+
+        coEvery { api.getPersonMedia(personId, 0, any(), any()) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        val seed = mediaFeedRepository.filter.value.seed
+
+        vm.setFilters(MediaFilters(favoritesOnly = true))
+        advanceUntilIdle()
+
+        assertEquals(seed, mediaFeedRepository.filter.value.seed)
+        assertTrue(vm.uiState.value.filters.favoritesOnly)
+    }
+
+    @Test
     fun `unshuffling drops the seed`() = runTest {
         coEvery { api.getPersonMedia(personId, any(), any(), any()) } returns
             ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
@@ -239,6 +341,64 @@ class MediaFeedViewModelTest {
 
         assertEquals(1, vm.uiState.value.gridItems.size)
         assertTrue(vm.uiState.value.filters.favoritesOnly)
+    }
+
+    @Test
+    fun `a feed opens narrowed by what was saved, asking only for that`() = runTest {
+        peopleFeedOptions.value = MediaFeedOptions(MediaFilters(favoritesOnly = true))
+
+        coEvery { api.getPersonMedia(personId, 0, true, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.gridItems.size)
+        assertTrue(vm.uiState.value.filters.favoritesOnly)
+        coVerify(exactly = 0) { api.getPersonMedia(personId, 0, false, null) }
+    }
+
+    @Test
+    fun `filters saved from the settings screen narrow an open feed`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 3, hasMore = false, nextOffset = 3))
+        coEvery { api.getPersonMedia(personId, 0, true, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+
+        val vm = viewModel()
+
+        vm.initState(subject)
+        advanceUntilIdle()
+
+        peopleFeedOptions.value = MediaFeedOptions(MediaFilters(favoritesOnly = true))
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.gridItems.size)
+    }
+
+    @Test
+    fun `a feed on the back stack leaves another feed's list alone`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 3, hasMore = false, nextOffset = 3))
+        coEvery { placeApi.getPlaceMedia(placeId, 0, false, null, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+
+        val personFeed = viewModel()
+        val placeFeed = viewModel()
+
+        personFeed.initState(subject)
+        advanceUntilIdle()
+
+        placeFeed.initState(MediaFeedSubject.Place(placeId))
+        advanceUntilIdle()
+
+        peopleFeedOptions.value = MediaFeedOptions(MediaFilters(favoritesOnly = true))
+        advanceUntilIdle()
+
+        assertEquals(2, placeFeed.uiState.value.gridItems.size)
+        assertFalse(placeFeed.uiState.value.filters.favoritesOnly)
     }
 
     // an empty favorites filter is a real answer about a person the caller can see

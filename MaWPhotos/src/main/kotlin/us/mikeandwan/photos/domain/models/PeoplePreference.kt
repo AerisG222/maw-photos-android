@@ -14,4 +14,9 @@ data class PeoplePreference(
     // face feed spans years, so both start on - see CategoryLabels
     val showCategoryYear: Boolean = true,
     val showCategoryTitle: Boolean = true,
+    // two rather than one: the first narrows the list of people, the second the media of whoever is
+    // opened from it, and wanting only favorite people does not mean only their favorite photos
+    val filters: MediaFilters = MediaFilters(),
+    val feedFilters: MediaFilters = MediaFilters(),
+    val feedShuffled: Boolean = false,
 )

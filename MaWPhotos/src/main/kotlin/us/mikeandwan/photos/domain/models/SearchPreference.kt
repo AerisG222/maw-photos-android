@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class SearchPreference(
     val recentQueryCountToSave: Int = 20,
     val displayType: CategoryDisplayType = CategoryDisplayType.Grid,
+    val filters: MediaFilters = MediaFilters(),
 )

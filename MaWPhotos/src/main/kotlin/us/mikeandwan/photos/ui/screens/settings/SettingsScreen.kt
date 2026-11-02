@@ -44,6 +44,7 @@ import us.mikeandwan.photos.BuildConfig
 import us.mikeandwan.photos.R
 import us.mikeandwan.photos.authorization.ScopeAccess
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.ui.components.logo.Logo
 
 @Composable
@@ -66,6 +67,14 @@ fun SettingsScreen(
     onPlaceShowCategoryYearChange: (Boolean) -> Unit,
     onPlaceShowCategoryTitleChange: (Boolean) -> Unit,
     onMediaShowFaceHighlightsChange: (Boolean) -> Unit,
+    onCategoryFiltersChange: (MediaFilters) -> Unit,
+    onMediaFiltersChange: (MediaFilters) -> Unit,
+    onSearchFiltersChange: (MediaFilters) -> Unit,
+    onPeopleFiltersChange: (MediaFilters) -> Unit,
+    onPeopleFeedFiltersChange: (MediaFilters) -> Unit,
+    onPlaceFeedFiltersChange: (MediaFilters) -> Unit,
+    onPeopleFeedShuffledChange: (Boolean) -> Unit,
+    onPlaceFeedShuffledChange: (Boolean) -> Unit,
     onToggleDeveloperMode: (String) -> Unit,
     onClearLogs: () -> Unit,
     onClearCache: () -> Unit,
@@ -168,6 +177,11 @@ fun SettingsScreen(
                 onCategoryDisplayTypeChange(enumValueOf(it))
             },
         )
+        MediaFiltersPreference(
+            favoritesLabelStringId = R.string.pref_filter_favorite_categories,
+            filters = uiState.categoryFilters,
+            onChange = onCategoryFiltersChange,
+        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -182,6 +196,11 @@ fun SettingsScreen(
             onSelect = {
                 onPhotoSlideshowIntervalChange(it.toInt())
             },
+        )
+        MediaFiltersPreference(
+            favoritesLabelStringId = R.string.pref_filter_favorite_media,
+            filters = uiState.mediaFilters,
+            onChange = onMediaFiltersChange,
         )
         HorizontalDivider(
             modifier = dividerModifier,
@@ -226,6 +245,11 @@ fun SettingsScreen(
                 onSearchDisplayTypeChange(enumValueOf(it))
             },
         )
+        MediaFiltersPreference(
+            favoritesLabelStringId = R.string.pref_filter_favorite_categories,
+            filters = uiState.searchFilters,
+            onChange = onSearchFiltersChange,
+        )
         HorizontalDivider(
             modifier = dividerModifier,
             color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -268,6 +292,22 @@ fun SettingsScreen(
                 isChecked = uiState.peopleShowCategoryTitle,
                 onChange = onPeopleShowCategoryTitleChange,
             )
+            // the list of people has no types to choose between - a person is not a photo or a video
+            SwitchPreference(
+                labelStringId = R.string.pref_filter_favorite_people,
+                isChecked = uiState.peopleFilters.favoritesOnly,
+                onChange = { onPeopleFiltersChange(uiState.peopleFilters.copy(favoritesOnly = it)) },
+            )
+            MediaFiltersPreference(
+                favoritesLabelStringId = R.string.pref_filter_favorite_media,
+                filters = uiState.peopleFeedFilters,
+                onChange = onPeopleFeedFiltersChange,
+            )
+            SwitchPreference(
+                labelStringId = R.string.pref_feed_shuffle,
+                isChecked = uiState.peopleFeedShuffled,
+                onChange = onPeopleFeedShuffledChange,
+            )
             HorizontalDivider(
                 modifier = dividerModifier,
                 color = MaterialTheme.colorScheme.inverseOnSurface,
@@ -287,6 +327,16 @@ fun SettingsScreen(
             labelStringId = R.string.pref_show_category_title,
             isChecked = uiState.placeShowCategoryTitle,
             onChange = onPlaceShowCategoryTitleChange,
+        )
+        MediaFiltersPreference(
+            favoritesLabelStringId = R.string.pref_filter_favorite_media,
+            filters = uiState.placeFeedFilters,
+            onChange = onPlaceFeedFiltersChange,
+        )
+        SwitchPreference(
+            labelStringId = R.string.pref_feed_shuffle,
+            isChecked = uiState.placeFeedShuffled,
+            onChange = onPlaceFeedShuffledChange,
         )
         HorizontalDivider(
             modifier = dividerModifier,
@@ -491,6 +541,14 @@ private fun SettingsScreenPreviewContent(uiState: SettingsUiState) {
         onPlaceShowCategoryYearChange = {},
         onPlaceShowCategoryTitleChange = {},
         onMediaShowFaceHighlightsChange = {},
+        onCategoryFiltersChange = {},
+        onMediaFiltersChange = {},
+        onSearchFiltersChange = {},
+        onPeopleFiltersChange = {},
+        onPeopleFeedFiltersChange = {},
+        onPlaceFeedFiltersChange = {},
+        onPeopleFeedShuffledChange = {},
+        onPlaceFeedShuffledChange = {},
         onToggleDeveloperMode = {},
         onClearLogs = {},
         onClearCache = {},

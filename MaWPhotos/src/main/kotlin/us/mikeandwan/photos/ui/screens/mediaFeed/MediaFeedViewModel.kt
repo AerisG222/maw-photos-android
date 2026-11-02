@@ -5,14 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.hoc081098.flowext.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlin.random.Random
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -104,6 +105,7 @@ class MediaFeedViewModel
     ) : ViewModel() {
         private val _subject = MutableStateFlow<MediaFeedSubject?>(null)
         private val _isLoading = MutableStateFlow(true)
+        private var feedJob: Job? = null
 
         val uiState: StateFlow<MediaFeedUiState>
 
@@ -242,10 +244,31 @@ class MediaFeedViewModel
             }
 
             _subject.update { subject }
-            mediaFeedRepository.initialize(subject)
 
-            ensureSubjectIsNamed(subject)
-            loadNextPage()
+            feedJob?.cancel()
+            feedJob = viewModelScope.launch {
+                val savedOptions = mediaFeedRepository.savedOptions(subject)
+
+                mediaFeedRepository.initialize(subject)
+
+                // the repository outlives this view model, so a feed being returned to may have been
+                // narrowed or ordered differently since it was left.  settled before the first page is
+                // asked for so that page is not thrown away.
+                mediaFeedRepository.setFilter(
+                    mediaFeedRepository.filter.value.withOptions(savedOptions.first()),
+                )
+
+                ensureSubjectIsNamed(subject)
+                loadNextPage()
+
+                // the repository holds one feed, and this view model can sit on the back stack while
+                // it shows another - whose list is not this subject's to narrow
+                savedOptions.collect { options ->
+                    if (mediaFeedRepository.subject.value == subject) {
+                        applyFilter { it.withOptions(options) }
+                    }
+                }
+            }
         }
 
         fun loadNextPage() {
@@ -325,17 +348,20 @@ class MediaFeedViewModel
             }
         }
 
+        // saved rather than applied: what is saved comes back through the collection in [initState],
+        // so the menu here and the settings screen are the one setting
         fun setFilters(filters: MediaFilters) {
-            applyFilter { it.copy(favoritesOnly = filters.favoritesOnly, mediaType = filters.mediaType) }
+            viewModelScope.launch {
+                mediaFeedRepository.saveFilters(filters)
+            }
         }
 
-        /**
-         * A seed rather than a flag: the feed is paged, and the API orders by a hash of the media id
-         * and this seed, so one seed held for the life of the shuffle is what keeps page two from
-         * repeating and skipping rows from page one.
-         */
+        // saved as a flag, the same way as the filters.  the seed is drawn when it comes back, and
+        // held for the life of the shuffle - see MediaFeedFilter for why it has to be
         fun setShuffled(isShuffled: Boolean) {
-            applyFilter { it.copy(seed = if (isShuffled) Random.nextLong() else null) }
+            viewModelScope.launch {
+                mediaFeedRepository.saveShuffled(isShuffled)
+            }
         }
 
         fun toggleFavorite(media: Media) {

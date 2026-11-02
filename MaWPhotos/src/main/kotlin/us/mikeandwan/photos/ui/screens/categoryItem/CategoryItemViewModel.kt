@@ -98,7 +98,7 @@ class CategoryItemViewModel
             mediaId: Uuid,
             filters: MediaFilters = MediaFilters(),
         ) {
-            setFilters(filters)
+            applyFilters(filters)
             mediaListService.onAction(MediaListAction.Reset)
             // clearing the state is left to [reset], whose empty media list reaches the service
             // through the wiring [initialize] set up and comes back out of its state a hop later

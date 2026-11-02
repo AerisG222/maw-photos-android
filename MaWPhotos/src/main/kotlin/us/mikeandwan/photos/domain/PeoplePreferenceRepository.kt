@@ -5,6 +5,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import us.mikeandwan.photos.datastore.UserPreferences
 import us.mikeandwan.photos.datastore.select
+import us.mikeandwan.photos.domain.models.MediaFeedOptions
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.PeoplePreference
 import us.mikeandwan.photos.domain.models.PersonSort
 
@@ -15,6 +17,8 @@ class PeoplePreferenceRepository
         private val dataStore: DataStore<UserPreferences>,
     ) {
         fun getPeoplePreference() = dataStore.select { it.people }
+
+        fun getFeedOptions() = dataStore.select { MediaFeedOptions(it.people.feedFilters, it.people.feedShuffled) }
 
         suspend fun setSortBy(sortBy: PersonSort) {
             setPreference { it.copy(sortBy = sortBy) }
@@ -38,6 +42,18 @@ class PeoplePreferenceRepository
 
         suspend fun setShowCategoryTitle(show: Boolean) {
             setPreference { it.copy(showCategoryTitle = show) }
+        }
+
+        suspend fun setFilters(filters: MediaFilters) {
+            setPreference { it.copy(filters = filters) }
+        }
+
+        suspend fun setFeedFilters(filters: MediaFilters) {
+            setPreference { it.copy(feedFilters = filters) }
+        }
+
+        suspend fun setFeedShuffled(shuffled: Boolean) {
+            setPreference { it.copy(feedShuffled = shuffled) }
         }
 
         private suspend fun setPreference(update: (pref: PeoplePreference) -> PeoplePreference) {

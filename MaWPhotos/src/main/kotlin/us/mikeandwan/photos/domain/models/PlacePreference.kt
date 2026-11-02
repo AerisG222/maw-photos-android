@@ -16,4 +16,6 @@ import kotlinx.serialization.Serializable
 data class PlacePreference(
     val showCategoryYear: Boolean = true,
     val showCategoryTitle: Boolean = true,
+    val feedFilters: MediaFilters = MediaFilters(),
+    val feedShuffled: Boolean = false,
 )

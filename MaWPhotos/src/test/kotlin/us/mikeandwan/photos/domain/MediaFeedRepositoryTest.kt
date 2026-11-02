@@ -2,12 +2,14 @@ package us.mikeandwan.photos.domain
 
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import java.net.HttpURLConnection
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -24,7 +26,9 @@ import us.mikeandwan.photos.api.PlaceApiClient
 import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
+import us.mikeandwan.photos.domain.models.MediaFeedOptions
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.MediaType
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
@@ -38,12 +42,49 @@ class MediaFeedRepositoryTest {
     private val personId = Uuid.random()
     private val subject = MediaFeedSubject.Person(personId)
 
+    private val peopleFeedOptions = MutableStateFlow(MediaFeedOptions())
+    private val placeFeedOptions = MutableStateFlow(MediaFeedOptions())
+
     @Before
     fun setUp() {
         api = mockk()
         placeApi = mockk()
         apiErrorHandler = mockk()
-        repository = MediaFeedRepository(api, placeApi, apiErrorHandler)
+
+        val peoplePreferenceRepository = mockk<PeoplePreferenceRepository>()
+        val placePreferenceRepository = mockk<PlacePreferenceRepository>()
+
+        every { peoplePreferenceRepository.getFeedOptions() } returns peopleFeedOptions
+        every { placePreferenceRepository.getFeedOptions() } returns placeFeedOptions
+
+        repository = MediaFeedRepository(
+            api,
+            placeApi,
+            peoplePreferenceRepository,
+            placePreferenceRepository,
+            apiErrorHandler,
+        )
+    }
+
+    @Test
+    fun `a new subject starts from what is saved for its area`() = runTest {
+        peopleFeedOptions.value = MediaFeedOptions(MediaFilters(favoritesOnly = true))
+        placeFeedOptions.value = MediaFeedOptions(MediaFilters(mediaType = MediaType.Video))
+
+        repository.initialize(MediaFeedSubject.Clan(Uuid.random()))
+        assertEquals(MediaFeedFilter(favoritesOnly = true), repository.filter.value)
+
+        repository.initialize(MediaFeedSubject.Place(Uuid.random()))
+        assertEquals(MediaFeedFilter(mediaType = MediaType.Video), repository.filter.value)
+    }
+
+    @Test
+    fun `a new subject in a shuffled area draws a seed`() = runTest {
+        peopleFeedOptions.value = MediaFeedOptions(isShuffled = true)
+
+        repository.initialize(subject)
+
+        assertTrue(repository.filter.value.seed != null)
     }
 
     @Test

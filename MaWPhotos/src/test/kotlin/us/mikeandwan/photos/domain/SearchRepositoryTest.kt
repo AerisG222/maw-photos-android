@@ -2,11 +2,13 @@ package us.mikeandwan.photos.domain
 
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -32,15 +34,21 @@ class SearchRepositoryTest {
     private lateinit var api: CategoryApiClient
     private lateinit var apiErrorHandler: ApiErrorHandler
     private lateinit var repository: SearchRepository
+    private val savedFilters = MutableStateFlow(MediaFilters())
 
     @Before
     fun setUp() {
         api = mockk()
         apiErrorHandler = mockk(relaxed = true)
+
+        val searchPreferenceRepository = mockk<SearchPreferenceRepository>(relaxed = true)
+
+        every { searchPreferenceRepository.getFilters() } returns savedFilters
+
         repository = SearchRepository(
             api,
             mockk<SearchHistoryDao>(relaxed = true),
-            mockk<SearchPreferenceRepository>(relaxed = true),
+            searchPreferenceRepository,
             apiErrorHandler,
         )
     }
@@ -179,7 +187,7 @@ class SearchRepositoryTest {
 
         repository.performSearch("beach", SearchSource.SearchMenu).toList()
         repository
-            .setFilters(MediaFilters(favoritesOnly = true, mediaType = MediaType.Video))
+            .applyFilters(MediaFilters(favoritesOnly = true, mediaType = MediaType.Video))
             .toList()
 
         assertEquals(1, repository.searchResults.value.size)
@@ -191,18 +199,24 @@ class SearchRepositoryTest {
     }
 
     @Test
-    fun `filters set before searching apply to the search, and clearing it drops them`() = runTest {
+    fun `applying filters with no search running fetches nothing`() = runTest {
+        repository.applyFilters(MediaFilters(favoritesOnly = true)).toList()
+
+        coVerify(exactly = 0) { api.search(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `the first page of a search is narrowed by what is saved, and clearing it keeps them`() = runTest {
+        savedFilters.value = MediaFilters(favoritesOnly = true)
+
         coEvery { api.search("beach", 0, true, null) } returns
             ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 0))
-
-        repository.setFilters(MediaFilters(favoritesOnly = true)).toList()
-        coVerify(exactly = 0) { api.search(any(), any(), any(), any()) }
 
         repository.performSearch("beach", SearchSource.SearchMenu).toList()
         assertEquals(1, repository.searchResults.value.size)
 
         repository.clearSearch()
-        assertEquals(MediaFilters(), repository.filters.value)
+        assertEquals(MediaFilters(favoritesOnly = true), repository.filters.value)
     }
 
     @Test

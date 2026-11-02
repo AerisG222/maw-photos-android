@@ -65,7 +65,6 @@ class PeopleViewModel
         private val clanRepository: ClanRepository,
     ) : ViewModel() {
         private val _filter = MutableStateFlow("")
-        private val _filters = MutableStateFlow(MediaFilters())
         private val _isLoading = MutableStateFlow(true)
         private val _picking = MutableStateFlow<ClanPicking>(ClanPicking.Off)
         private val _selectedIds = MutableStateFlow<Set<Uuid>>(emptySet())
@@ -89,7 +88,6 @@ class PeopleViewModel
                 _deleting,
                 _isSaving,
                 _saveError,
-                _filters,
             ) {
                 people,
                 clans,
@@ -102,16 +100,15 @@ class PeopleViewModel
                 deleting,
                 isSaving,
                 saveError,
-                filters,
                 ->
                 PeopleUiState(
                     people = people
-                        .filter { !filters.favoritesOnly || it.isFavorite }
+                        .filter { !preferences.filters.favoritesOnly || it.isFavorite }
                         .filterBy(filter)
                         .sortedBy(preferences.sortBy),
                     clans = clans,
                     filter = filter,
-                    filters = filters,
+                    filters = preferences.filters,
                     preferences = preferences,
                     isLoading = isLoading && people.isEmpty(),
                     hasAnyPeople = people.isNotEmpty(),
@@ -129,7 +126,9 @@ class PeopleViewModel
         }
 
         fun setFilters(filters: MediaFilters) {
-            _filters.update { filters }
+            viewModelScope.launch {
+                peoplePreferenceRepository.setFilters(filters)
+            }
         }
 
         fun setFilter(filter: String) {

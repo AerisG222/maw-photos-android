@@ -36,7 +36,7 @@ class SearchViewModel
     constructor(
         private val searchRepository: SearchRepository,
         private val categoryRepository: CategoryRepository,
-        searchPreferenceRepository: SearchPreferenceRepository,
+        private val searchPreferenceRepository: SearchPreferenceRepository,
     ) : ViewModel() {
         val uiState =
             combine(
@@ -59,6 +59,16 @@ class SearchViewModel
                 )
             }.stateIn(viewModelScope, WhileSubscribed(5000), SearchUiState())
 
+        init {
+            // one launch per change, so a new set of filters does not wait on the page the last set
+            // asked for: the repository throws that page away when it lands
+            viewModelScope.launch {
+                searchPreferenceRepository
+                    .getFilters()
+                    .collect { filters -> applyFilters(filters) }
+            }
+        }
+
         fun search(term: String) {
             viewModelScope.launch {
                 searchRepository
@@ -79,10 +89,18 @@ class SearchViewModel
             }
         }
 
+        // saved rather than applied: what is saved comes back through the collection above, so the
+        // menu here and the settings screen are the one setting
         fun setFilters(filters: MediaFilters) {
             viewModelScope.launch {
+                searchPreferenceRepository.setFilters(filters)
+            }
+        }
+
+        private fun applyFilters(filters: MediaFilters) {
+            viewModelScope.launch {
                 searchRepository
-                    .setFilters(filters)
+                    .applyFilters(filters)
                     .collect { }
             }
         }

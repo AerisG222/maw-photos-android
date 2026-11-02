@@ -6,6 +6,7 @@ import javax.inject.Singleton
 import us.mikeandwan.photos.datastore.UserPreferences
 import us.mikeandwan.photos.datastore.select
 import us.mikeandwan.photos.domain.models.CategoryDisplayType
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.SearchPreference
 
 @Singleton
@@ -20,12 +21,18 @@ class SearchPreferenceRepository
 
         fun getSearchPreference() = dataStore.select { it.search }
 
+        fun getFilters() = dataStore.select { it.search.filters }
+
         suspend fun setSearchesToSaveCount(count: Int) {
             setPreference { it.copy(recentQueryCountToSave = count) }
         }
 
         suspend fun setSearchDisplayType(mode: CategoryDisplayType) {
             setPreference { it.copy(displayType = mode) }
+        }
+
+        suspend fun setFilters(filters: MediaFilters) {
+            setPreference { it.copy(filters = filters) }
         }
 
         private suspend fun setPreference(update: (pref: SearchPreference) -> SearchPreference) {

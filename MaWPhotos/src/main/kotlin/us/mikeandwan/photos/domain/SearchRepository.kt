@@ -69,17 +69,19 @@ class SearchRepository
         }
 
         // the request goes too, not just what is on screen - otherwise searching the same term
-        // again would look like a repeat of the current query and be skipped
+        // again would look like a repeat of the current query and be skipped.  the filters stay:
+        // they are saved, and belong to searching rather than to this one search.
         fun clearSearch() {
             _searchRequest.update { SearchRequest("", SearchSource.None) }
             _activeSearchTerm.update { "" }
-            _filters.update { MediaFilters() }
             pager.reset()
         }
 
         // the results come a page at a time, so narrowing them is the API's job: what has been
-        // accumulated cannot be kept, and whichever search is running starts over
-        fun setFilters(filters: MediaFilters) =
+        // accumulated cannot be kept, and whichever search is running starts over.  this applies
+        // filters rather than saving them, so it runs when the saved ones change from either the
+        // menu or the settings screen.
+        fun applyFilters(filters: MediaFilters) =
             flow {
                 val query = searchRequest.value.query
 
@@ -100,6 +102,9 @@ class SearchRepository
             val currentQuery = searchRequest.value.query
 
             if (query.isNotBlank() && !currentQuery.equals(query, true)) {
+                // read here as well as watched by the screen, because the screen can ask for a search
+                // before that first read lands, and the first page has to be narrowed like the rest
+                _filters.update { searchPreferenceRepository.getFilters().first() }
                 _activeSearchTerm.update { query }
                 pager.reset()
                 _searchRequest.update { SearchRequest(query, searchSource) }

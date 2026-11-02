@@ -180,6 +180,11 @@
     <string name="pref_show_category_title">Show Category Title</string>
     <string name="pref_face_recognition_header">Browse by People</string>
     <string name="pref_advanced_display_header">Advanced</string>
+    <string name="pref_filter_favorite_categories">Only Favorite Categories</string>
+    <string name="pref_filter_favorite_media">Only Favorite Media</string>
+    <string name="pref_filter_favorite_people">Only Favorite People</string>
+    <string name="pref_filter_media_type">Media Type</string>
+    <string name="pref_feed_shuffle">Shuffle Media</string>
     <string name="pref_show_widget_info">Show Metadata on Widget</string>
 
     <string name="cancel">Cancel</string>

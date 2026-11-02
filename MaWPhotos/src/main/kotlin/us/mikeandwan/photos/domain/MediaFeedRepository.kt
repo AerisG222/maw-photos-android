@@ -2,9 +2,11 @@ package us.mikeandwan.photos.domain
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import us.mikeandwan.photos.api.ApiResult
 import us.mikeandwan.photos.api.FaceApiClient
@@ -13,7 +15,9 @@ import us.mikeandwan.photos.api.SearchResults
 import us.mikeandwan.photos.domain.models.Category
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFeedFilter
+import us.mikeandwan.photos.domain.models.MediaFeedOptions
 import us.mikeandwan.photos.domain.models.MediaFeedSubject
+import us.mikeandwan.photos.domain.models.MediaFilters
 import us.mikeandwan.photos.domain.models.toApiFilter
 import us.mikeandwan.photos.api.Category as ApiCategory
 import us.mikeandwan.photos.api.Media as ApiMedia
@@ -36,6 +40,8 @@ class MediaFeedRepository
     constructor(
         private val faceApi: FaceApiClient,
         private val placeApi: PlaceApiClient,
+        private val peoplePreferenceRepository: PeoplePreferenceRepository,
+        private val placePreferenceRepository: PlacePreferenceRepository,
         apiErrorHandler: ApiErrorHandler,
     ) {
         companion object {
@@ -88,17 +94,51 @@ class MediaFeedRepository
          * points at it: the grid is what narrows and reshuffles, and both screens call this on the
          * way in, so treating a filter as part of the identity would have the pager reset the feed
          * to an unfiltered first page and lose the item that was tapped.  A new subject is a new
-         * feed, and starts unfiltered.
+         * feed: it starts from what is saved for its area, with a seed of its own if that is shuffled.
          */
-        fun initialize(subject: MediaFeedSubject) {
+        suspend fun initialize(subject: MediaFeedSubject) {
             if (_subject.value == subject) {
                 return
             }
 
+            val saved = savedOptions(subject).first()
+
             _subject.update { subject }
-            _filter.update { MediaFeedFilter() }
+            _filter.update { MediaFeedFilter().withOptions(saved) }
 
             reset()
+        }
+
+        // per area, the same way the category labels are: a person or a clan answers to the people
+        // preference and a place to its own
+        fun savedOptions(subject: MediaFeedSubject): Flow<MediaFeedOptions> =
+            when (subject) {
+                is MediaFeedSubject.Place -> placePreferenceRepository.getFeedOptions()
+                is MediaFeedSubject.Person, is MediaFeedSubject.Clan -> peoplePreferenceRepository.getFeedOptions()
+            }
+
+        suspend fun saveFilters(filters: MediaFilters) {
+            when (_subject.value) {
+                null -> Unit
+
+                is MediaFeedSubject.Place -> placePreferenceRepository.setFeedFilters(filters)
+
+                is MediaFeedSubject.Person, is MediaFeedSubject.Clan -> peoplePreferenceRepository.setFeedFilters(
+                    filters,
+                )
+            }
+        }
+
+        suspend fun saveShuffled(isShuffled: Boolean) {
+            when (_subject.value) {
+                null -> Unit
+
+                is MediaFeedSubject.Place -> placePreferenceRepository.setFeedShuffled(isShuffled)
+
+                is MediaFeedSubject.Person, is MediaFeedSubject.Clan -> peoplePreferenceRepository.setFeedShuffled(
+                    isShuffled,
+                )
+            }
         }
 
         // narrowing to favorites or reshuffling changes which rows come back and in what order, so

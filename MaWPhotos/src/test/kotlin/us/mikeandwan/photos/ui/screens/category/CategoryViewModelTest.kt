@@ -1,9 +1,11 @@
 package us.mikeandwan.photos.ui.screens.category
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,9 +18,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import us.mikeandwan.photos.domain.CategoryRepository
+import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.models.ExternalCallStatus
 import us.mikeandwan.photos.domain.models.Media
 import us.mikeandwan.photos.domain.models.MediaFilters
+import us.mikeandwan.photos.domain.models.MediaPreference
 import us.mikeandwan.photos.domain.models.MediaType
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -28,12 +32,19 @@ class CategoryViewModelTest {
     private val favoriteVideo = Media(Uuid.random(), categoryId, MediaType.Video, isFavorite = true)
 
     private lateinit var categoryRepository: CategoryRepository
+    private lateinit var mediaPreferenceRepository: MediaPreferenceRepository
+    private val preference = MutableStateFlow(MediaPreference())
 
     @Before
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
 
         categoryRepository = mockk(relaxed = true)
+        mediaPreferenceRepository = mockk(relaxed = true)
+        every { mediaPreferenceRepository.getMediaPreference() } returns preference
+        coEvery { mediaPreferenceRepository.setFilters(any()) } answers {
+            preference.value = preference.value.copy(filters = firstArg())
+        }
         every { categoryRepository.getCategory(categoryId) } returns flowOf()
         every { categoryRepository.getMedia(categoryId) } returns
             flowOf(ExternalCallStatus.Success(listOf(photo, favoriteVideo)))
@@ -44,11 +55,23 @@ class CategoryViewModelTest {
         Dispatchers.resetMain()
     }
 
+    @Test
+    fun `a category opens narrowed by what was saved`() = runTest {
+        preference.value = MediaPreference(filters = MediaFilters(favoritesOnly = true))
+
+        val vm = CategoryViewModel(categoryRepository, mediaPreferenceRepository, mockk(relaxed = true))
+
+        vm.initState(categoryId)
+        advanceUntilIdle()
+
+        assertEquals(listOf(favoriteVideo), vm.filteredMedia.value)
+    }
+
     // the same list next, previous and the slideshow walk, so this is also what keeps them to the
     // filtered media
     @Test
     fun `filters narrow what the grid and the steps through it see`() = runTest {
-        val vm = CategoryViewModel(categoryRepository, mockk(relaxed = true))
+        val vm = CategoryViewModel(categoryRepository, mediaPreferenceRepository, mockk(relaxed = true))
         val subscription = backgroundScope.launch { vm.uiState.collect { } }
 
         vm.initState(categoryId)

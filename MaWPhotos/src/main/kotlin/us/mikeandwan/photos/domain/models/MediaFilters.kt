@@ -5,8 +5,10 @@ import kotlinx.serialization.Serializable
 /**
  * What a listing of photos and videos can be narrowed to.
  *
- * Held by whichever screen is showing the listing rather than saved: a filter hidden in a menu and
- * remembered between visits is a shorter list with no explanation.
+ * Saved rather than held by the screen, so a listing comes back narrowed the way it was left, and
+ * saved per area, because favorites means something different in each: a favorite person is not a
+ * favorite photo. The Filters button's badge is what says a listing is narrowed, and the settings
+ * screen shows the same choices.
  */
 @Serializable
 data class MediaFilters(

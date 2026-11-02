@@ -43,7 +43,7 @@ abstract class BaseCategoryViewModel(
     private var categoryJob: Job? = null
     private var mediaJob: Job? = null
 
-    fun setFilters(filters: MediaFilters) {
+    protected fun applyFilters(filters: MediaFilters) {
         _filters.update { filters }
     }
 
