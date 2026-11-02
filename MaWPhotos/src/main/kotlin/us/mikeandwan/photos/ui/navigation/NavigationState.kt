@@ -71,6 +71,10 @@ class NavigationState(
         } else {
             listOf(startRoute, topLevelRoute)
         }
+
+    // what is on screen once any animation or back gesture settles
+    val currentKey: NavKey?
+        get() = backStacks[topLevelRoute]?.lastOrNull()
 }
 
 /**
@@ -97,7 +101,15 @@ fun NavigationState.toEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): Snap
             rememberDecoratedNavEntries(
                 backStack = stack,
                 entryDecorators = decorators,
-                entryProvider = entryProvider,
+                entryProvider = { navKey ->
+                    val entry = entryProvider(navKey)
+
+                    NavEntry(navEntry = entry) {
+                        ProvideCurrentEntryAppActions(navKey, this@toEntries) {
+                            entry.Content()
+                        }
+                    }
+                },
             )
         }
     }
