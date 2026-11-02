@@ -1,5 +1,10 @@
 # Release Notes
 
+## v9.15 : 11/02/2026
+
+- filters and the shuffle setting are now remembered, and can also be changed in settings
+- fix a couple navigation edge cases
+
 ## v9.14 : 11/01/2026
 
 - filter categories, photos, search results, and people by favorites, and by photo or video where it applies
