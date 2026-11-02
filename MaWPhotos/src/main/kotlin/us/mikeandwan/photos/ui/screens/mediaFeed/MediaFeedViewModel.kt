@@ -7,12 +7,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -24,6 +27,7 @@ import timber.log.Timber
 import us.mikeandwan.photos.domain.CategoryPreferenceRepository
 import us.mikeandwan.photos.domain.CategoryRepository
 import us.mikeandwan.photos.domain.ClanRepository
+import us.mikeandwan.photos.domain.MediaFeed
 import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.PeoplePreferenceRepository
 import us.mikeandwan.photos.domain.PeopleRepository
@@ -105,6 +109,7 @@ class MediaFeedViewModel
     ) : ViewModel() {
         private val _subject = MutableStateFlow<MediaFeedSubject?>(null)
         private val _isLoading = MutableStateFlow(true)
+        private val _feed = MutableStateFlow<MediaFeed?>(null)
         private var feedJob: Job? = null
 
         val uiState: StateFlow<MediaFeedUiState>
@@ -192,11 +197,11 @@ class MediaFeedViewModel
         init {
             // kotlinx's combine here - flowext's overloads start at six flows
             val categoryListing = combine(
-                mediaFeedRepository.categories,
-                mediaFeedRepository.hasMoreCategories,
+                fromFeed { it.categories },
+                fromFeed { it.hasMoreCategories },
                 categoryPreferenceRepository.getCategoryPreference(),
                 categoryLabels,
-                mediaFeedRepository.categoriesLoadFailed,
+                fromFeed { it.categoriesLoadFailed },
             ) { categories, hasMore, preference, labels, loadFailed ->
                 CategoryListing(categories, hasMore, preference, labels, loadFailed)
             }
@@ -204,14 +209,14 @@ class MediaFeedViewModel
             // flowext's combine rather than the one in kotlinx: the typed overloads there stop at
             // five flows, and this state has more parts than that
             uiState = combine(
-                mediaFeedRepository.media,
-                mediaFeedRepository.hasMore,
-                mediaFeedRepository.filter,
+                fromFeed { it.media },
+                fromFeed { it.hasMore },
+                fromFeed { it.filter },
                 mediaFeedRepository.showCategories,
                 categoryListing,
                 subjectHeading,
                 _isLoading,
-                mediaFeedRepository.mediaLoadFailed,
+                fromFeed { it.mediaLoadFailed },
             ) { media, hasMore, filter, showCategories, categoryListing, heading, isLoading, mediaLoadFailed ->
                 // whichever listing is on screen is the one the loading, empty and paging flags
                 // are about
@@ -248,34 +253,43 @@ class MediaFeedViewModel
             feedJob?.cancel()
             feedJob = viewModelScope.launch {
                 val savedOptions = mediaFeedRepository.savedOptions(subject)
+                val feed = mediaFeedRepository.acquire(subject)
 
-                mediaFeedRepository.initialize(subject)
+                _feed.update { feed }
 
-                // the repository outlives this view model, so a feed being returned to may have been
-                // narrowed or ordered differently since it was left.  settled before the first page is
-                // asked for so that page is not thrown away.
-                mediaFeedRepository.setFilter(
-                    mediaFeedRepository.filter.value.withOptions(savedOptions.first()),
-                )
+                // the pager can have opened this feed first, so what is saved may have changed since
+                // it was started.  settled before the first page is asked for so that page is not
+                // thrown away.
+                feed.setFilter(feed.filter.value.withOptions(savedOptions.first()))
 
                 ensureSubjectIsNamed(subject)
                 loadNextPage()
 
-                // the repository holds one feed, and this view model can sit on the back stack while
-                // it shows another - whose list is not this subject's to narrow
+                // which listing is being browsed is shared between feeds, so this one can come back
+                // from another feed to a listing it has never been asked for
+                launch {
+                    mediaFeedRepository.showCategories
+                        .drop(1)
+                        .collect { showCategories -> startListing(feed, showCategories) }
+                }
+
                 savedOptions.collect { options ->
-                    if (mediaFeedRepository.subject.value == subject) {
-                        applyFilter { it.withOptions(options) }
-                    }
+                    applyFilter { it.withOptions(options) }
                 }
             }
         }
 
+        override fun onCleared() {
+            _feed.value?.let { mediaFeedRepository.release(it.subject) }
+        }
+
         fun loadNextPage() {
+            val feed = _feed.value ?: return
+
             viewModelScope.launch {
                 val listing = when {
-                    mediaFeedRepository.showCategories.value -> mediaFeedRepository.loadNextPageOfCategories()
-                    else -> mediaFeedRepository.loadNextPage()
+                    mediaFeedRepository.showCategories.value -> feed.loadNextPageOfCategories()
+                    else -> feed.loadNextPage()
                 }
 
                 listing.collect { status ->
@@ -291,12 +305,14 @@ class MediaFeedViewModel
         }
 
         fun retryLoad() {
+            val feed = _feed.value ?: return
+
             viewModelScope.launch {
                 _isLoading.update { true }
 
                 val listing = when {
-                    mediaFeedRepository.showCategories.value -> mediaFeedRepository.retryLoadNextPageOfCategories()
-                    else -> mediaFeedRepository.retryLoadNextPage()
+                    mediaFeedRepository.showCategories.value -> feed.retryLoadNextPageOfCategories()
+                    else -> feed.retryLoadNextPage()
                 }
 
                 listing.collect { }
@@ -312,14 +328,7 @@ class MediaFeedViewModel
          * request only the first time each is asked for.
          */
         fun setShowCategories(showCategories: Boolean) {
-            if (mediaFeedRepository.showCategories.value == showCategories) {
-                return
-            }
-
-            _isLoading.update { true }
             mediaFeedRepository.setShowCategories(showCategories)
-
-            loadNextPage()
         }
 
         /**
@@ -351,16 +360,20 @@ class MediaFeedViewModel
         // saved rather than applied: what is saved comes back through the collection in [initState],
         // so the menu here and the settings screen are the one setting
         fun setFilters(filters: MediaFilters) {
+            val subject = _subject.value ?: return
+
             viewModelScope.launch {
-                mediaFeedRepository.saveFilters(filters)
+                mediaFeedRepository.saveFilters(subject, filters)
             }
         }
 
         // saved as a flag, the same way as the filters.  the seed is drawn when it comes back, and
         // held for the life of the shuffle - see MediaFeedFilter for why it has to be
         fun setShuffled(isShuffled: Boolean) {
+            val subject = _subject.value ?: return
+
             viewModelScope.launch {
-                mediaFeedRepository.saveShuffled(isShuffled)
+                mediaFeedRepository.saveShuffled(subject, isShuffled)
             }
         }
 
@@ -382,7 +395,7 @@ class MediaFeedViewModel
                     // person it was listed for, so only the flag that was asked to change is taken
                     // from it - the count of their media in it is left as it was
                     .collect { status ->
-                        mediaFeedRepository.updateCategory(
+                        _feed.value?.updateCategory(
                             category.copy(isFavorite = status.result.isFavorite),
                         )
                     }
@@ -390,17 +403,33 @@ class MediaFeedViewModel
         }
 
         private fun applyFilter(update: (MediaFeedFilter) -> MediaFeedFilter) {
-            val next = update(mediaFeedRepository.filter.value)
+            val feed = _feed.value ?: return
+            val next = update(feed.filter.value)
 
-            if (next == mediaFeedRepository.filter.value) {
+            if (next == feed.filter.value) {
                 return
             }
 
             _isLoading.update { true }
-            mediaFeedRepository.setFilter(next)
+            feed.setFilter(next)
 
             loadNextPage()
         }
+
+        // asked for only when nothing has been: each listing keeps what it has accumulated, so
+        // switching back and forth costs a request only the first time
+        private fun startListing(
+            feed: MediaFeed,
+            showCategories: Boolean,
+        ) {
+            if (!feed.hasStartedListing(showCategories)) {
+                _isLoading.update { true }
+
+                loadNextPage()
+            }
+        }
+
+        private fun <T> fromFeed(select: (MediaFeed) -> Flow<T>): Flow<T> = _feed.filterNotNull().flatMapLatest(select)
 
         // the name comes from a listing this screen may have been opened without: a cold start
         // restoring straight into a feed holds none of them yet

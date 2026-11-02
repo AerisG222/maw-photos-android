@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
+import us.mikeandwan.photos.domain.MediaFeed
 import us.mikeandwan.photos.domain.MediaFeedRepository
 import us.mikeandwan.photos.domain.MediaPreferenceRepository
 import us.mikeandwan.photos.domain.models.Category
@@ -56,28 +57,24 @@ class MediaFeedItemViewModel
     @Inject
     constructor(
         private val mediaFeedRepository: MediaFeedRepository,
-        mediaPreferenceRepository: MediaPreferenceRepository,
+        private val mediaPreferenceRepository: MediaPreferenceRepository,
         val videoPlayerDataSourceFactory: HttpDataSource.Factory,
         private val mediaListService: MediaListService,
     ) : ViewModel() {
+        private var feed: MediaFeed? = null
+
+        private val slideshowDurationInMillisFlow = mediaPreferenceRepository
+            .getSlideshowIntervalSeconds()
+            .map { seconds -> (seconds * 1000).toLong() }
+            .stateIn(
+                viewModelScope,
+                WhileSubscribed(5000),
+                (MediaPreference().slideshowIntervalSeconds * 1000).toLong(),
+            )
+
         val uiState: StateFlow<MediaFeedItemUiState>
 
         init {
-            val slideshowDurationInMillisFlow = mediaPreferenceRepository
-                .getSlideshowIntervalSeconds()
-                .map { seconds -> (seconds * 1000).toLong() }
-                .stateIn(
-                    viewModelScope,
-                    WhileSubscribed(5000),
-                    (MediaPreference().slideshowIntervalSeconds * 1000).toLong(),
-                )
-
-            mediaListService.initialize(
-                mediaFeedRepository.media,
-                slideshowDurationInMillisFlow,
-                mediaFeedRepository.isLoadingMedia,
-            )
-
             uiState = mediaListService.state
                 .onEach { state ->
                     // the feed is paged, so swiping toward the end of what has been loaded has to
@@ -104,18 +101,18 @@ class MediaFeedItemViewModel
         }
 
         /**
-         * Points the shared feed at the subject being browsed, in case the pager is the first thing
-         * on screen - a link opened into a feed, or a restore after process death, arrives here
-         * without the grid having run.
+         * Finds the feed for the subject being browsed - the one the grid accumulated, unless the
+         * pager is the first thing on screen: a link opened into a feed, or a restore after process
+         * death, arrives here without the grid having run.
          */
         fun initState(
             subject: MediaFeedSubject,
             mediaId: Uuid,
         ) {
             viewModelScope.launch {
-                mediaFeedRepository.initialize(subject)
+                val feed = holdFeed(subject)
 
-                if (mediaFeedRepository.media.value.isEmpty()) {
+                if (feed.media.value.isEmpty()) {
                     loadNextPage()
                 }
             }
@@ -128,6 +125,7 @@ class MediaFeedItemViewModel
         // it, or it stays subscribed for the rest of the session
         override fun onCleared() {
             mediaListService.close()
+            feed?.let { mediaFeedRepository.release(it.subject) }
         }
 
         fun setActiveId(id: Uuid) {
@@ -201,10 +199,31 @@ class MediaFeedItemViewModel
         // nothing to do with the outcome here: a failure has already been reported the way every
         // other failed call is, and the pager simply stops at what it has
         private fun loadNextPage() {
+            val feed = feed ?: return
+
             viewModelScope.launch {
-                mediaFeedRepository
+                feed
                     .loadNextPage()
                     .collect { }
             }
+        }
+
+        // leaving the pager keeps this view model while its entry is on the stack, so coming back
+        // asks again for the feed it already has
+        private suspend fun holdFeed(subject: MediaFeedSubject): MediaFeed {
+            feed?.takeIf { it.subject == subject }?.let { return it }
+
+            val acquired = mediaFeedRepository.acquire(subject)
+
+            feed?.let { mediaFeedRepository.release(it.subject) }
+            feed = acquired
+
+            mediaListService.initialize(
+                acquired.media,
+                slideshowDurationInMillisFlow,
+                acquired.isLoadingMedia,
+            )
+
+            return acquired
         }
     }

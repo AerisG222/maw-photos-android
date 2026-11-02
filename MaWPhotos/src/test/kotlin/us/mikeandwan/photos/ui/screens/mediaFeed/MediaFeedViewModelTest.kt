@@ -214,7 +214,7 @@ class MediaFeedViewModelTest {
         vm.setShuffled(true)
         advanceUntilIdle()
 
-        val seed = mediaFeedRepository.filter.value.seed
+        val seed = feed().filter.value.seed
 
         assertTrue(seed != null)
 
@@ -272,14 +272,14 @@ class MediaFeedViewModelTest {
         first.initState(subject)
         advanceUntilIdle()
 
-        val seed = mediaFeedRepository.filter.value.seed
+        val seed = feed().filter.value.seed
 
         val second = viewModel()
 
         second.initState(subject)
         advanceUntilIdle()
 
-        assertEquals(seed, mediaFeedRepository.filter.value.seed)
+        assertEquals(seed, feed().filter.value.seed)
     }
 
     @Test
@@ -294,12 +294,12 @@ class MediaFeedViewModelTest {
         vm.initState(subject)
         advanceUntilIdle()
 
-        val seed = mediaFeedRepository.filter.value.seed
+        val seed = feed().filter.value.seed
 
         vm.setFilters(MediaFilters(favoritesOnly = true))
         advanceUntilIdle()
 
-        assertEquals(seed, mediaFeedRepository.filter.value.seed)
+        assertEquals(seed, feed().filter.value.seed)
         assertTrue(vm.uiState.value.filters.favoritesOnly)
     }
 
@@ -318,7 +318,7 @@ class MediaFeedViewModelTest {
         vm.setShuffled(false)
         advanceUntilIdle()
 
-        assertEquals(null, mediaFeedRepository.filter.value.seed)
+        assertEquals(null, feed().filter.value.seed)
         assertFalse(vm.uiState.value.isShuffled)
     }
 
@@ -378,10 +378,35 @@ class MediaFeedViewModelTest {
         assertEquals(1, vm.uiState.value.gridItems.size)
     }
 
+    // moving between people in the rail leaves the first underneath, and going back has to find them
     @Test
-    fun `a feed on the back stack leaves another feed's list alone`() = runTest {
+    fun `a feed on the back stack keeps its own media while another is open`() = runTest {
+        val otherId = Uuid.random()
+        val otherPage = page(count = 2, hasMore = false, nextOffset = 2)
+        val personPage = page(count = 3, hasMore = false, nextOffset = 3)
+
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns ApiResult.Success(personPage)
+        coEvery { api.getPersonMedia(otherId, 0, false, null) } returns ApiResult.Success(otherPage)
+
+        val underneath = viewModel()
+        val onTop = viewModel()
+
+        underneath.initState(subject)
+        advanceUntilIdle()
+
+        onTop.initState(MediaFeedSubject.Person(otherId))
+        advanceUntilIdle()
+
+        assertEquals(personPage.results.map { it.id }, underneath.uiState.value.gridItems.map { it.data.id })
+        assertEquals(otherPage.results.map { it.id }, onTop.uiState.value.gridItems.map { it.data.id })
+    }
+
+    @Test
+    fun `saved filters reach each area's own feeds and no others`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 3, hasMore = false, nextOffset = 3))
+        coEvery { api.getPersonMedia(personId, 0, true, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
         coEvery { placeApi.getPlaceMedia(placeId, 0, false, null, null) } returns
             ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
 
@@ -389,16 +414,42 @@ class MediaFeedViewModelTest {
         val placeFeed = viewModel()
 
         personFeed.initState(subject)
-        advanceUntilIdle()
-
         placeFeed.initState(MediaFeedSubject.Place(placeId))
         advanceUntilIdle()
 
         peopleFeedOptions.value = MediaFeedOptions(MediaFilters(favoritesOnly = true))
         advanceUntilIdle()
 
+        assertEquals(1, personFeed.uiState.value.gridItems.size)
         assertEquals(2, placeFeed.uiState.value.gridItems.size)
         assertFalse(placeFeed.uiState.value.filters.favoritesOnly)
+    }
+
+    // which listing is being browsed carries from feed to feed, so the one underneath can come back
+    // to a listing it was never asked for - which must load rather than say there is nothing here
+    @Test
+    fun `switching to categories in one feed loads them for the feed underneath too`() = runTest {
+        val otherId = Uuid.random()
+
+        coEvery { api.getPersonMedia(any(), 0, false, null) } returns
+            ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
+        coEvery { api.getPersonCategories(any(), 0, false) } returns
+            ApiResult.Success(categoryPage(count = 2, hasMore = false, nextOffset = 2))
+
+        val underneath = viewModel()
+        val onTop = viewModel()
+
+        underneath.initState(subject)
+        advanceUntilIdle()
+
+        onTop.initState(MediaFeedSubject.Person(otherId))
+        advanceUntilIdle()
+
+        onTop.setShowCategories(true)
+        advanceUntilIdle()
+
+        assertEquals(2, underneath.uiState.value.categories.size)
+        assertFalse(underneath.uiState.value.isEmpty)
     }
 
     // an empty favorites filter is a real answer about a person the caller can see
@@ -431,14 +482,14 @@ class MediaFeedViewModelTest {
         vm.initState(subject)
         advanceUntilIdle()
 
-        val media = mediaFeedRepository.media.value.single()
+        val media = feed().media.value.single()
 
         coEvery { mediaFavoriteService.setIsFavorite(media, true) } returns true
 
         vm.toggleFavorite(media)
         advanceUntilIdle()
 
-        assertTrue(mediaFeedRepository.media.value.single().isFavorite)
+        assertTrue(feed().media.value.single().isFavorite)
     }
 
     // ---- the categories listing ----
@@ -582,7 +633,7 @@ class MediaFeedViewModelTest {
         vm.setShowCategories(true)
         advanceUntilIdle()
 
-        val category = mediaFeedRepository.categories.value.single()
+        val category = feed().categories.value.single()
 
         // the answer describes the category on its own terms, and carries no count
         every { categoryRepository.setFavorite(category.id, true) } returns
@@ -593,7 +644,7 @@ class MediaFeedViewModelTest {
         advanceUntilIdle()
 
         // Assert
-        val updated = mediaFeedRepository.categories.value.single()
+        val updated = feed().categories.value.single()
 
         assertTrue(updated.isFavorite)
         assertEquals(4, updated.mediaCount)
@@ -628,6 +679,9 @@ class MediaFeedViewModelTest {
 
         assertTrue(vm.uiState.value.placeChain.isEmpty())
     }
+
+    // holding it again is harmless here: nothing in these tests depends on a feed being let go
+    private suspend fun feed() = mediaFeedRepository.acquire(subject)
 
     // uiState runs its upstream only while something is collecting it, so the test keeps a
     // subscriber open for its duration rather than reading a state that was never assembled

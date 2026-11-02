@@ -43,6 +43,10 @@ internal class ListingPager<TApi, TDomain>(
     // started" sends the very same request again and appends the same rows twice.
     private var hasLoadedAPage = false
 
+    // whether anything has been asked of this listing since it last started over, however that went
+    val hasStarted: Boolean
+        get() = hasLoadedAPage || _isLoading.value || _loadFailed.value
+
     // a grid can ask for the next page more than once before the first ask lands - two rows of a
     // scroll are enough - and a second request at the same offset would append the same page twice
     private val _isLoading = MutableStateFlow(false)

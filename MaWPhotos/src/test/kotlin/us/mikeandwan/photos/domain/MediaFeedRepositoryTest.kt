@@ -17,6 +17,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -38,6 +40,7 @@ class MediaFeedRepositoryTest {
     private lateinit var placeApi: PlaceApiClient
     private lateinit var apiErrorHandler: ApiErrorHandler
     private lateinit var repository: MediaFeedRepository
+    private lateinit var feed: MediaFeed
 
     private val personId = Uuid.random()
     private val subject = MediaFeedSubject.Person(personId)
@@ -71,20 +74,20 @@ class MediaFeedRepositoryTest {
         peopleFeedOptions.value = MediaFeedOptions(MediaFilters(favoritesOnly = true))
         placeFeedOptions.value = MediaFeedOptions(MediaFilters(mediaType = MediaType.Video))
 
-        repository.initialize(MediaFeedSubject.Clan(Uuid.random()))
-        assertEquals(MediaFeedFilter(favoritesOnly = true), repository.filter.value)
+        feed = repository.acquire(MediaFeedSubject.Clan(Uuid.random()))
+        assertEquals(MediaFeedFilter(favoritesOnly = true), feed.filter.value)
 
-        repository.initialize(MediaFeedSubject.Place(Uuid.random()))
-        assertEquals(MediaFeedFilter(mediaType = MediaType.Video), repository.filter.value)
+        feed = repository.acquire(MediaFeedSubject.Place(Uuid.random()))
+        assertEquals(MediaFeedFilter(mediaType = MediaType.Video), feed.filter.value)
     }
 
     @Test
     fun `a new subject in a shuffled area draws a seed`() = runTest {
         peopleFeedOptions.value = MediaFeedOptions(isShuffled = true)
 
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
 
-        assertTrue(repository.filter.value.seed != null)
+        assertTrue(feed.filter.value.seed != null)
     }
 
     @Test
@@ -94,16 +97,16 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonMedia(personId, 2, false, null) } returns
             ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 3))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
 
-        assertEquals(2, repository.media.value.size)
-        assertTrue(repository.hasMore.value)
+        assertEquals(2, feed.media.value.size)
+        assertTrue(feed.hasMore.value)
 
-        repository.loadNextPage().toList()
+        feed.loadNextPage().toList()
 
-        assertEquals(3, repository.media.value.size)
-        assertFalse(repository.hasMore.value)
+        assertEquals(3, feed.media.value.size)
+        assertFalse(feed.hasMore.value)
     }
 
     @Test
@@ -111,9 +114,9 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
+        feed.loadNextPage().toList()
 
         coVerify(exactly = 1) { api.getPersonMedia(personId, any(), any(), any()) }
     }
@@ -125,15 +128,15 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Error("not found", HttpURLConnection.HTTP_NOT_FOUND)
 
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
 
-        val statuses = repository.loadNextPage().toList()
+        val statuses = feed.loadNextPage().toList()
         val last = statuses.last()
 
         assertTrue(last is ExternalCallStatus.Success)
         assertEquals(emptyList<Any>(), (last as ExternalCallStatus.Success).result)
-        assertTrue(repository.media.value.isEmpty())
-        assertFalse(repository.hasMore.value)
+        assertTrue(feed.media.value.isEmpty())
+        assertFalse(feed.hasMore.value)
 
         // nothing was reported to the user, because nothing went wrong
         coVerify(exactly = 0) { apiErrorHandler.handleError(any(), any()) }
@@ -144,9 +147,9 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns ApiResult.Error("boom", 500)
         coEvery { apiErrorHandler.handleError(any(), any()) } returns ExternalCallStatus.Error("boom")
 
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
 
-        val statuses = repository.loadNextPage().toList()
+        val statuses = feed.loadNextPage().toList()
 
         assertTrue(statuses.last() is ExternalCallStatus.Error)
         coVerify(exactly = 1) { apiErrorHandler.handleError(any(), any()) }
@@ -159,72 +162,114 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonMedia(personId, 0, true, null) } returns
             ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 1))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
 
-        assertEquals(2, repository.media.value.size)
+        assertEquals(2, feed.media.value.size)
 
-        repository.setFilter(MediaFeedFilter(favoritesOnly = true))
+        feed.setFilter(MediaFeedFilter(favoritesOnly = true))
 
         // the previous subject's rows are gone the moment the filter changes, rather than lingering
         // under a filter they may not match
-        assertTrue(repository.media.value.isEmpty())
+        assertTrue(feed.media.value.isEmpty())
 
-        repository.loadNextPage().toList()
+        feed.loadNextPage().toList()
 
-        assertEquals(1, repository.media.value.size)
+        assertEquals(1, feed.media.value.size)
     }
 
     @Test
-    fun `re-initializing with the same subject keeps what has been loaded`() = runTest {
+    fun `acquiring the same subject again keeps what has been loaded`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
+        feed = repository.acquire(subject)
 
-        assertEquals(2, repository.media.value.size)
+        assertEquals(2, feed.media.value.size)
     }
 
-    // the pager calls initialize on its way in, over the feed the grid has already narrowed.  if a
+    // the pager acquires the feed on its way in, over what the grid has already narrowed.  if a
     // filter counted as part of the feed's identity that call would reset it to an unfiltered first
     // page, and the item that was tapped would no longer be in the list to show.
     @Test
-    fun `re-initializing with the same subject keeps a filter the grid applied`() = runTest {
+    fun `acquiring the same subject again keeps a filter the grid applied`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
         coEvery { api.getPersonMedia(personId, 0, true, 42L) } returns
             ApiResult.Success(page(count = 3, hasMore = true, nextOffset = 3))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
 
-        repository.setFilter(MediaFeedFilter(favoritesOnly = true, seed = 42L))
-        repository.loadNextPage().toList()
+        feed.setFilter(MediaFeedFilter(favoritesOnly = true, seed = 42L))
+        feed.loadNextPage().toList()
 
         // Act
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
 
         // Assert
-        assertEquals(MediaFeedFilter(favoritesOnly = true, seed = 42L), repository.filter.value)
-        assertEquals(3, repository.media.value.size)
+        assertEquals(MediaFeedFilter(favoritesOnly = true, seed = 42L), feed.filter.value)
+        assertEquals(3, feed.media.value.size)
     }
 
     @Test
-    fun `moving to another subject starts over, unfiltered`() = runTest {
-        val otherId = Uuid.random()
-
+    fun `another subject gets a list of its own, leaving the first as it was`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 2, hasMore = true, nextOffset = 2))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.setFilter(MediaFeedFilter(favoritesOnly = true, seed = 42L))
-        repository.initialize(MediaFeedSubject.Clan(otherId))
+        val first = repository.acquire(subject)
 
-        assertTrue(repository.media.value.isEmpty())
-        assertEquals(MediaFeedFilter(), repository.filter.value)
+        first.loadNextPage().toList()
+        first.setFilter(MediaFeedFilter(seed = 42L))
+
+        val other = repository.acquire(MediaFeedSubject.Clan(Uuid.random()))
+
+        assertTrue(other.media.value.isEmpty())
+        assertEquals(MediaFeedFilter(), other.filter.value)
+        assertEquals(MediaFeedFilter(seed = 42L), first.filter.value)
+        assertSame(first, repository.acquire(subject))
+    }
+
+    @Test
+    fun `a feed lasts until the last holder lets it go`() = runTest {
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns
+            ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 2))
+
+        val grid = repository.acquire(subject)
+        val pager = repository.acquire(subject)
+
+        grid.loadNextPage().toList()
+
+        repository.release(subject)
+        assertSame(pager, repository.acquire(subject))
+
+        repository.release(subject)
+        repository.release(subject)
+
+        assertNotSame(grid, repository.acquire(subject))
+    }
+
+    // the same photograph can be in the feed of everyone in it
+    @Test
+    fun `a media update reaches every feed holding it`() = runTest {
+        val shared = page(count = 1, hasMore = false, nextOffset = 1)
+        val clanId = Uuid.random()
+
+        coEvery { api.getPersonMedia(personId, 0, false, null) } returns ApiResult.Success(shared)
+        coEvery { api.getClanMedia(clanId, 0, false, null) } returns ApiResult.Success(shared)
+
+        val person = repository.acquire(subject)
+        val clan = repository.acquire(MediaFeedSubject.Clan(clanId))
+
+        person.loadNextPage().toList()
+        clan.loadNextPage().toList()
+
+        repository.updateMedia(person.media.value.single().copy(isFavorite = true))
+
+        assertTrue(person.media.value.single().isFavorite)
+        assertTrue(clan.media.value.single().isFavorite)
     }
 
     // a feed the API answers whole comes back with no more results and an offset of zero.  reading
@@ -236,15 +281,15 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns
             ApiResult.Success(page(count = 2, hasMore = false, nextOffset = 0))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
 
         // Act
-        repository.loadNextPage().toList()
+        feed.loadNextPage().toList()
 
         // Assert
-        assertEquals(2, repository.media.value.size)
-        assertEquals(2, repository.media.value.distinctBy { it.id }.size)
+        assertEquals(2, feed.media.value.size)
+        assertEquals(2, feed.media.value.distinctBy { it.id }.size)
         coVerify(exactly = 1) { api.getPersonMedia(personId, 0, false, null) }
     }
 
@@ -265,21 +310,21 @@ class MediaFeedRepositoryTest {
         }
         coEvery { api.getPersonMedia(personId, 0, true, null) } returns ApiResult.Success(fresh)
 
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
 
-        val staleLoad = launch { repository.loadNextPage().toList() }
+        val staleLoad = launch { feed.loadNextPage().toList() }
         runCurrent()
 
         // Act - the filter changes, and only then does the first request come back
-        repository.setFilter(MediaFeedFilter(favoritesOnly = true))
-        repository.loadNextPage().toList()
+        feed.setFilter(MediaFeedFilter(favoritesOnly = true))
+        feed.loadNextPage().toList()
 
         staleRequestLanded.complete(Unit)
         staleLoad.join()
 
         // Assert
-        assertEquals(1, repository.media.value.size)
-        assertEquals(fresh.results.first().id, repository.media.value.first().id)
+        assertEquals(1, feed.media.value.size)
+        assertEquals(fresh.results.first().id, feed.media.value.first().id)
     }
 
     // ---- the categories a subject turns up in, the feed's other listing ----
@@ -291,16 +336,16 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonCategories(personId, 2, false) } returns
             ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 3))
 
-        repository.initialize(subject)
-        repository.loadNextPageOfCategories().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPageOfCategories().toList()
 
-        assertEquals(2, repository.categories.value.size)
-        assertTrue(repository.hasMoreCategories.value)
+        assertEquals(2, feed.categories.value.size)
+        assertTrue(feed.hasMoreCategories.value)
 
-        repository.loadNextPageOfCategories().toList()
+        feed.loadNextPageOfCategories().toList()
 
-        assertEquals(3, repository.categories.value.size)
-        assertFalse(repository.hasMoreCategories.value)
+        assertEquals(3, feed.categories.value.size)
+        assertFalse(feed.hasMoreCategories.value)
     }
 
     // the two listings are how one subject is looked at, so moving between them is not a reason to
@@ -312,16 +357,16 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonCategories(personId, 0, false) } returns
             ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.loadNextPageOfCategories().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
+        feed.loadNextPageOfCategories().toList()
 
         // Act - back to the media, which has nothing more to fetch
-        repository.loadNextPage().toList()
+        feed.loadNextPage().toList()
 
         // Assert
-        assertEquals(2, repository.media.value.size)
-        assertEquals(3, repository.categories.value.size)
+        assertEquals(2, feed.media.value.size)
+        assertEquals(3, feed.categories.value.size)
         coVerify(exactly = 1) { api.getPersonMedia(personId, 0, false, null) }
         coVerify(exactly = 1) { api.getPersonCategories(personId, 0, false) }
     }
@@ -333,16 +378,16 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonCategories(personId, 0, false) } returns
             ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.loadNextPageOfCategories().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
+        feed.loadNextPageOfCategories().toList()
 
         // Act
-        repository.setFilter(MediaFeedFilter(favoritesOnly = true))
+        feed.setFilter(MediaFeedFilter(favoritesOnly = true))
 
         // Assert
-        assertTrue(repository.media.value.isEmpty())
-        assertTrue(repository.categories.value.isEmpty())
+        assertTrue(feed.media.value.isEmpty())
+        assertTrue(feed.categories.value.isEmpty())
     }
 
     // a seed only orders media.  there is no shuffling a list of categories - the API takes no seed
@@ -352,29 +397,14 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonCategories(personId, 0, false) } returns
             ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
 
-        repository.initialize(subject)
-        repository.loadNextPageOfCategories().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPageOfCategories().toList()
 
         // Act
-        repository.setFilter(MediaFeedFilter(seed = 42L))
+        feed.setFilter(MediaFeedFilter(seed = 42L))
 
         // Assert
-        assertEquals(3, repository.categories.value.size)
-    }
-
-    @Test
-    fun `moving to another subject starts the categories over too`() = runTest {
-        coEvery { api.getPersonCategories(personId, 0, false) } returns
-            ApiResult.Success(categoryPage(count = 3, hasMore = false, nextOffset = 3))
-
-        repository.initialize(subject)
-        repository.loadNextPageOfCategories().toList()
-
-        // Act
-        repository.initialize(MediaFeedSubject.Clan(Uuid.random()))
-
-        // Assert
-        assertTrue(repository.categories.value.isEmpty())
+        assertEquals(3, feed.categories.value.size)
     }
 
     // the same rule the media listing follows, and for the same reason - see the notes on
@@ -384,12 +414,12 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonCategories(personId, 0, false) } returns
             ApiResult.Error("not found", HttpURLConnection.HTTP_NOT_FOUND)
 
-        repository.initialize(subject)
+        feed = repository.acquire(subject)
 
-        val statuses = repository.loadNextPageOfCategories().toList()
+        val statuses = feed.loadNextPageOfCategories().toList()
 
         assertTrue(statuses.last() is ExternalCallStatus.Success)
-        assertTrue(repository.categories.value.isEmpty())
+        assertTrue(feed.categories.value.isEmpty())
         coVerify(exactly = 0) { apiErrorHandler.handleError(any(), any()) }
     }
 
@@ -400,10 +430,10 @@ class MediaFeedRepositoryTest {
         coEvery { api.getClanCategories(clanId, 0, false) } returns
             ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
 
-        repository.initialize(MediaFeedSubject.Clan(clanId))
-        repository.loadNextPageOfCategories().toList()
+        feed = repository.acquire(MediaFeedSubject.Clan(clanId))
+        feed.loadNextPageOfCategories().toList()
 
-        assertEquals(1, repository.categories.value.size)
+        assertEquals(1, feed.categories.value.size)
         coVerify(exactly = 1) { api.getClanCategories(clanId, 0, false) }
     }
 
@@ -417,30 +447,30 @@ class MediaFeedRepositoryTest {
             ApiResult.Success(page(count = 1, hasMore = false, nextOffset = 3)),
         )
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
+        feed.loadNextPage().toList()
 
-        assertTrue(repository.mediaLoadFailed.value)
+        assertTrue(feed.mediaLoadFailed.value)
 
-        repository.loadNextPage().toList()
+        feed.loadNextPage().toList()
         coVerify(exactly = 1) { api.getPersonMedia(personId, 2, false, null) }
 
-        repository.retryLoadNextPage().toList()
+        feed.retryLoadNextPage().toList()
 
-        assertFalse(repository.mediaLoadFailed.value)
-        assertEquals(3, repository.media.value.size)
+        assertFalse(feed.mediaLoadFailed.value)
+        assertEquals(3, feed.media.value.size)
     }
 
     @Test
     fun `a 404 is the end of the listing rather than a failure`() = runTest {
         coEvery { api.getPersonMedia(personId, 0, false, null) } returns ApiResult.Error("gone", 404)
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
 
-        assertFalse(repository.mediaLoadFailed.value)
-        assertFalse(repository.hasMore.value)
+        assertFalse(feed.mediaLoadFailed.value)
+        assertFalse(feed.hasMore.value)
     }
 
     @Test
@@ -454,20 +484,20 @@ class MediaFeedRepositoryTest {
         coEvery { api.getPersonCategories(personId, 0, false, "video") } returns
             ApiResult.Success(categoryPage(count = 1, hasMore = false, nextOffset = 1))
 
-        repository.initialize(subject)
-        repository.loadNextPage().toList()
-        repository.loadNextPageOfCategories().toList()
+        feed = repository.acquire(subject)
+        feed.loadNextPage().toList()
+        feed.loadNextPageOfCategories().toList()
 
-        repository.setFilter(MediaFeedFilter(mediaType = MediaType.Video))
+        feed.setFilter(MediaFeedFilter(mediaType = MediaType.Video))
 
-        assertEquals(0, repository.media.value.size)
-        assertEquals(0, repository.categories.value.size)
+        assertEquals(0, feed.media.value.size)
+        assertEquals(0, feed.categories.value.size)
 
-        repository.loadNextPage().toList()
-        repository.loadNextPageOfCategories().toList()
+        feed.loadNextPage().toList()
+        feed.loadNextPageOfCategories().toList()
 
-        assertEquals(1, repository.media.value.size)
-        assertEquals(1, repository.categories.value.size)
+        assertEquals(1, feed.media.value.size)
+        assertEquals(1, feed.categories.value.size)
     }
 
     private fun categoryPage(
